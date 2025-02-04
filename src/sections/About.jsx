@@ -5,7 +5,12 @@ import Button from '../components/Button.jsx';
 
 const About = () => {
   const [hasCopied, setHasCopied] = useState(false);
-
+  const scrollToContact = () => {
+    const contactSection = document.getElementById("contact");
+    if (contactSection) {
+      contactSection.scrollIntoView({ behavior: "smooth" });
+    }
+  };
   const handleCopy = () => {
     navigator.clipboard.writeText(' anirudhvasudevan11@gmail.com');
     setHasCopied(true);
@@ -63,7 +68,7 @@ const About = () => {
             <div>
               <p className="grid-headtext">I am open to relocation and flexible with time zones to collaborate with global teams seamlessly.</p>
               <p className="grid-subtext">Currently based in Minnesota, USA, originally from India, I am actively looking for opportunities worldwide and ready to contribute immediately.</p>
-              <Button name="Contact Me" isBeam containerClass="w-full mt-10" />
+              <Button name="Contact Me" isBeam containerClass="w-full mt-10" onClick={scrollToContact}/>
             </div>
           </div>
         </div>
