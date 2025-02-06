@@ -97,7 +97,7 @@ export const navLinks = [
       title: 'CIVS - Contactless Integrated Voting System',
       desc: 'A patent-pending voting system designed for secure, hygienic, and accessible elections, featuring speech recognition and hand gesture input for enhanced usability.',
       subdesc: 'Developed using React, Flask, and RESTful APIs, CIVS ensures real-time interaction, ballot rectification, and accessibility for physically challenged individuals. Designed with user research-driven Figma prototypes.',
-      href: 'https://github.com/anirxdh',
+      href: 'https://github.com/anirxdh/CIVS',
       texture: '/textures/project/project2.mp4',
       logo: '/assets/project-logo2.png',
       logoStyle: {
@@ -238,36 +238,7 @@ export const navLinks = [
       targetPosition: isSmall ? [-5, -10, -10] : isMobile ? [-9, -10, -10] : isTablet ? [-11, -7, -10] : [-13, -13, -10],
     };
   };
-  
-  // export const workExperiences = [
-  //   {
-  //     id: 1,
-  //     name: 'Framer',
-  //     pos: 'Lead Web Developer',
-  //     duration: '2022 - Present',
-  //     title: "Framer serves as my go-to tool for creating interactive prototypes. I use it to bring designs to  life, allowing stakeholders to experience the user flow and interactions before development.",
-  //     icon: '/assets/framer.svg',
-  //     animation: 'victory',
-  //   },
-  //   {
-  //     id: 2,
-  //     name: 'Figma',
-  //     pos: 'Web Developer',
-  //     duration: '2020 - 2022',
-  //     title: "Figma is my collaborative design platform of choice. I utilize it to work seamlessly with team members and clients, facilitating real-time feedback and design iterations. Its cloud-based.",
-  //     icon: '/assets/figma.svg',
-  //     animation: 'clapping',
-  //   },
-  //   {
-  //     id: 3,
-  //     name: 'Notion',
-  //     pos: 'Junior Web Developer',
-  //     duration: '2019 - 2020',
-  //     title: "Notion helps me keep my projects organized. I use it for project management, task tracking, and as a central hub for documentation, ensuring that everything from design notes to.",
-  //     icon: '/assets/notion.svg',
-  //     animation: 'salute',
-  //   },
-  // ];
+ 
 
   export const workExperiences = [
     {
@@ -279,15 +250,7 @@ export const navLinks = [
       icon: '/assets/university.png',
       animation: 'victory',
     },
-    // {
-    //   id: 2,
-    //   name: 'Personifwy – Workforce Engagement Solutions | Bengaluru, Karnataka',
-    //   pos: 'Full Stack AI Developer Intern',
-    //   duration: 'March 2022 – May 2022',
-    //   title: "Developed an LSTM-based deep neural network to detect deep fakes, integrating it with a React and Flask application. Built and deployed RESTful APIs while leveraging TypeScript, TailwindCSS, and SQL for efficient data handling and visualization.",
-    //   icon: '/assets/personifwy.png',
-    //   animation: 'clapping',
-    // },
+  
     {
       id: 2,
       name: 'Genik Research Institute | Chennai, Tamil Nadu',
