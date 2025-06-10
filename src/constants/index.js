@@ -21,40 +21,40 @@ export const navLinks = [
     },
   ];
   
-  export const clientReviews = [
-    {
-      id: 1,
-      name: 'Emily Johnson',
-      position: 'Marketing Director at GreenLeaf',
-      img: 'assets/review1.png',
-      review:
-        'Working with Adrian was a fantastic experience. He transformed our outdated website into a modern, user-friendly platform. His attention to detail and commitment to quality are unmatched. Highly recommend him for any web dev projects.',
-    },
-    {
-      id: 2,
-      name: 'Mark Rogers',
-      position: 'Founder of TechGear Shop',
-      img: 'assets/review2.png',
-      review:
-        'Adrian’s expertise in web development is truly impressive. He delivered a robust and scalable solution for our e-commerce site, and our online sales have significantly increased since the launch. He’s a true professional! Fantastic work.',
-    },
-    {
-      id: 3,
-      name: 'John Dohsas',
-      position: 'Project Manager at UrbanTech ',
-      img: 'assets/review3.png',
-      review:
-        'I can’t say enough good things about Adrian. He was able to take our complex project requirements and turn them into a seamless, functional website. His problem-solving abilities are outstanding.',
-    },
-    {
-      id: 4,
-      name: 'Ether Smith',
-      position: 'CEO of BrightStar Enterprises',
-      img: 'assets/review4.png',
-      review:
-        'Adrian was a pleasure to work with. He understood our requirements perfectly and delivered a website that exceeded our expectations. His skills in both frontend backend dev are top-notch.',
-    },
-  ];
+  // export const clientReviews = [
+  //   {
+  //     id: 1,
+  //     name: 'Emily Johnson',
+  //     position: 'Marketing Director at GreenLeaf',
+  //     img: 'assets/review1.png',
+  //     review:
+  //       'Working with Adrian was a fantastic experience. He transformed our outdated website into a modern, user-friendly platform. His attention to detail and commitment to quality are unmatched. Highly recommend him for any web dev projects.',
+  //   },
+  //   {
+  //     id: 2,
+  //     name: 'Mark Rogers',
+  //     position: 'Founder of TechGear Shop',
+  //     img: 'assets/review2.png',
+  //     review:
+  //       'Adrian's expertise in web development is truly impressive. He delivered a robust and scalable solution for our e-commerce site, and our online sales have significantly increased since the launch. He's a true professional! Fantastic work.',
+  //   },
+  //   {
+  //     id: 3,
+  //     name: 'John Dohsas',
+  //     position: 'Project Manager at UrbanTech ',
+  //     img: 'assets/review3.png',
+  //     review:
+  //       "I can't say enough good things about Adrian. He was able to take our complex project requirements and turn them into a seamless, functional website. His problem-solving abilities are outstanding.",
+  //   },
+  //   {
+  //     id: 4,
+  //     name: 'Ether Smith',
+  //     position: 'CEO of BrightStar Enterprises',
+  //     img: 'assets/review4.png',
+  //     review:
+  //       'Adrian was a pleasure to work with. He understood our requirements perfectly and delivered a website that exceeded our expectations. His skills in both frontend backend dev are top-notch.',
+  //   },
+  // ];
   
   export const myProjects = [
     {
@@ -94,11 +94,52 @@ export const navLinks = [
       ],
     },
     {
+      title: 'TalkativePDF - AI-Powered PDF Chat Platform',
+      desc: 'TalkativePDF is an innovative AI-powered application that transforms static PDFs into interactive conversation partners, enabling users to chat with their documents using advanced AI technology.',
+      subdesc: 'Built with Next.js, TypeScript, and Tailwind CSS, featuring AI embeddings via OpenAI, vector storage with Pinecone, and secure authentication through Clerk. Supports real-time PDF analysis, intelligent Q&A, and subscription management with Stripe integration.',
+      href: 'https://talkative-pdf.vercel.app/',
+      texture: '/textures/project/project4.mp4',
+      logo: '/assets/talkativepdfs.png',
+      logoStyle: {
+        backgroundColor: '#1A1A1A',
+        border: '0.2px solid #333333',
+        boxShadow: '0px 0px 60px 0px #4F46E54D',
+      },
+      spotlight: '/assets/spotlight-talkativepdf.png',
+      tags: [
+        {
+          id: 1,
+          name: 'Next.js',
+          path: '/assets/nextjs.png',
+        },
+        {
+          id: 2,
+          name: 'TypeScript',
+          path: '/assets/typescript.png',
+        },
+        {
+          id: 3,
+          name: 'OpenAI',
+          path: '/assets/openai.png',
+        },
+        {
+          id: 4,
+          name: 'Langchain',
+          path: '/assets/langchain.png',
+        },
+        {
+          id: 5,
+          name: 'Clerk',
+          path: '/assets/clerk.jpeg',
+        },
+      ],
+    },
+    {
       title: 'CIVS - Contactless Integrated Voting System',
       desc: 'A patent-pending voting system designed for secure, hygienic, and accessible elections, featuring speech recognition and hand gesture input for enhanced usability.',
       subdesc: 'Developed using React, Flask, and RESTful APIs, CIVS ensures real-time interaction, ballot rectification, and accessibility for physically challenged individuals. Designed with user research-driven Figma prototypes.',
       href: 'https://github.com/anirxdh/CIVS',
-      texture: '/textures/project/project2.mp4',
+      texture: '/textures/project/project3.mp4',
       logo: '/assets/project-logo2.png',
       logoStyle: {
         backgroundColor: '#13202F',
@@ -134,7 +175,7 @@ export const navLinks = [
     desc: 'SettleIn is a mobile app designed to support international students at the University of Minnesota by streamlining key onboarding tasks and enhancing social integration.',
     subdesc: 'Developed with a comprehensive design process including user research, personas, heuristic evaluations, and cognitive walkthroughs. The app guides students in finding housing, completing paperwork, and building peer connections.',
     href: 'https://www.figma.com/proto/4jpCPHsjQomd4FouaDapLv/SettleIn?page-id=0%3A1&node-id=11-4&p=f&viewport=531%2C327%2C0.07&t=3MOfR7hJHdPX5VPa-1&scaling=scale-down&content-scaling=fixed&starting-point-node-id=11%3A4',
-      texture: '/textures/project/project3.mp4',
+      texture: '/textures/project/project4.mp4',
       logo: '/assets/project-logo3.png',
       logoStyle: {
         backgroundColor: '#60f5a1',
@@ -162,7 +203,7 @@ export const navLinks = [
     desc: 'An AI-powered deepfake detection system leveraging deep learning techniques like ResNext and LSTM to identify manipulated videos.',
     subdesc: 'Using transfer learning, the pretrained ResNext CNN extracts feature vectors, which are further analyzed by an LSTM layer for accurate classification of deepfake content.',
     href: 'https://github.com/anirxdh/Deep_Fake_classification',
-      texture: '/textures/project/project4.mp4',
+      texture: '/textures/project/project5.mp4',
       logo: '/assets/project-logo4.png',
       logoStyle: {
         backgroundColor: '#0E1F38',
@@ -245,28 +286,27 @@ export const navLinks = [
       id: 1,
       name: 'University of Minnesota | Twin Cities, MN',
       pos: 'Graduate Research Assistant',
-      duration: 'January 2024 – May 2025 (Expected)',
+      duration: 'January 2024 – August 2025 (Expected)',
       title: "As a Research Assistant at the Institute of Health Informatics, I conduct data processing, causal analysis, and predictive modeling to address K-12 educational and health inequities in Minnesota. I collaborate with stakeholders to implement analytical methodologies in Python within a high-security framework.",
       icon: '/assets/university.png',
       animation: 'victory',
     },
-  
     {
       id: 2,
+      name: 'Blue Hex Software | Chennai, Tamil Nadu',
+      pos: 'Full Stack AI Engineer',
+      duration: 'September 2022 – March 2023',
+      title: "Built an OCR application using Python and Flask for automated data extraction from PDFs. Integrated SQL for optimized data storage and retrieval while contributing to deployment and version control processes using Git/GitHub.",
+      icon: '/assets/bhs.png',
+      animation: 'clapping',
+    },
+    {
+      id: 3,
       name: 'Genik Research Institute | Chennai, Tamil Nadu',
       pos: 'Full Stack Developer Intern (Computer Vision)',
       duration: 'December 2021 – April 2022',
       title: "Created a contactless real-time voting system using YOLOv7 and a React-Flask interface for secure electoral processes. Developed a CNN-based web app for aerial data classification, ensuring responsive design and cross-platform accessibility.",
       icon: '/assets/genik.png',
       animation: 'salute',
-    },
-    {
-      id: 3,
-      name: 'Blue Hex Software | Chennai, Tamil Nadu',
-      pos: 'Python Intern',
-      duration: 'September 2021 – March 2022',
-      title: "Built an OCR application using Python and Flask for automated data extraction from PDFs. Integrated SQL for optimized data storage and retrieval while contributing to deployment and version control processes using Git/GitHub.",
-      icon: '/assets/bhs.png',
-      animation: 'clapping',
     },
   ];
