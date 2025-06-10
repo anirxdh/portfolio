@@ -98,14 +98,14 @@ export const navLinks = [
       desc: 'TalkativePDF is an innovative AI-powered application that transforms static PDFs into interactive conversation partners, enabling users to chat with their documents using advanced AI technology.',
       subdesc: 'Built with Next.js, TypeScript, and Tailwind CSS, featuring AI embeddings via OpenAI, vector storage with Pinecone, and secure authentication through Clerk. Supports real-time PDF analysis, intelligent Q&A, and subscription management with Stripe integration.',
       href: 'https://talkative-pdf.vercel.app/',
-      texture: '/textures/project/project4.mp4',
+      texture: '/textures/project/project3.mp4',
       logo: '/assets/talkativepdfs.png',
       logoStyle: {
         backgroundColor: '#1A1A1A',
         border: '0.2px solid #333333',
         boxShadow: '0px 0px 60px 0px #4F46E54D',
       },
-      spotlight: '/assets/spotlight-talkativepdf.png',
+      spotlight: '/assets/spotlight3.png',
       tags: [
         {
           id: 1,
