@@ -285,9 +285,9 @@ export const navLinks = [
     {
       id: 1,
       name: 'University of Minnesota | Twin Cities, MN',
-      pos: 'Graduate Research Assistant',
-      duration: 'January 2024 – August 2025 (Expected)',
-      title: "As a Research Assistant at the Institute of Health Informatics, I conduct data processing, causal analysis, and predictive modeling to address K-12 educational and health inequities in Minnesota. I collaborate with stakeholders to implement analytical methodologies in Python within a high-security framework.",
+      pos: 'Graduate AI Research Assistant',
+      duration: 'August 2023 – Present',
+      title: "Built scalable Python pipelines with Pandas and Scikit-learn to analyze K–12 educational and health inequities across Minnesota, cutting preprocessing time by 75%. Developed an AI-integrated web platform using React, Flask, and Three.js to visualize school data trends and predictions. The 3D interface and chatbot enable interactive exploration, supporting researchers and educators in uncovering disparities and driving data-informed decisions in a privacy-compliant environment.",
       icon: '/assets/university.png',
       animation: 'victory',
     },
