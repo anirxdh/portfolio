@@ -209,7 +209,7 @@ export const navLinks = [
     {
       id: 1,
       name: 'Nonlinear | San Francisco, CA',
-      pos: 'AI Engineer',
+      pos: 'Founding Engineer',
       duration: 'August 2025 – Present',
       title: "Engineered the Universal Node System for AI workflows, enabling dynamic property handling, mustache variable parsing, and seamless frontend–backend synchronization. Created AI agents for workflow automation and developed a Microsoft Teams bot, successfully published on the Teams Store. Delivered production-grade features using Next.js 15, React 19, TypeScript, tRPC, Redux Toolkit, Zustand, Drizzle ORM, PostgreSQL, Tailwind CSS, Radix UI, AWS, and integrated OpenAI, Anthropic, and Gemini models.",
       icon: '/assets/Nonlinear.png',
