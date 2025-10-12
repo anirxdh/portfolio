@@ -30,7 +30,7 @@ const About = () => {
             <div>
               <p className="grid-headtext">Hi, I’m Anirudh Vasudevan</p>
               <p className="grid-subtext">
-              I’m a Full-Stack Developer with a strong inclination toward frontend development and AI integration. Currently pursuing my MS in Computer Science at the University of Minnesota (UMN), I specialize in building dynamic, responsive, and intelligent applications that merge creativity with cutting-edge technology.
+              I’m a Full-Stack Developer with a strong inclination toward frontend development and AI integration. Currently working at Nonlinear as Founding Engineer and graduated with MS in Computer Science at the University of Minnesota (UMN), I specialize in building dynamic, responsive, and intelligent applications that merge creativity with cutting-edge technology.
               </p>
             </div>
           </div>
@@ -67,7 +67,7 @@ const About = () => {
             </div>
             <div>
               <p className="grid-headtext">I am open to relocation and flexible with time zones to collaborate with global teams seamlessly.</p>
-              <p className="grid-subtext">Currently based in Minnesota, USA, originally from India, I am actively looking for opportunities worldwide and ready to contribute immediately.</p>
+              <p className="grid-subtext">Currently based in San Francisco, USA, originally from India, I am actively looking for opportunities worldwide and ready to contribute immediately.</p>
               <Button name="Contact Me" isBeam containerClass="w-full mt-10" onClick={scrollToContact}/>
             </div>
           </div>

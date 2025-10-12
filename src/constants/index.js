@@ -21,41 +21,6 @@ export const navLinks = [
     },
   ];
   
-  export const clientReviews = [
-    {
-      id: 1,
-      name: 'Emily Johnson',
-      position: 'Marketing Director at GreenLeaf',
-      img: 'assets/review1.png',
-      review:
-        'Working with Adrian was a fantastic experience. He transformed our outdated website into a modern, user-friendly platform. His attention to detail and commitment to quality are unmatched. Highly recommend him for any web dev projects.',
-    },
-    {
-      id: 2,
-      name: 'Mark Rogers',
-      position: 'Founder of TechGear Shop',
-      img: 'assets/review2.png',
-      review:
-        'Adrian’s expertise in web development is truly impressive. He delivered a robust and scalable solution for our e-commerce site, and our online sales have significantly increased since the launch. He’s a true professional! Fantastic work.',
-    },
-    {
-      id: 3,
-      name: 'John Dohsas',
-      position: 'Project Manager at UrbanTech ',
-      img: 'assets/review3.png',
-      review:
-        'I can’t say enough good things about Adrian. He was able to take our complex project requirements and turn them into a seamless, functional website. His problem-solving abilities are outstanding.',
-    },
-    {
-      id: 4,
-      name: 'Ether Smith',
-      position: 'CEO of BrightStar Enterprises',
-      img: 'assets/review4.png',
-      review:
-        'Adrian was a pleasure to work with. He understood our requirements perfectly and delivered a website that exceeded our expectations. His skills in both frontend backend dev are top-notch.',
-    },
-  ];
-  
   export const myProjects = [
     {
       title: 'BlewIt - A Reddit Clone',
@@ -243,22 +208,21 @@ export const navLinks = [
   export const workExperiences = [
     {
       id: 1,
+      name: 'Nonlinear | San Francisco, CA',
+      pos: 'AI Engineer',
+      duration: 'August 2025 – Present',
+      title: "Engineered the Universal Node System for AI workflows, enabling dynamic property handling, mustache variable parsing, and seamless frontend–backend synchronization. Created AI agents for workflow automation and developed a Microsoft Teams bot, successfully published on the Teams Store. Delivered production-grade features using Next.js 15, React 19, TypeScript, tRPC, Redux Toolkit, Zustand, Drizzle ORM, PostgreSQL, Tailwind CSS, Radix UI, AWS, and integrated OpenAI, Anthropic, and Gemini models.",
+      icon: '/assets/Nonlinear.png',
+      animation: 'clapping',
+    },
+    {
+      id: 2,
       name: 'University of Minnesota | Twin Cities, MN',
       pos: 'Graduate Research Assistant',
-      duration: 'January 2024 – May 2025 (Expected)',
+      duration: 'January 2024 – July 2025',
       title: "As a Research Assistant at the Institute of Health Informatics, I conduct data processing, causal analysis, and predictive modeling to address K-12 educational and health inequities in Minnesota. I collaborate with stakeholders to implement analytical methodologies in Python within a high-security framework.",
       icon: '/assets/university.png',
       animation: 'victory',
-    },
-  
-    {
-      id: 2,
-      name: 'Genik Research Institute | Chennai, Tamil Nadu',
-      pos: 'Full Stack Developer Intern (Computer Vision)',
-      duration: 'December 2021 – April 2022',
-      title: "Created a contactless real-time voting system using YOLOv7 and a React-Flask interface for secure electoral processes. Developed a CNN-based web app for aerial data classification, ensuring responsive design and cross-platform accessibility.",
-      icon: '/assets/genik.png',
-      animation: 'salute',
     },
     {
       id: 3,
