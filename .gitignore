@@ -24,3 +24,7 @@ dist-ssr
 *.sw?
 
 .env
+.env.local
+scripts/documents/*
+!scripts/documents/.gitkeep
+.netlify
