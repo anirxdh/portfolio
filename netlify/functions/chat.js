@@ -1,8 +1,8 @@
-import { generateEmbedding, streamChatCompletion } from './utils/openai.js';
-import { queryVectorStore } from './utils/pinecone.js';
+import { streamChatCompletion } from './utils/openai.js';
 
 /**
  * Netlify serverless function for AI chat
+ * Simple system-prompt-based chatbot (no RAG/vector search)
  */
 export const handler = async (event) => {
   // Only allow POST requests
@@ -43,27 +43,17 @@ export const handler = async (event) => {
 
     console.log(`Received message: "${message.substring(0, 50)}..."`);
 
-    // Step 1: Generate embedding for the user's question
-    const embedding = await generateEmbedding(message);
-    console.log('Generated embedding for query');
-
-    // Step 2: Query Pinecone for relevant context
-    const relevantContext = await queryVectorStore(embedding, 5);
-    console.log(`Retrieved ${relevantContext.length} relevant chunks`);
-
-    // Step 3: Build message history
+    // Build message history (keep last 6 messages for context)
     const messages = [
-      ...conversationHistory.slice(-6), // Keep last 3 exchanges
+      ...conversationHistory.slice(-6),
       { role: 'user', content: message },
     ];
 
-    // Step 4: Get streaming response from OpenAI
-    const stream = await streamChatCompletion(messages, relevantContext);
+    // Get streaming response from OpenAI
+    const stream = await streamChatCompletion(messages);
 
-    // Step 5: Stream the response back to client
-    let fullResponse = '';
-    
     // Collect the stream
+    let fullResponse = '';
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content || '';
       fullResponse += content;
@@ -78,7 +68,6 @@ export const handler = async (event) => {
       },
       body: JSON.stringify({
         response: fullResponse,
-        contextsUsed: relevantContext.length,
       }),
     };
   } catch (error) {

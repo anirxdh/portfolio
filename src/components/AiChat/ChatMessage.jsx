@@ -7,11 +7,19 @@ const ChatMessage = ({ message }) => {
       <div className={`flex items-start gap-2 max-w-[80%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
         {/* Avatar */}
         <div
-          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-            isUser ? 'bg-black-500 text-white' : 'bg-gradient-to-r from-blue-500 to-purple-500 text-white'
+          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center overflow-hidden ${
+            isUser ? 'bg-black-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'
           }`}
         >
-          {isUser ? '👤' : '🤖'}
+          {isUser ? (
+            <span className="text-white text-sm font-semibold">👤</span>
+          ) : (
+            <img 
+              src="/assets/anirudh-avatar.png" 
+              alt="AniBot"
+              className="w-full h-full object-cover"
+            />
+          )}
         </div>
 
         {/* Message bubble */}

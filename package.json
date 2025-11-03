@@ -7,13 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview",
-    "embed": "node scripts/embedDocuments.js"
+    "preview": "vite preview"
   },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
     "@gsap/react": "^2.1.2",
-    "@pinecone-database/pinecone": "^6.1.2",
     "@react-three/drei": "^9.121.4",
     "@react-three/fiber": "^8.17.14",
     "dotenv": "^17.2.3",
@@ -21,7 +19,6 @@
     "leva": "^0.10.0",
     "maath": "^0.10.8",
     "openai": "^6.7.0",
-    "pdf-parse": "^2.4.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-globe.gl": "^2.31.3",
