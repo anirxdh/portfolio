@@ -13,10 +13,6 @@ export const useAiChat = () => {
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
-
-  /**
-   * Send a message to the chatbot
-   */
   const sendMessage = useCallback(async (userMessage) => {
     if (!userMessage.trim() || isLoading) return;
 
@@ -33,7 +29,6 @@ export const useAiChat = () => {
     setError(null);
 
     try {
-      // Prepare conversation history (last 6 messages, excluding welcome)
       const conversationHistory = messages
         .filter(msg => msg.id !== 'welcome')
         .slice(-6)
@@ -42,7 +37,6 @@ export const useAiChat = () => {
           content: msg.content,
         }));
 
-      // Call API
       const response = await fetch(API_URL, {
         method: 'POST',
         headers: {
