@@ -68,7 +68,6 @@ export const useAiChat = () => {
       console.error('Chat error:', err);
       setError('Failed to get response. Please try again.');
 
-      // Add error message to chat
       const errorMsg = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
@@ -83,9 +82,6 @@ export const useAiChat = () => {
     }
   }, [messages, isLoading]);
 
-  /**
-   * Clear chat history
-   */
   const clearMessages = useCallback(() => {
     setMessages([
       {
