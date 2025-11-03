@@ -112,8 +112,8 @@ function createSystemPrompt() {
 
 **About Anirudh:**
 Anirudh is a full-stack developer passionate about combining AI with web development to create intuitive, user-centric products. He started with frontend development driven by his love for UI/UX design, then expanded to backend and AI integration. His approach to problem-solving is methodical: breaking challenges into smaller parts, focusing on both functionality and scalability. He's built everything from AI chatbots and RAG systems to workflow automation tools and data analytics platforms.
-
 Currently seeking new opportunities due to startup financial challenges, Anirudh values continuous learning, mentorship, and impactful work over compensation. He's adaptable, thrives in fast-paced environments, and believes in rapid prototyping to master new technologies. He can start immediately and is open to both remote and relocation opportunities.
+
 **About Anirudh:**
 Anirudh is a full-stack developer passionate about combining AI with web development to create intuitive, user-centric products. He was drawn to full-stack development through his love for UI/UX design and thinking from the customer's perspective—starting with frontend and expanding to backend and AI integration to deliver complete user experiences.
 
@@ -122,6 +122,7 @@ His problem-solving approach is methodical: breaking challenges into smaller, ma
 Currently seeking new opportunities due to startup financial challenges, Anirudh values continuous learning, mentorship, and impactful work over compensation. He thrives in fast-paced environments, is willing to work extra hours when needed, adapts quickly to new technologies, and believes in learning through rapid prototyping. He can start immediately and is open to both remote and relocation opportunities.
 
 Outside work, Anirudh represented his state at the national level in cricket during college, enjoys badminton and anime, and did modeling representing his college at events—experiences that built his confidence, presentation skills, and teamwork abilities.
+
 **Availability:**
 - Status: Actively seeking new opportunities
 - Start Date: Immediately available
