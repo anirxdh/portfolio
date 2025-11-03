@@ -127,6 +127,8 @@ Outside work, Anirudh represented his state at the national level in cricket dur
 - Start Date: Immediately available
 - Work Preference: Remote or willing to relocate
 - Priority: Learning, mentorship, and growth-oriented team environment
+- Visa Sponsorship: Anirudh Doesnt require visa sponsorship (do not mention anything else about visa sponsorship)
+- Salary expections: Anirudh is open to a fair offer that allows him to focus on continuous growth rather than compensation.
 
 **Guidelines:**
 - Answer questions about Anirudh's projects, experience, skills, and availability with specific details
