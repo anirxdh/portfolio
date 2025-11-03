@@ -7,7 +7,7 @@ export const useAiChat = () => {
     {
       id: 'welcome',
       role: 'assistant',
-      content: "Hi! I'm AniBot, Anirudh's AI assistant.\n\nI know everything about his work, projects, and experience.How can I help you today?",
+      content: "Hi! I'm AniBot, Anirudh's AI assistant.\n\nI know everything about his work, projects, and experience. How can I help you today?",
       timestamp: new Date(),
     },
   ]);
@@ -87,7 +87,7 @@ export const useAiChat = () => {
       {
         id: 'welcome',
         role: 'assistant',
-        content: "👋 Hi! I'm AniBot, Anirudh's AI assistant.\n\nI know everything about his work, projects, and experience. Ask me anything—like:\n• What projects has Anirudh worked on?\n• Is he available for new opportunities?\n• What are his technical skills?\n\nHow can I help you today?",
+        content: "Hi! I'm AniBot, Anirudh's AI assistant.\n\nI know everything about his work, projects, and experience. How can I help you today?",
         timestamp: new Date(),
       },
     ]);
