@@ -16,7 +16,6 @@ export const useAiChat = () => {
   const sendMessage = useCallback(async (userMessage) => {
     if (!userMessage.trim() || isLoading) return;
 
-    // Add user message to chat
     const userMsg = {
       id: Date.now().toString(),
       role: 'user',
