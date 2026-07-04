@@ -84,7 +84,7 @@ const About = () => {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16" />
                 </svg>
-                Download Résumé
+                Download Resume
               </a>
             </div>
           </div>

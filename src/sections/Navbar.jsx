@@ -14,7 +14,16 @@ const NavItems = ({ onClick = () => {} }) => (
   </ul>
 );
 
-const Navbar = () => {
+const PillButton = ({ onClick, icon, label }) => (
+  <button
+    onClick={onClick}
+    className="flex items-center gap-1.5 rounded-full border border-purple-400/40 bg-purple-500/10 px-3.5 py-1.5 text-sm text-purple-200 hover:bg-purple-500/20 hover:text-white transition-colors focus:outline-none focus:ring-2 focus:ring-purple-400"
+  >
+    <span aria-hidden="true">{icon}</span> {label}
+  </button>
+);
+
+const Navbar = ({ onExplore = () => {}, onHeroLab = () => {} }) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen(!isOpen);
@@ -35,15 +44,33 @@ const Navbar = () => {
             <img src={isOpen ? 'assets/close.svg' : 'assets/menu.svg'} alt="toggle" className="w-6 h-6" />
           </button>
 
-          <nav className="sm:flex hidden">
+          <nav className="sm:flex hidden items-center gap-4">
             <NavItems />
+            <PillButton onClick={onHeroLab} icon="✨" label="New Hero" />
+            <PillButton onClick={onExplore} icon="🎮" label="Explore" />
           </nav>
         </div>
       </div>
 
       <div className={`nav-sidebar ${isOpen ? 'max-h-screen' : 'max-h-0'}`}>
-        <nav className="p-5">
+        <nav className="p-5 flex flex-col gap-4 items-start">
           <NavItems onClick={closeMenu} />
+          <PillButton
+            onClick={() => {
+              closeMenu();
+              onHeroLab();
+            }}
+            icon="✨"
+            label="New Hero"
+          />
+          <PillButton
+            onClick={() => {
+              closeMenu();
+              onExplore();
+            }}
+            icon="🎮"
+            label="Explore"
+          />
         </nav>
       </div>
     </header>
