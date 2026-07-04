@@ -1,3 +1,32 @@
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+
+// Markdown element styling so AniBot's replies render like a polished chat message.
+const markdownComponents = {
+  p: ({ children }) => <p className="mb-2 last:mb-0 leading-relaxed">{children}</p>,
+  ul: ({ children }) => <ul className="list-disc pl-4 space-y-1 mb-2 last:mb-0">{children}</ul>,
+  ol: ({ children }) => <ol className="list-decimal pl-4 space-y-1 mb-2 last:mb-0">{children}</ol>,
+  li: ({ children }) => <li className="leading-relaxed">{children}</li>,
+  strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
+  em: ({ children }) => <em className="italic">{children}</em>,
+  a: ({ children, href }) => (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="text-blue-400 underline underline-offset-2 hover:text-blue-300"
+    >
+      {children}
+    </a>
+  ),
+  code: ({ children }) => (
+    <code className="bg-black-300 px-1 py-0.5 rounded text-[0.8em]">{children}</code>
+  ),
+  h1: ({ children }) => <p className="font-semibold text-white mb-2">{children}</p>,
+  h2: ({ children }) => <p className="font-semibold text-white mb-2">{children}</p>,
+  h3: ({ children }) => <p className="font-semibold text-white mb-2">{children}</p>,
+};
+
 const ChatMessage = ({ message }) => {
   const isUser = message.role === 'user';
   const isError = message.isError;
@@ -14,8 +43,8 @@ const ChatMessage = ({ message }) => {
           {isUser ? (
             <span className="text-white text-sm font-semibold">👤</span>
           ) : (
-            <img 
-              src="/assets/anirudh-avatar.png" 
+            <img
+              src="/assets/anirudh-avatar.png"
               alt="AniBot"
               className="w-full h-full object-cover"
             />
@@ -32,8 +61,16 @@ const ChatMessage = ({ message }) => {
               : 'bg-black-200 text-gray-100'
           }`}
         >
-          {/* Message content - preserve line breaks */}
-          <div className="text-sm whitespace-pre-wrap break-words">{message.content}</div>
+          {/* Message content */}
+          {isUser ? (
+            <div className="text-sm whitespace-pre-wrap break-words">{message.content}</div>
+          ) : (
+            <div className="text-sm break-words">
+              <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+                {message.content}
+              </ReactMarkdown>
+            </div>
+          )}
 
           {/* Timestamp */}
           <div className={`text-xs mt-1 ${isUser ? 'text-gray-400' : 'text-gray-500'}`}>
@@ -46,4 +83,3 @@ const ChatMessage = ({ message }) => {
 };
 
 export default ChatMessage;
-

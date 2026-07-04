@@ -69,12 +69,12 @@ const Contact = () => {
       {alert.show && <Alert {...alert} />}
 
       <div className="relative min-h-screen flex items-center justify-center flex-col">
-        <img src="/assets/terminal.png" alt="terminal-bg" className="absolute inset-0 min-h-screen" />
+        <img src="/assets/terminal.png" alt="" aria-hidden="true" className="absolute inset-0 min-h-screen" />
 
         <div className="pt-8 contact-container">
           <h3 className="head-text">Let's talk</h3>
           <p className="text-lg text-white-600 mt-3">
-          I’m actively seeking exciting opportunities where I can contribute my expertise in full-stack development, AI-driven applications, and innovative problem-solving. If you’re looking for a passionate and skilled developer to join your team, let’s connect! Feel free to reach out for discussions on potential roles, collaborations, or any questions about my work.
+          I’m currently a Member of Technical Staff at Rivo, and I love connecting with people building ambitious things. Whether it’s a collaboration, an AI/agent problem worth solving, a hackathon, or just a great conversation about full-stack and AI engineering — feel free to reach out. I read every message.
           </p>
 
           <form ref={formRef} onSubmit={handleSubmit} className="mt-4 flex flex-col space-y-7">

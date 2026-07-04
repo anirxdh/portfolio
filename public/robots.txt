@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://anirudhvasudevan.netlify.app/sitemap.xml

@@ -95,20 +95,6 @@ const AiChatbot = () => {
         />
       )}
 
-      {/* Mobile full-screen chat */}
-      <style jsx>{`
-        @media (max-width: 768px) {
-          .chat-window {
-            width: 100vw !important;
-            height: 100vh !important;
-            max-width: 100vw !important;
-            max-height: 100vh !important;
-            bottom: 0 !important;
-            right: 0 !important;
-            border-radius: 0 !important;
-          }
-        }
-      `}</style>
     </>
   );
 };

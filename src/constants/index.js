@@ -23,12 +23,33 @@ export const navLinks = [
   
   export const myProjects = [
     {
-      title: 'BlewIt - A Reddit Clone',
-      desc: 'BlewIt is a full-stack social media platform inspired by Reddit, allowing multiple users to create, interact, and manage their content seamlessly.',
-      subdesc: 'Built using Flask, PostgreSQL, HTML, CSS, and JavaScript, BlewIt supports image uploads, commenting, upvotes/downvotes, and category-based content following. Integrated authentication via Auth0 for a secure user experience.',
-      href: 'https://blewit.onrender.com/',
+      title: 'LARK — Multi-Agent Orchestration MCP',
+      desc: '🏆 Top 10 at the Y Combinator AI Hackathon. A hierarchical multi-agent system built on the Model Context Protocol (MCP) that turns ChatGPT and Claude into action platforms.',
+      subdesc:
+        'A unified parent MCP orchestrator routes across three specialized child servers (media, messaging, telephony) with dynamic tool selection — making real Twilio calls and group calls, enabling cross-model AI-to-AI messaging, and handling music and YouTube, all from a phone-like widget inside chat. Built with TypeScript, React 19, and Twilio, and deployed via mcp-use.',
+      href: 'https://github.com/anirxdh/YC-hack',
+      texture: '/textures/project/project5.mp4',
+      logo: '/assets/project-logo5.png',
+      logoStyle: {
+        backgroundColor: '#1C1A43',
+        border: '0.2px solid #252262',
+        boxShadow: '0px 0px 60px 0px #635BFF4D',
+      },
+      spotlight: '/assets/spotlight5.png',
+      tags: [
+        { id: 1, name: 'TypeScript', path: '/assets/typescript.png' },
+        { id: 2, name: 'React.js', path: '/assets/react.svg' },
+        { id: 3, name: 'TailwindCSS', path: '/assets/tailwindcss.png' },
+      ],
+    },
+    {
+      title: 'Apartment 4B — Horror Mystery Game',
+      desc: '🥉 3rd place at ElevenHacks (ElevenLabs × Zed). A first-person lo-fi horror mystery game built end-to-end in 36 hours.',
+      subdesc:
+        'Explore procedurally generated apartments, collect voice-acted cassette tapes, and solve sequential lock puzzles under a ticking timer to unravel the mystery. Built with React Three Fiber, Three.js, TypeScript, Zustand, and Howler.js, with ElevenLabs for voice and sound — featuring save state, multiple endings, and a PS1-style aesthetic.',
+      href: 'https://apartment-4b.netlify.app',
       texture: '/textures/project/project1.mp4',
-      logo: '/assets/BlewIt.png',
+      logo: '/assets/project-logo1.png',
       logoStyle: {
         backgroundColor: '#2A1816',
         border: '0.2px solid #36201D',
@@ -36,32 +57,96 @@ export const navLinks = [
       },
       spotlight: '/assets/spotlight1.png',
       tags: [
-        {
-          id: 1,
-          name: 'React.js',
-          path: '/assets/react.svg',
-        },
-        {
-          id: 2,
-          name: 'Bootstrap',
-          path: 'assets/Bootstrap.png',
-        },
-        {
-          id: 3,
-          name: 'flask',
-          path: '/assets/flask.png',
-        },
-        {
-          id: 4,
-          name: 'auth0',
-          path: '/assets/auth0.png',
-        },
+        { id: 1, name: 'TypeScript', path: '/assets/typescript.png' },
+        { id: 2, name: 'React.js', path: '/assets/react.svg' },
+        { id: 3, name: 'TailwindCSS', path: '/assets/tailwindcss.png' },
       ],
     },
     {
-      title: 'CIVS - Contactless Integrated Voting System',
-      desc: 'A patent-pending voting system designed for secure, hygienic, and accessible elections, featuring speech recognition and hand gesture input for enhanced usability.',
-      subdesc: 'Developed using React, Flask, and RESTful APIs, CIVS ensures real-time interaction, ballot rectification, and accessibility for physically challenged individuals. Designed with user research-driven Figma prototypes.',
+      title: 'Living Photos — Memories in 3D',
+      desc: 'An ElevenHacks project that turns a single old photograph into a walkable 3D scene, with the voice of someone you loved playing softly inside.',
+      subdesc:
+        'Upload a photo and step into it: Gaussian-splat 3D rendering, consent-gated voice cloning, and procedural ambient soundscapes bring memories to life. Built with Next.js 15, React 19, TypeScript, React Three Fiber, Drizzle, Postgres, ElevenLabs, and Stripe.',
+      href: 'https://living-photos-rust.vercel.app/',
+      texture: '/textures/project/project2.mp4',
+      logo: '/assets/project-logo2.png',
+      logoStyle: {
+        backgroundColor: '#13202F',
+        border: '0.2px solid #17293E',
+        boxShadow: '0px 0px 60px 0px #2F6DB54D',
+      },
+      spotlight: '/assets/spotlight2.png',
+      tags: [
+        { id: 1, name: 'TypeScript', path: '/assets/typescript.png' },
+        { id: 2, name: 'React.js', path: '/assets/react.svg' },
+        { id: 3, name: 'TailwindCSS', path: '/assets/tailwindcss.png' },
+      ],
+    },
+    {
+      title: 'FaceTime from Mars',
+      desc: '🥈 2nd place at the ElevenLabs × Replit hackathon. Real-time voice conversations with AI colonists living on Mars in the year 2159.',
+      subdesc:
+        'A walkie-talkie interface lets you talk to three distinct AI characters with unique ElevenLabs voices, set against an interactive 3D Mars with radio effects and ambient space audio. Built with Next.js, React Three Fiber, FastAPI, Claude, and ElevenLabs.',
+      href: 'https://facetime-from-mars-2158--anirxdh.replit.app',
+      texture: '/textures/project/project3.mp4',
+      logo: '/assets/project-logo3.png',
+      logoStyle: {
+        backgroundColor: '#2E1912',
+        border: '0.2px solid #4A2A17',
+        boxShadow: '0px 0px 60px 0px #E0662F4D',
+      },
+      spotlight: '/assets/spotlight3.png',
+      tags: [
+        { id: 1, name: 'TypeScript', path: '/assets/typescript.png' },
+        { id: 2, name: 'React.js', path: '/assets/react.svg' },
+        { id: 3, name: 'TailwindCSS', path: '/assets/tailwindcss.png' },
+      ],
+    },
+    {
+      title: 'ScreenSense — Voice Browser Agent',
+      desc: 'An ElevenLabs × Firecrawl hackathon build: a Chrome extension that turns voice commands into autonomous browser actions.',
+      subdesc:
+        'Hold a key, speak a command, and an AI agent clicks, fills forms, and completes multi-step workflows across sites — e.g. “add the cheapest USB-C cable to my Amazon cart.” Powered by Claude on AWS Bedrock (multimodal vision), ElevenLabs speech, and Firecrawl, on a React + FastAPI stack.',
+      href: 'https://screen-sense-anirudh.netlify.app/',
+      texture: '/textures/project/project4.mp4',
+      logo: '/assets/project-logo4.png',
+      logoStyle: {
+        backgroundColor: '#12312A',
+        border: '0.2px solid #1C4A3E',
+        boxShadow: '0px 0px 60px 0px #2FB5834D',
+      },
+      spotlight: '/assets/spotlight4.png',
+      tags: [
+        { id: 1, name: 'TypeScript', path: '/assets/typescript.png' },
+        { id: 2, name: 'React.js', path: '/assets/react.svg' },
+        { id: 3, name: 'TailwindCSS', path: '/assets/tailwindcss.png' },
+      ],
+    },
+    {
+      title: 'TalkativePDF — AI PDF Chat SaaS',
+      desc: 'A production SaaS that lets you chat with any PDF, using GPT-4, LangChain, and Pinecone for fast, semantic, RAG-based document Q&A.',
+      subdesc:
+        'Built end-to-end with Next.js, TypeScript, Firebase storage, Clerk auth, and Stripe subscriptions. A RAG architecture with document chunking improved query response time by ~87%, and the app handled 500+ document uploads during internal testing.',
+      href: 'https://talkative-pdf.vercel.app/',
+      texture: '/textures/project/project5.mp4',
+      logo: '/assets/project-logo5.png',
+      logoStyle: {
+        backgroundColor: '#0E1F38',
+        border: '0.2px solid #0E2D58',
+        boxShadow: '0px 0px 60px 0px #2F67B64D',
+      },
+      spotlight: '/assets/spotlight5.png',
+      tags: [
+        { id: 1, name: 'TypeScript', path: '/assets/typescript.png' },
+        { id: 2, name: 'React.js', path: '/assets/react.svg' },
+        { id: 3, name: 'TailwindCSS', path: '/assets/tailwindcss.png' },
+      ],
+    },
+    {
+      title: 'CIVS — Contactless Voting System',
+      desc: 'A contactless voting system — the basis of a published patent — for secure, hygienic, and accessible elections using speech and hand-gesture input.',
+      subdesc:
+        'Built with React, Flask, and REST APIs alongside user-research-driven Figma prototypes, CIVS supports real-time interaction, ballot rectification, and accessibility for physically challenged voters. It became the basis for published patent ID 202341031598.',
       href: 'https://github.com/anirxdh/CIVS',
       texture: '/textures/project/project2.mp4',
       logo: '/assets/project-logo2.png',
@@ -72,125 +157,11 @@ export const navLinks = [
       },
       spotlight: '/assets/spotlight2.png',
       tags: [
-        {
-          id: 1,
-          name: 'React.js',
-          path: '/assets/react.svg',
-        },
-        {
-          id: 2,
-          name: 'TailwindCSS',
-          path: 'assets/tailwindcss.png',
-        },
-        {
-          id: 3,
-          name: 'TypeScript',
-          path: '/assets/typescript.png',
-        },
-        {
-          id: 4,
-          name: 'Figma',
-          path: '/assets/figma.svg',
-        },
+        { id: 1, name: 'React.js', path: '/assets/react.svg' },
+        { id: 2, name: 'flask', path: '/assets/flask.png' },
+        { id: 3, name: 'Figma', path: '/assets/figma.svg' },
       ],
     },
-    {
-      title: 'SettleIn - University Transition UI',
-    desc: 'SettleIn is a mobile app designed to support international students at the University of Minnesota by streamlining key onboarding tasks and enhancing social integration.',
-    subdesc: 'Developed with a comprehensive design process including user research, personas, heuristic evaluations, and cognitive walkthroughs. The app guides students in finding housing, completing paperwork, and building peer connections.',
-    href: 'https://www.figma.com/proto/4jpCPHsjQomd4FouaDapLv/SettleIn?page-id=0%3A1&node-id=11-4&p=f&viewport=531%2C327%2C0.07&t=3MOfR7hJHdPX5VPa-1&scaling=scale-down&content-scaling=fixed&starting-point-node-id=11%3A4',
-      texture: '/textures/project/project3.mp4',
-      logo: '/assets/project-logo3.png',
-      logoStyle: {
-        backgroundColor: '#60f5a1',
-        background:
-          'linear-gradient(0deg, #60F5A150, #60F5A150), linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, rgba(208, 213, 221, 0.8) 100%)',
-        border: '0.2px solid rgba(208, 213, 221, 1)',
-        boxShadow: '0px 0px 60px 0px rgba(35, 131, 96, 0.3)',
-      },
-      spotlight: '/assets/spotlight3.png',
-      tags: [
-        {
-          id: 1,
-          name: 'Figma',
-          path: '/assets/figma.svg',
-        },
-        {
-          id: 2,
-          name: 'exaclidraw',
-          path: 'assets/exaclidraw.png',
-        }
-      ],
-    },
-    {
-      title: 'DeepFake Image Classification',
-    desc: 'An AI-powered deepfake detection system leveraging deep learning techniques like ResNext and LSTM to identify manipulated videos.',
-    subdesc: 'Using transfer learning, the pretrained ResNext CNN extracts feature vectors, which are further analyzed by an LSTM layer for accurate classification of deepfake content.',
-    href: 'https://github.com/anirxdh/Deep_Fake_classification',
-      texture: '/textures/project/project4.mp4',
-      logo: '/assets/project-logo4.png',
-      logoStyle: {
-        backgroundColor: '#0E1F38',
-        border: '0.2px solid #0E2D58',
-        boxShadow: '0px 0px 60px 0px #2F67B64D',
-      },
-      spotlight: '/assets/spotlight4.png',
-      tags: [
-        {
-          id: 1,
-          name: 'React.js',
-          path: '/assets/react.svg',
-        },
-        {
-          id: 2,
-          name: 'TailwindCSS',
-          path: 'assets/tailwindcss.png',
-        },
-        {
-          id: 3,
-          name: 'TypeScript',
-          path: '/assets/typescript.png',
-        },
-  
-      ],
-    },
-    // {
-    //   title: 'Imaginify - AI Photo Manipulation App',
-    //   desc: 'Imaginify is a groundbreaking Software-as-a-Service application that empowers users to create stunning photo manipulations using AI technology. With features like AI-driven image editing, a payments system, and a credits-based model.',
-    //   subdesc:
-    //     'Built with Next.js 14, Cloudinary AI, Clerk, and Stripe, Imaginify combines cutting-edge technology with a user-centric approach. It can be turned into a side income or even a full-fledged business.',
-    //   href: 'https://www.youtube.com/watch?v=Ahwoks_dawU',
-    //   texture: '/textures/project/project5.mp4',
-    //   logo: '/assets/project-logo5.png',
-    //   logoStyle: {
-    //     backgroundColor: '#1C1A43',
-    //     border: '0.2px solid #252262',
-    //     boxShadow: '0px 0px 60px 0px #635BFF4D',
-    //   },
-    //   spotlight: '/assets/spotlight5.png',
-    //   tags: [
-    //     {
-    //       id: 1,
-    //       name: 'React.js',
-    //       path: '/assets/react.svg',
-    //     },
-    //     {
-    //       id: 2,
-    //       name: 'TailwindCSS',
-    //       path: 'assets/tailwindcss.png',
-    //     },
-    //     {
-    //       id: 3,
-    //       name: 'TypeScript',
-    //       path: '/assets/typescript.png',
-    //     },
-    //     {
-    //       id: 4,
-    //       name: 'Framer Motion',
-    //       path: '/assets/framer.png',
-    //     },
-    //   ],
-    // },
   ];
   
   export const calculateSizes = (isSmall, isMobile, isTablet) => {
@@ -208,29 +179,29 @@ export const navLinks = [
   export const workExperiences = [
     {
       id: 1,
-      name: 'Nonlinear | San Francisco, CA',
-      pos: 'Founding Engineer',
-      duration: 'August 2025 – Present',
-      title: "Engineered the Universal Node System for AI workflows, enabling dynamic property handling, mustache variable parsing, and seamless frontend–backend synchronization. Created AI agents for workflow automation and developed a Microsoft Teams bot, successfully published on the Teams Store. Delivered production-grade features using Next.js 15, React 19, TypeScript, tRPC, Redux Toolkit, Zustand, Drizzle ORM, PostgreSQL, Tailwind CSS, Radix UI, AWS, and integrated OpenAI, Anthropic, and Gemini models.",
-      icon: '/assets/Nonlinear.png',
+      name: 'Rivo | San Francisco, CA',
+      pos: 'Member of Technical Staff',
+      duration: 'December 2025 – Present',
+      title: "At Rivo (a San Francisco fintech), I build production conversational AI — primarily voice agents — in Python across a cloud-based microservices stack. I implemented full caching (TanStack Query with endpoint-level invalidation) that cut homepage load time by ~87% and improved p95 latency, and ship agentic AI workflows for personalized client messaging and internal automation. I own end-to-end quality and growth: Playwright and Maestro E2E coverage, Jest, and CI/CD hardening, plus a full observability and product-analytics stack — Sentry, Statsig, Mixpanel, GA4, and Microsoft Clarity — for user-behavior tracking and growth funnels. I also maintain the marketing site in Webflow (CMS) and run Meta Ads optimization.",
+      icon: '/assets/rivo.png',
       animation: 'clapping',
     },
     {
       id: 2,
-      name: 'University of Minnesota | Twin Cities, MN',
-      pos: 'Graduate Research Assistant',
-      duration: 'January 2024 – July 2025',
-      title: "As a Research Assistant at the Institute of Health Informatics, I conduct data processing, causal analysis, and predictive modeling to address K-12 educational and health inequities in Minnesota. I collaborate with stakeholders to implement analytical methodologies in Python within a high-security framework.",
-      icon: '/assets/university.png',
-      animation: 'victory',
+      name: 'Nonlinear | San Francisco, CA',
+      pos: 'Founding Engineer',
+      duration: 'August 2025 – December 2025',
+      title: "As Founding Engineer, I engineered the Universal Node System for AI workflows with dynamic property handling, mustache variable parsing, and Zustand-powered state caching, cutting configuration time by 45%. I built Agentic RAG pipelines powering context-aware AI agents and a Microsoft Teams bot (published on the Teams Store), reducing retrieval latency by 60% and tripling user engagement. Delivered production features with Next.js 15, React 19, TypeScript, tRPC, Redux Toolkit, Zustand, Drizzle ORM, PostgreSQL, Tailwind CSS, Radix UI, AWS, and integrated OpenAI, Anthropic, and Gemini models.",
+      icon: '/assets/Nonlinear.png',
+      animation: 'salute',
     },
     {
       id: 3,
-      name: 'Blue Hex Software | Chennai, Tamil Nadu',
-      pos: 'Python Intern',
-      duration: 'September 2021 – March 2022',
-      title: "Built an OCR application using Python and Flask for automated data extraction from PDFs. Integrated SQL for optimized data storage and retrieval while contributing to deployment and version control processes using Git/GitHub.",
-      icon: '/assets/bhs.png',
-      animation: 'clapping',
+      name: 'University of Minnesota | Twin Cities, MN',
+      pos: 'Graduate Research Assistant',
+      duration: 'January 2024 – July 2025',
+      title: "As a Research Assistant at the Institute of Health Informatics, I performed data processing, causal analysis, and predictive modeling in Python to address K-12 educational and health inequities in Minnesota. I collaborated with stakeholders to implement analytical methodologies within a high-security, privacy-compliant framework.",
+      icon: '/assets/university.png',
+      animation: 'victory',
     },
   ];

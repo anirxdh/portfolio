@@ -2,7 +2,7 @@ const FloatingChatButton = ({ onClick }) => {
   return (
     <button
       onClick={onClick}
-      className="group fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center z-50 hover:scale-110"
+      className="group fixed bottom-6 right-6 w-14 h-14 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full shadow-lg hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2 focus:ring-offset-black transition-all duration-300 flex items-center justify-center z-50 hover:scale-110"
       aria-label="Open chat"
     >
       {/* Pulse animation ring */}
