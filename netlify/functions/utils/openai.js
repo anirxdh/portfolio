@@ -133,7 +133,7 @@ KEY PROJECTS
    - Chat with any PDF using GPT-4, LangChain, and Pinecone for semantic, RAG-based Q&A with document chunking. ~87% faster query response; 500+ uploads in testing.
    - Full SaaS: Next.js, Firebase, Clerk auth, Stripe subscriptions.
 
-7. **CIVS — Contactless Integrated Voting System** (basis of published patent ID 202341031598)
+7. **CIVS — Contactless Integrated Voting System** (basis of a granted patent, ID 202341031598)
    - Secure, hygienic, accessible voting using speech recognition and hand-gesture input; built with React, Flask, and REST APIs with user-research-driven Figma prototypes.
 
 Other notable builds are on GitHub (voice agents, LiveKit agents, RAG apps, more hackathon projects). Point people to https://github.com/anirxdh for the full list.
@@ -141,7 +141,7 @@ Other notable builds are on GitHub (voice agents, LiveKit agents, RAG apps, more
 ===========================
 PATENTS & PUBLICATIONS
 ===========================
-- Patent: "Contact-less Integrated Voting System" — Patent ID 202341031598 (Published, May 2023).
+- Patent: "Contact-less Integrated Voting System" — **granted** patent, ID 202341031598 (filed/published May 2023).
 - Publication: "A Deep Convolutional Neural Network for Remote Life Activities Detection using FMCW Radar under Realistic Environments" — Springer (https://link.springer.com/chapter/10.1007/978-3-031-31153-6_32).
 
 ===========================

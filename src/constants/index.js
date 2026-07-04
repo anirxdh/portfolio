@@ -28,7 +28,7 @@ export const navLinks = [
       subdesc:
         'A unified parent MCP orchestrator routes across three specialized child servers (media, messaging, telephony) with dynamic tool selection — making real Twilio calls and group calls, enabling cross-model AI-to-AI messaging, and handling music and YouTube, all from a phone-like widget inside chat. Built with TypeScript, React 19, and Twilio, and deployed via mcp-use.',
       href: 'https://github.com/anirxdh/YC-hack',
-      texture: '/textures/project/project5.mp4',
+      texture: '/textures/project/lark.jpg',
       logo: '/assets/project-logo5.png',
       logoStyle: {
         backgroundColor: '#1C1A43',
@@ -48,7 +48,7 @@ export const navLinks = [
       subdesc:
         'Explore procedurally generated apartments, collect voice-acted cassette tapes, and solve sequential lock puzzles under a ticking timer to unravel the mystery. Built with React Three Fiber, Three.js, TypeScript, Zustand, and Howler.js, with ElevenLabs for voice and sound — featuring save state, multiple endings, and a PS1-style aesthetic.',
       href: 'https://apartment-4b.netlify.app',
-      texture: '/textures/project/project1.mp4',
+      texture: '/textures/project/apartment4b.jpg',
       logo: '/assets/project-logo1.png',
       logoStyle: {
         backgroundColor: '#2A1816',
@@ -68,7 +68,7 @@ export const navLinks = [
       subdesc:
         'Upload a photo and step into it: Gaussian-splat 3D rendering, consent-gated voice cloning, and procedural ambient soundscapes bring memories to life. Built with Next.js 15, React 19, TypeScript, React Three Fiber, Drizzle, Postgres, ElevenLabs, and Stripe.',
       href: 'https://living-photos-rust.vercel.app/',
-      texture: '/textures/project/project2.mp4',
+      texture: '/textures/project/livingphotos.jpg',
       logo: '/assets/project-logo2.png',
       logoStyle: {
         backgroundColor: '#13202F',
@@ -87,8 +87,8 @@ export const navLinks = [
       desc: '🥈 2nd place at the ElevenLabs × Replit hackathon. Real-time voice conversations with AI colonists living on Mars in the year 2159.',
       subdesc:
         'A walkie-talkie interface lets you talk to three distinct AI characters with unique ElevenLabs voices, set against an interactive 3D Mars with radio effects and ambient space audio. Built with Next.js, React Three Fiber, FastAPI, Claude, and ElevenLabs.',
-      href: 'https://facetime-from-mars-2158--anirxdh.replit.app',
-      texture: '/textures/project/project3.mp4',
+      href: 'https://facetime-from-mars-2158--anirxdh.replit.app/',
+      texture: '/textures/project/facetime.jpg',
       logo: '/assets/project-logo3.png',
       logoStyle: {
         backgroundColor: '#2E1912',
@@ -108,8 +108,8 @@ export const navLinks = [
       subdesc:
         'Hold a key, speak a command, and an AI agent clicks, fills forms, and completes multi-step workflows across sites — e.g. “add the cheapest USB-C cable to my Amazon cart.” Powered by Claude on AWS Bedrock (multimodal vision), ElevenLabs speech, and Firecrawl, on a React + FastAPI stack.',
       href: 'https://screen-sense-anirudh.netlify.app/',
-      texture: '/textures/project/project4.mp4',
-      logo: '/assets/project-logo4.png',
+      texture: '/textures/project/screensense.jpg',
+      logo: '/assets/logo-screensense.png',
       logoStyle: {
         backgroundColor: '#12312A',
         border: '0.2px solid #1C4A3E',
@@ -128,7 +128,7 @@ export const navLinks = [
       subdesc:
         'Built end-to-end with Next.js, TypeScript, Firebase storage, Clerk auth, and Stripe subscriptions. A RAG architecture with document chunking improved query response time by ~87%, and the app handled 500+ document uploads during internal testing.',
       href: 'https://talkative-pdf.vercel.app/',
-      texture: '/textures/project/project5.mp4',
+      texture: '/textures/project/talkativepdf.jpg',
       logo: '/assets/project-logo5.png',
       logoStyle: {
         backgroundColor: '#0E1F38',
@@ -144,11 +144,11 @@ export const navLinks = [
     },
     {
       title: 'CIVS — Contactless Voting System',
-      desc: 'A contactless voting system — the basis of a published patent — for secure, hygienic, and accessible elections using speech and hand-gesture input.',
+      desc: 'A contactless voting system — the basis of a granted patent — for secure, hygienic, and accessible elections using speech and hand-gesture input.',
       subdesc:
-        'Built with React, Flask, and REST APIs alongside user-research-driven Figma prototypes, CIVS supports real-time interaction, ballot rectification, and accessibility for physically challenged voters. It became the basis for published patent ID 202341031598.',
+        'Built with React, Flask, and REST APIs alongside user-research-driven Figma prototypes, CIVS supports real-time interaction, ballot rectification, and accessibility for physically challenged voters. It became the basis for a granted patent (ID 202341031598).',
       href: 'https://github.com/anirxdh/CIVS',
-      texture: '/textures/project/project2.mp4',
+      texture: '/textures/project/civs.jpg',
       logo: '/assets/project-logo2.png',
       logoStyle: {
         backgroundColor: '#13202F',
