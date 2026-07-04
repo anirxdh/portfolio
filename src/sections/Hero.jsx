@@ -53,9 +53,26 @@ const Hero = () => {
         </Canvas>
       </div>
 
-      <div className="absolute bottom-7 left-0 right-0 w-full z-10 c-space">
-        <a href="#about" className="w-fit">
+      <div className="absolute bottom-7 left-0 right-0 w-full z-10 c-space flex flex-col items-center gap-3">
+        <a href="#about" className="sm:w-fit w-full">
           <Button name="Let's work together" isBeam containerClass="sm:w-fit w-full sm:min-w-96" />
+        </a>
+        <a
+          href="/assets/anirudh-vasudevan-resume.pdf"
+          download
+          className="btn sm:w-fit w-full sm:min-w-96 no-underline"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className="w-4 h-4"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16" />
+          </svg>
+          Download Résumé
         </a>
       </div>
     </section>
