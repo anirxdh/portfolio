@@ -207,3 +207,22 @@ body {
     border-radius: 0 !important;
   }
 }
+
+/* Scroll-reveal: IntersectionObserver toggles .is-visible (see useScrollReveal) */
+.reveal-up {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+  will-change: opacity, transform;
+}
+.reveal-up.is-visible {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal-up {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

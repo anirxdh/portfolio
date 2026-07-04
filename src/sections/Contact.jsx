@@ -77,7 +77,15 @@ const Contact = () => {
           I’m currently a Member of Technical Staff at Rivo, and I love connecting with people building ambitious things. Whether it’s a collaboration, an AI/agent problem worth solving, a hackathon, or just a great conversation about full-stack and AI engineering — feel free to reach out. I read every message.
           </p>
 
-          <form ref={formRef} onSubmit={handleSubmit} className="mt-4 flex flex-col space-y-7">
+          <a
+            href="/assets/anirudh-vasudevan-resume.pdf"
+            download
+            className="inline-flex items-center gap-2 mt-5 px-5 py-2.5 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-medium hover:from-blue-600 hover:to-purple-600 transition-all focus:outline-none focus:ring-2 focus:ring-blue-400"
+          >
+            📄 Download Résumé
+          </a>
+
+          <form ref={formRef} onSubmit={handleSubmit} className="mt-6 flex flex-col space-y-7">
             <label className="space-y-2">
               <span className="field-label">Full Name</span>
               <input

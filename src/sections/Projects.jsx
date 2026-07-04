@@ -1,6 +1,6 @@
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { Center, OrbitControls } from '@react-three/drei';
 
@@ -28,6 +28,17 @@ const Projects = () => {
   }, [selectedProjectIndex]);
 
   const currentProject = myProjects[selectedProjectIndex];
+  const imageCount = currentProject.textures?.length || 1;
+
+  const [imgIndex, setImgIndex] = useState(0);
+
+  // Cycle through the current project's screenshots (crossfaded in DemoComputer).
+  useEffect(() => {
+    setImgIndex(0);
+    if (imageCount <= 1) return undefined;
+    const id = setInterval(() => setImgIndex((i) => (i + 1) % imageCount), 2800);
+    return () => clearInterval(id);
+  }, [selectedProjectIndex, imageCount]);
 
   return (
     <section className="c-space my-20">
@@ -86,19 +97,32 @@ const Projects = () => {
           </div>
         </div>
 
-        <div className="border border-black-300 bg-black-200 rounded-lg h-96 md:h-full">
+        <div className="border border-black-300 bg-black-200 rounded-lg h-96 md:h-full relative">
           <Canvas>
             <ambientLight intensity={Math.PI} />
             <directionalLight position={[10, 10, 5]} />
             <Center>
               <Suspense fallback={<CanvasLoader />}>
                 <group scale={2} position={[0, -3, 0]} rotation={[0, -0.1, 0]}>
-                  <DemoComputer texture={currentProject.texture} />
+                  <DemoComputer textures={currentProject.textures} activeIndex={imgIndex} />
                 </group>
               </Suspense>
             </Center>
             <OrbitControls maxPolarAngle={Math.PI / 2} enableZoom={false} />
           </Canvas>
+
+          {imageCount > 1 && (
+            <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2 pointer-events-none">
+              {currentProject.textures.map((_, i) => (
+                <span
+                  key={i}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    i === imgIndex ? 'w-5 bg-white' : 'w-1.5 bg-white/30'
+                  }`}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     </section>

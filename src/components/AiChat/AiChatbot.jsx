@@ -7,6 +7,7 @@ import ChatHeader from './ChatHeader';
 import ChatMessages from './ChatMessages';
 import ChatInput from './ChatInput';
 import SuggestedQuestions from './SuggestedQuestions';
+import FollowUps from './FollowUps';
 
 const AiChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -56,6 +57,16 @@ const AiChatbot = () => {
     setShowSuggestions(false);
   };
 
+  const handleContact = () => {
+    setIsOpen(false);
+    const el = document.getElementById('contact');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const hasAssistantReply = messages.some(
+    (msg) => msg.role === 'assistant' && msg.id !== 'welcome',
+  );
+
   // Hide suggestions after first user message
   useEffect(() => {
     const userMessages = messages.filter(msg => msg.role === 'user');
@@ -77,12 +88,20 @@ const AiChatbot = () => {
           <ChatMessages messages={messages} isLoading={isLoading} />
           
           {showSuggestions && messages.length <= 1 && !isLoading && (
-            <SuggestedQuestions 
-              onQuestionClick={handleSuggestedQuestion} 
+            <SuggestedQuestions
+              onQuestionClick={handleSuggestedQuestion}
               disabled={isLoading}
             />
           )}
-          
+
+          {hasAssistantReply && !isLoading && (
+            <FollowUps
+              onQuestionClick={handleSuggestedQuestion}
+              onContact={handleContact}
+              disabled={isLoading}
+            />
+          )}
+
           <ChatInput onSend={handleSend} disabled={isLoading} />
         </div>
       )}
