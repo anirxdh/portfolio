@@ -69,6 +69,23 @@ const About = () => {
               <p className="grid-headtext">Based in San Francisco, building at the intersection of AI and the web.</p>
               <p className="grid-subtext">Originally from India and now in the Bay Area, I’m flexible with time zones and love collaborating with global teams. Always happy to connect about interesting problems, AI/agent work, and collaborations.</p>
               <Button name="Contact Me" isBeam containerClass="w-full mt-10" onClick={scrollToContact}/>
+              <a
+                href="/assets/anirudh-vasudevan-resume.pdf"
+                download
+                className="btn w-full mt-3 no-underline"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="w-4 h-4"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16" />
+                </svg>
+                Download Résumé
+              </a>
             </div>
           </div>
         </div>
