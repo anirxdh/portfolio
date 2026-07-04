@@ -36,18 +36,14 @@ const ChatMessage = ({ message }) => {
       <div className={`flex items-start gap-2 max-w-[80%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
         {/* Avatar */}
         <div
-          className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center overflow-hidden ${
+          className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center ${
             isUser ? 'bg-black-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'
           }`}
         >
           {isUser ? (
-            <span className="text-white text-sm font-semibold">👤</span>
+            <span className="text-white text-xs">👤</span>
           ) : (
-            <img
-              src="/assets/anirudh-avatar.png"
-              alt="AniBot"
-              className="w-full h-full object-cover"
-            />
+            <span className="text-white text-[11px] font-bold tracking-tight">AV</span>
           )}
         </div>
 
