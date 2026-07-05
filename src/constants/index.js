@@ -24,6 +24,12 @@ export const navLinks = [
       name: 'Contact',
       href: '#contact',
     },
+    {
+      id: 6,
+      name: 'Explore',
+      href: 'https://av-world.replit.app/',
+      external: true,
+    },
   ];
   
   export const myProjects = [

@@ -6,7 +6,12 @@ const NavItems = ({ onClick = () => {} }) => (
   <ul className="nav-ul">
     {navLinks.map((item) => (
       <li key={item.id} className="nav-li">
-        <a href={item.href} className="nav-li_a" onClick={onClick}>
+        <a
+          href={item.href}
+          className="nav-li_a"
+          onClick={onClick}
+          {...(item.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+        >
           {item.name}
         </a>
       </li>
@@ -14,7 +19,7 @@ const NavItems = ({ onClick = () => {} }) => (
   </ul>
 );
 
-const Navbar = ({ onExplore = () => {} }) => {
+const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleMenu = () => setIsOpen(!isOpen);
@@ -35,31 +40,15 @@ const Navbar = ({ onExplore = () => {} }) => {
             <img src={isOpen ? 'assets/close.svg' : 'assets/menu.svg'} alt="toggle" className="w-6 h-6" />
           </button>
 
-          <nav className="sm:flex hidden items-center">
+          <nav className="sm:flex hidden">
             <NavItems />
-            <ul className="nav-ul !mt-0">
-              <li className="nav-li">
-                <button onClick={onExplore} className="nav-li_a">
-                  Explore
-                </button>
-              </li>
-            </ul>
           </nav>
         </div>
       </div>
 
       <div className={`nav-sidebar ${isOpen ? 'max-h-screen' : 'max-h-0'}`}>
-        <nav className="p-5 flex flex-col gap-4 items-start">
+        <nav className="p-5">
           <NavItems onClick={closeMenu} />
-          <button
-            onClick={() => {
-              closeMenu();
-              onExplore();
-            }}
-            className="nav-li_a"
-          >
-            Explore
-          </button>
         </nav>
       </div>
     </header>
