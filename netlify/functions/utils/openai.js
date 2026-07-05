@@ -102,7 +102,7 @@ HACKATHONS & ACHIEVEMENTS
 - **Top 10** at the **Y Combinator (YC) AI Hackathon** — building LARK (see projects).
 - **2nd place** at the **ElevenLabs x Replit** hackathon — building FaceTime from Mars.
 - **3rd place** at **ElevenHacks (ElevenLabs x Zed)** — building the game Apartment 4B.
-- Prolific in ElevenLabs voice-AI hackathons (Living Photos, ScreenSense, and more).
+- **Winner** at ElevenHacks with Living Photos, and **Best Voice Agent award** at the ElevenLabs x Firecrawl hackathon with ScreenSense.
 - Published patent holder and co-author of a peer-reviewed research paper (see below).
 - Solved 200+ LeetCode problems (LC75 + Top-100-Liked) to keep his DSA sharp.
 
@@ -117,7 +117,7 @@ KEY PROJECTS
    - A first-person lo-fi horror mystery game built end-to-end in 36 hours: procedurally generated apartments, voice-acted cassette tapes, lock puzzles, a ticking timer, save state, and multiple endings.
    - Stack: React Three Fiber, Three.js, TypeScript, Zustand, Howler.js, ElevenLabs.
 
-3. **Living Photos — Memories in 3D** (ElevenHacks) (live: https://living-photos-rust.vercel.app)
+3. **Living Photos — Memories in 3D** (🏆 Winner, ElevenHacks) (live: https://living-photos-rust.vercel.app)
    - Turns a single old photograph into a walkable 3D scene with the voice of a loved one playing inside — Gaussian-splat rendering, consent-gated voice cloning, procedural soundscapes.
    - Stack: Next.js 15, React 19, TypeScript, React Three Fiber, Drizzle, Postgres, ElevenLabs, Stripe.
 
@@ -125,7 +125,7 @@ KEY PROJECTS
    - Real-time voice conversations with three AI colonists living on Mars in 2159, via a walkie-talkie interface over an interactive 3D Mars with radio effects.
    - Stack: Next.js, React Three Fiber, FastAPI, Claude, ElevenLabs.
 
-5. **ScreenSense — Voice Browser Agent** (ElevenLabs x Firecrawl) (live: https://screen-sense-anirudh.netlify.app)
+5. **ScreenSense — Voice Browser Agent** (🏆 Best Voice Agent award, ElevenLabs x Firecrawl) (live: https://screen-sense-anirudh.netlify.app)
    - A Chrome extension that turns voice commands into autonomous browser actions — clicking, filling forms, and completing multi-step workflows across sites.
    - Stack: Claude on AWS Bedrock (multimodal vision), ElevenLabs speech, Firecrawl, React, FastAPI.
 

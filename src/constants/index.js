@@ -75,7 +75,7 @@ export const navLinks = [
     },
     {
       title: 'Living Photos — Memories in 3D',
-      desc: 'An ElevenHacks project that turns a single old photograph into a walkable 3D scene, with the voice of someone you loved playing softly inside.',
+      desc: '🏆 Winner at ElevenHacks. Turns a single old photograph into a walkable 3D scene, with the voice of someone you loved playing softly inside.',
       subdesc:
         'Upload a photo and step into it: Gaussian-splat 3D rendering, consent-gated voice cloning, and procedural ambient soundscapes bring memories to life. Built with Next.js 15, React 19, TypeScript, React Three Fiber, Drizzle, Postgres, ElevenLabs, and Stripe.',
       href: 'https://living-photos-rust.vercel.app/',
@@ -115,7 +115,7 @@ export const navLinks = [
     },
     {
       title: 'ScreenSense — Voice Browser Agent',
-      desc: 'An ElevenLabs × Firecrawl hackathon build: a Chrome extension that turns voice commands into autonomous browser actions.',
+      desc: '🏆 Best Voice Agent award at the ElevenLabs × Firecrawl hackathon. A Chrome extension that turns voice commands into autonomous browser actions.',
       subdesc:
         'Hold a key, speak a command, and an AI agent clicks, fills forms, and completes multi-step workflows across sites — e.g. “add the cheapest USB-C cable to my Amazon cart.” Powered by Claude on AWS Bedrock (multimodal vision), ElevenLabs speech, and Firecrawl, on a React + FastAPI stack.',
       href: 'https://screen-sense-anirudh.netlify.app/',
@@ -254,7 +254,7 @@ export const navLinks = [
     },
     {
       id: 4,
-      result: 'Built',
+      result: 'Winner',
       event: 'ElevenHacks · Stripe × ElevenLabs',
       project: 'Living Photos',
       blurb: 'Turns a single old photo into a walkable 3D scene with the voice of a loved one inside.',
@@ -263,7 +263,7 @@ export const navLinks = [
     },
     {
       id: 5,
-      result: 'Built',
+      result: 'Best Voice Agent',
       event: 'ElevenLabs × Firecrawl Hackathon',
       project: 'ScreenSense — Voice Browser Agent',
       blurb: 'A Chrome extension that turns voice commands into autonomous browser actions.',
