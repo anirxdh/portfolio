@@ -9,17 +9,16 @@ import Hackathons from './sections/Hackathons.jsx';
 import Projects from './sections/Projects.jsx';
 import WorkExperience from './sections/Experience.jsx';
 import ExploreWorld from './sections/ExploreWorld.jsx';
-import HeroLab from './sections/HeroLab.jsx';
 import AiChatbot from './components/AiChat/AiChatbot.jsx';
 import useScrollReveal from './hooks/useScrollReveal.js';
 
 // The main site. Kept as its own component so its scroll-reveal + 3D canvases
 // mount/unmount cleanly when toggling in and out of full-screen modes.
-const Site = ({ onExplore, onHeroLab }) => {
+const Site = ({ onExplore }) => {
   useScrollReveal();
   return (
     <main className="max-w-7xl mx-auto relative">
-      <Navbar onExplore={onExplore} onHeroLab={onHeroLab} />
+      <Navbar onExplore={onExplore} />
       <Hero />
       <About />
       <ImpactBand />
@@ -34,13 +33,12 @@ const Site = ({ onExplore, onHeroLab }) => {
 };
 
 const App = () => {
-  const [view, setView] = useState('site'); // 'site' | 'explore' | 'herolab'
+  const [view, setView] = useState('site'); // 'site' | 'explore'
   const back = () => setView('site');
 
   // Only one 3D experience is mounted at a time, so each runs smoothly.
   if (view === 'explore') return <ExploreWorld onExit={back} />;
-  if (view === 'herolab') return <HeroLab onExit={back} />;
-  return <Site onExplore={() => setView('explore')} onHeroLab={() => setView('herolab')} />;
+  return <Site onExplore={() => setView('explore')} />;
 };
 
 export default App;
