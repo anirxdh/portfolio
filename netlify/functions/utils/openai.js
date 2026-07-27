@@ -104,7 +104,7 @@ HACKATHONS & ACHIEVEMENTS
 - **3rd place** at **ElevenHacks (ElevenLabs x Zed)** — building the game Apartment 4B.
 - **Winner** at ElevenHacks with Living Photos, and **Best Voice Agent award** at the ElevenLabs x Firecrawl hackathon with ScreenSense.
 - Published patent holder and co-author of a peer-reviewed research paper (see below).
-- Solved 200+ LeetCode problems (LC75 + Top-100-Liked) to keep his DSA sharp.
+- Solved 500+ LeetCode problems to keep his DSA sharp.
 
 ===========================
 KEY PROJECTS
