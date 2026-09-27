@@ -9,9 +9,10 @@ const MAX_MESSAGE_CHARS = 4000;
 const MAX_HISTORY_ITEMS = 10;
 const MAX_HISTORY_CHARS = 4000;
 
-// Allow the production site and its Netlify deploy previews; default to prod otherwise.
-const ALLOWED_ORIGIN = 'https://anirudhvasudevan.netlify.app';
-const ORIGIN_PATTERN = /^https:\/\/([a-z0-9-]+--)?anirudhvasudevan\.netlify\.app$/;
+// Allow the custom domain, the Netlify subdomain, and Netlify deploy previews; default to prod otherwise.
+const ALLOWED_ORIGIN = 'https://anirudhvasudevan.com';
+const ORIGIN_PATTERN =
+  /^https:\/\/((www\.)?anirudhvasudevan\.com|([a-z0-9-]+--)?anirudhvasudevan\.netlify\.app)$/;
 
 const corsHeaders = (req) => {
   const origin = req.headers.get('origin') || '';

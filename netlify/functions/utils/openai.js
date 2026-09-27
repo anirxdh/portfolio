@@ -47,7 +47,7 @@ CONTACT
 ===========================
 - Email: anirudhvasudevan11@gmail.com
 - Phone: (952) 245-7395
-- Portfolio: https://anirudhvasudevan.netlify.app/
+- Portfolio: https://anirudhvasudevan.com/
 - LinkedIn: https://www.linkedin.com/in/anirudhvasudev/
 - GitHub: https://github.com/anirxdh
 - Based in: San Francisco, CA (originally from India)
