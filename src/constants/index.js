@@ -46,7 +46,7 @@ export const navLinks = [
         border: '0.2px solid #252262',
         boxShadow: '0px 0px 60px 0px #635BFF4D',
       },
-      spotlight: '/assets/spotlight5.png',
+      spotlight: '/assets/spotlight5.webp',
       tags: [
         { id: 1, name: 'TypeScript', path: '/assets/typescript.png' },
         { id: 2, name: 'React.js', path: '/assets/react.svg' },
@@ -66,7 +66,7 @@ export const navLinks = [
         border: '0.2px solid #36201D',
         boxShadow: '0px 0px 60px 0px #AA3C304D',
       },
-      spotlight: '/assets/spotlight1.png',
+      spotlight: '/assets/spotlight1.webp',
       tags: [
         { id: 1, name: 'TypeScript', path: '/assets/typescript.png' },
         { id: 2, name: 'React.js', path: '/assets/react.svg' },
@@ -86,7 +86,7 @@ export const navLinks = [
         border: '0.2px solid #17293E',
         boxShadow: '0px 0px 60px 0px #2F6DB54D',
       },
-      spotlight: '/assets/spotlight2.png',
+      spotlight: '/assets/spotlight2.webp',
       tags: [
         { id: 1, name: 'TypeScript', path: '/assets/typescript.png' },
         { id: 2, name: 'React.js', path: '/assets/react.svg' },
@@ -106,7 +106,7 @@ export const navLinks = [
         border: '0.2px solid #4A2A17',
         boxShadow: '0px 0px 60px 0px #E0662F4D',
       },
-      spotlight: '/assets/spotlight3.png',
+      spotlight: '/assets/spotlight3.webp',
       tags: [
         { id: 1, name: 'TypeScript', path: '/assets/typescript.png' },
         { id: 2, name: 'React.js', path: '/assets/react.svg' },
@@ -126,7 +126,7 @@ export const navLinks = [
         border: '0.2px solid #1C4A3E',
         boxShadow: '0px 0px 60px 0px #2FB5834D',
       },
-      spotlight: '/assets/spotlight4.png',
+      spotlight: '/assets/spotlight4.webp',
       tags: [
         { id: 1, name: 'TypeScript', path: '/assets/typescript.png' },
         { id: 2, name: 'React.js', path: '/assets/react.svg' },
@@ -146,7 +146,7 @@ export const navLinks = [
         border: '0.2px solid #0E2D58',
         boxShadow: '0px 0px 60px 0px #2F67B64D',
       },
-      spotlight: '/assets/spotlight5.png',
+      spotlight: '/assets/spotlight5.webp',
       tags: [
         { id: 1, name: 'TypeScript', path: '/assets/typescript.png' },
         { id: 2, name: 'React.js', path: '/assets/react.svg' },
@@ -166,7 +166,7 @@ export const navLinks = [
         border: '0.2px solid #17293E',
         boxShadow: '0px 0px 60px 0px #2F6DB54D',
       },
-      spotlight: '/assets/spotlight2.png',
+      spotlight: '/assets/spotlight2.webp',
       tags: [
         { id: 1, name: 'React.js', path: '/assets/react.svg' },
         { id: 2, name: 'flask', path: '/assets/flask.png' },

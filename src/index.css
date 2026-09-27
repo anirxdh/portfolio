@@ -1,4 +1,40 @@
-@import url('https://fonts.cdnfonts.com/css/general-sans');
+/* General Sans, declared locally (instead of @import-ing cdnfonts' stylesheet) so we control
+   font-display and skip a render-blocking CSS hop. Files are still served by cdnfonts. */
+@font-face {
+  font-family: 'General Sans';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: local('General Sans'), url('https://fonts.cdnfonts.com/s/85793/GeneralSans-Light.woff') format('woff');
+}
+@font-face {
+  font-family: 'General Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('General Sans'), url('https://fonts.cdnfonts.com/s/85793/GeneralSans-Regular.woff') format('woff');
+}
+@font-face {
+  font-family: 'General Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: local('General Sans'), url('https://fonts.cdnfonts.com/s/85793/GeneralSans-Medium.woff') format('woff');
+}
+@font-face {
+  font-family: 'General Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('General Sans'), url('https://fonts.cdnfonts.com/s/85793/GeneralSans-Semibold.woff') format('woff');
+}
+@font-face {
+  font-family: 'General Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('General Sans'), url('https://fonts.cdnfonts.com/s/85793/GeneralSans-Bold.woff') format('woff');
+}
 
 @tailwind base;
 @tailwind components;
@@ -134,7 +170,7 @@ body {
   }
 
   .field-input {
-    @apply w-full bg-black-300 px-5 py-2 min-h-14 rounded-lg placeholder:text-white-500 text-lg text-white-800 shadow-black-200 shadow-2xl focus:outline-none;
+    @apply w-full bg-black-300 px-5 py-2 min-h-14 rounded-lg placeholder:text-white-600 text-lg text-white-800 shadow-black-200 shadow-2xl focus:outline-none;
   }
 
   .field-btn {

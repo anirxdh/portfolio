@@ -3,7 +3,7 @@ import { hackathons } from '../constants/index.js';
 const Hackathons = () => {
   return (
     <section className="c-space my-20" id="hackathons">
-      <h3 className="head-text">Hackathons</h3>
+      <h2 className="head-text">Hackathons</h2>
       <p className="text-white-600 mt-3 max-w-2xl">
         A serial builder — 5× hackathon wins and podium finishes, shipping end-to-end AI products in days,
         from Y Combinator to ElevenLabs, Zed, Replit, and Firecrawl.
@@ -32,8 +32,8 @@ const Hackathons = () => {
                 className="w-3 h-3 opacity-40 group-hover:opacity-100 transition-opacity"
               />
             </div>
-            <p className="text-[11px] uppercase tracking-widest text-white-500">{h.event}</p>
-            <p className="text-white text-lg font-semibold leading-tight">{h.project}</p>
+            <p className="text-[11px] uppercase tracking-widest text-white-600">{h.event}</p>
+            <h3 className="text-white text-lg font-semibold leading-tight">{h.project}</h3>
             <p className="text-sm text-white-600">{h.blurb}</p>
           </a>
         ))}

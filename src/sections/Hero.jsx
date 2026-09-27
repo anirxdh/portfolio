@@ -1,4 +1,3 @@
-import { Leva } from 'leva';
 import { Suspense } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useMediaQuery } from 'react-responsive';
@@ -7,7 +6,6 @@ import { PerspectiveCamera } from '@react-three/drei';
 import Cube from '../components/Cube.jsx';
 import Rings from '../components/Rings.jsx';
 import ReactLogo from '../components/ReactLogo.jsx';
-import Button from '../components/Button.jsx';
 import CanvasLoader from '../components/Loading.jsx';
 import HeroCamera from '../components/HeroCamera.jsx';
 import { calculateSizes } from '../constants/index.js';
@@ -27,14 +25,15 @@ const Hero = () => {
         <p className="sm:text-3xl text-xl font-medium text-white text-center font-generalsans">
           Hi, I am Anirudh <span className="waving-hand">👋</span>
         </p>
-        <p className="hero_tag text-gray_gradient">Turning Ideas into Web Solutions</p>
+        <h1 className="hero_tag text-gray_gradient">
+          Turning Ideas into Web Solutions
+          <span className="sr-only"> — Anirudh Vasudevan, Full-Stack &amp; AI Engineer</span>
+        </h1>
       </div>
 
       <div className="w-full h-full absolute inset-0">
         <Canvas className="w-full h-full">
           <Suspense fallback={<CanvasLoader />}>
-            {/* To hide controller */}
-            <Leva hidden />
             <PerspectiveCamera makeDefault position={[0, 0, 30]} />
 
             <HeroCamera isMobile={isMobile}>
@@ -54,8 +53,12 @@ const Hero = () => {
       </div>
 
       <div className="absolute bottom-7 left-0 right-0 w-full z-10 c-space">
-        <a href="#about" className="w-fit">
-          <Button name="Let's work together" isBeam containerClass="sm:w-fit w-full sm:min-w-96" />
+        <a href="#about" className="btn sm:w-fit w-full sm:min-w-96">
+          <span className="relative flex h-3 w-3">
+            <span className="btn-ping"></span>
+            <span className="btn-ping_dot"></span>
+          </span>
+          Let&apos;s work together
         </a>
       </div>
     </section>

@@ -69,10 +69,17 @@ const Contact = () => {
       {alert.show && <Alert {...alert} />}
 
       <div className="relative min-h-screen flex items-center justify-center flex-col">
-        <img src="/assets/terminal.png" alt="" aria-hidden="true" className="absolute inset-0 min-h-screen" />
+        <img
+          src="/assets/terminal.webp"
+          alt=""
+          aria-hidden="true"
+          loading="lazy"
+          decoding="async"
+          className="absolute inset-0 min-h-screen"
+        />
 
         <div className="pt-8 contact-container">
-          <h3 className="head-text">Let's talk</h3>
+          <h2 className="head-text">Let's talk</h2>
           <p className="text-lg text-white-600 mt-3">
           I’m currently a Member of Technical Staff at Rivo, and I love connecting with people building ambitious things. Whether it’s a collaboration, an AI/agent problem worth solving, a hackathon, or just a great conversation about full-stack and AI engineering — feel free to reach out. I read every message.
           </p>
@@ -120,7 +127,7 @@ const Contact = () => {
             <button className="field-btn" type="submit" disabled={loading}>
               {loading ? 'Sending...' : 'Send Message'}
 
-              <img src="/assets/arrow-up.png" alt="arrow-up" className="field-btn_arrow" />
+              <img src="/assets/arrow-up.png" alt="" aria-hidden="true" className="field-btn_arrow" />
             </button>
           </form>
         </div>

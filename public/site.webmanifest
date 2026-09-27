@@ -1,0 +1,13 @@
+{
+  "name": "Anirudh Vasudevan",
+  "short_name": "Anirudh",
+  "description": "Full-Stack & AI Engineer at Rivo (San Francisco). Voice AI agents, MCP systems, and RAG apps.",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#0a0a0a",
+  "background_color": "#0a0a0a",
+  "display": "browser",
+  "start_url": "/"
+}

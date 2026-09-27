@@ -13,16 +13,16 @@ const Clients = () => {
 
               <div className="client-content">
                 <div className="flex gap-3">
-                  <img src={item.img} alt="reviewer" className="w-12 h-12 rounded-full" />
+                  <img src={item.img} alt={item.name} className="w-12 h-12 rounded-full" loading="lazy" decoding="async" />
                   <div className="flex flex-col">
                     <p className="font-semibold text-white-800">{item.name}</p>
                     <p className="text-white-500 md:text-base text-sm font-light">{item.position}</p>
                   </div>
                 </div>
 
-                <div className="flex self-end items-center gap-2">
+                <div className="flex self-end items-center gap-2" role="img" aria-label="Rated 5 out of 5 stars">
                   {Array.from({ length: 5 }).map((_, index) => (
-                    <img key={index} src="/assets/star.png" alt="star" className="w-5 h-5" />
+                    <img key={index} src="/assets/star.png" alt="" aria-hidden="true" className="w-5 h-5" />
                   ))}
                 </div>
               </div>

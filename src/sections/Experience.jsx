@@ -12,7 +12,7 @@ const WorkExperience = () => {
   return (
     <section className="c-space my-20" id="work">
       <div className="w-full text-white-600">
-        <p className="head-text">My Work Experience</p>
+        <h2 className="head-text">My Work Experience</h2>
 
         <div className="work-container">
           <div className="work-canvas">
@@ -33,20 +33,23 @@ const WorkExperience = () => {
               {workExperiences.map((item) => (
                 <div
                   key={item.id}
+                  tabIndex={0}
                   onClick={() => setAnimationName(item.animation.toLowerCase())}
                   onPointerOver={() => setAnimationName(item.animation.toLowerCase())}
                   onPointerOut={() => setAnimationName('idle')}
-                  className="work-content_container group">
+                  onFocus={() => setAnimationName(item.animation.toLowerCase())}
+                  onBlur={() => setAnimationName('idle')}
+                  className="work-content_container group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400">
                   <div className="flex flex-col h-full justify-start items-center py-2">
                     <div className="work-content_logo">
-                      <img className="w-full h-full" src={item.icon} alt={`${item.name} logo`} />
+                      <img className="w-full h-full" src={item.icon} alt={`${item.name} logo`} loading="lazy" decoding="async" />
                     </div>
 
                     <div className="work-content_bar" />
                   </div>
 
                   <div className="sm:p-5 px-2.5 py-5">
-                    <p className="font-bold text-white-800">{item.name}</p>
+                    <h3 className="font-bold text-white-800">{item.name}</h3>
                     <p className="text-sm mb-5">
                       {item.pos} -- <span>{item.duration}</span>
                     </p>

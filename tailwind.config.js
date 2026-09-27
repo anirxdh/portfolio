@@ -24,7 +24,7 @@ export default {
         },
       },
       backgroundImage: {
-        terminal: "url('/assets/terminal.png')",
+        terminal: "url('/assets/terminal.webp')",
       },
     },
   },

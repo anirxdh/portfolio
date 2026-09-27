@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import useAiChat from '../../hooks/useAiChat';
@@ -13,6 +13,12 @@ const AiChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
   const { messages, isLoading, sendMessage } = useAiChat();
+  const windowRef = useRef(null);
+
+  // Move focus into the dialog when it opens so screen readers announce it.
+  useEffect(() => {
+    if (isOpen) windowRef.current?.focus();
+  }, [isOpen]);
 
   // GSAP animation for chat window
   useGSAP(() => {
@@ -82,7 +88,16 @@ const AiChatbot = () => {
 
       {/* Chat window */}
       {isOpen && (
-        <div className="chat-window fixed bottom-6 right-6 w-[400px] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-3rem)] bg-black-200 border border-black-300 rounded-lg shadow-2xl flex flex-col z-50 backdrop-blur-sm">
+        <div
+          ref={windowRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Chat with AniBot"
+          tabIndex={-1}
+          onKeyDown={(e) => {
+            if (e.key === 'Escape') handleClose();
+          }}
+          className="chat-window fixed bottom-6 right-6 w-[400px] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-3rem)] bg-black-200 border border-black-300 rounded-lg shadow-2xl flex flex-col z-50 backdrop-blur-sm focus:outline-none">
           <ChatHeader onClose={handleClose} onMinimize={handleMinimize} />
           
           <ChatMessages messages={messages} isLoading={isLoading} />

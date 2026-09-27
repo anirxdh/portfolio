@@ -36,8 +36,10 @@ const Navbar = () => {
           <button
             onClick={toggleMenu}
             className="text-neutral-400 hover:text-white focus:outline-none sm:hidden flex"
-            aria-label="Toggle menu">
-            <img src={isOpen ? 'assets/close.svg' : 'assets/menu.svg'} alt="toggle" className="w-6 h-6" />
+            aria-label="Toggle menu"
+            aria-expanded={isOpen}
+            aria-controls="mobile-nav">
+            <img src={isOpen ? '/assets/close.svg' : '/assets/menu.svg'} alt="" aria-hidden="true" className="w-6 h-6" />
           </button>
 
           <nav className="sm:flex hidden">
@@ -46,7 +48,7 @@ const Navbar = () => {
         </div>
       </div>
 
-      <div className={`nav-sidebar ${isOpen ? 'max-h-screen' : 'max-h-0'}`}>
+      <div id="mobile-nav" className={`nav-sidebar ${isOpen ? 'max-h-screen' : 'max-h-0'}`}>
         <nav className="p-5">
           <NavItems onClick={closeMenu} />
         </nav>

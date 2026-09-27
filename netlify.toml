@@ -6,6 +6,19 @@
 [functions]
   node_bundler = "esbuild"
 
+# Send the old Netlify subdomain (and www) to the canonical domain — one URL for SEO.
+[[redirects]]
+  from = "https://anirudhvasudevan.netlify.app/*"
+  to = "https://anirudhvasudevan.com/:splat"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "https://www.anirudhvasudevan.com/*"
+  to = "https://anirudhvasudevan.com/:splat"
+  status = 301
+  force = true
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"

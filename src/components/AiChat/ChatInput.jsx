@@ -27,12 +27,14 @@ const ChatInput = ({ onSend, disabled }) => {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Type your message..."
+          aria-label="Type your message"
           disabled={disabled}
-          className="flex-1 bg-black-300 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 bg-black-300 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
         />
         <button
           type="submit"
           disabled={disabled || !input.trim()}
+          aria-label="Send message"
           className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center min-w-[44px]"
         >
           <svg
@@ -42,6 +44,8 @@ const ChatInput = ({ onSend, disabled }) => {
             strokeWidth={2}
             stroke="currentColor"
             className="w-5 h-5"
+            aria-hidden="true"
+            focusable="false"
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
           </svg>
