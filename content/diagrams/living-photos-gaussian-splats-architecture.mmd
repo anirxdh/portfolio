@@ -1,0 +1,31 @@
+graph LR
+  subgraph S1 [Browser]
+    A[Create page]
+    B[Splat viewer R3F Spark]
+  end
+  subgraph S2 [Next.js on Vercel]
+    C[Blob upload route]
+    D[Scenes route]
+    E[Adapter factory]
+    F[Scene generate pipeline]
+    G[Stripe webhook route]
+    H[In-memory store]
+  end
+  subgraph S3 [External APIs]
+    I[World Labs Marble]
+    J[FAL Hunyuan3D]
+    K[ElevenLabs]
+    L[Stripe Checkout]
+  end
+  A -->|signed URL then PUT| C
+  A -->|POST photo URL| D
+  D -->|scene uploaded event| F
+  F -->|adapters bag| E
+  E -->|submit and poll spz| I
+  E -->|mesh per object glb| J
+  E -->|ambient sfx and narration| K
+  F -->|status ready| H
+  A -->|checkout session| L
+  L -->|checkout completed| G
+  G -->|mark paid once per event id| H
+  H -->|paid scene assets| B

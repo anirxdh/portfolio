@@ -1,0 +1,30 @@
+graph LR
+  subgraph P[Web page content script]
+    A[Shortcut handler]
+    B[Waveform indicator]
+    C[Shadow DOM overlay]
+    D[TTS player]
+  end
+  subgraph E[Extension background]
+    F[Service worker]
+    G[Offscreen document]
+    H[Conversation map]
+  end
+  subgraph X[External APIs]
+    I[Groq Whisper]
+    J[Groq Llama 4 Scout]
+    K[ElevenLabs TTS]
+  end
+  A -- shortcut-hold and release --> F
+  F -- start and stop recording --> G
+  G -- amplitude every 50ms --> F
+  F -- amplitude-data --> B
+  G -- webm audio base64 --> F
+  F -- captureVisibleTab PNG plus audio --> I
+  I -- transcript --> F
+  F -- screenshot plus history --> J
+  J -- SSE deltas --> F
+  F -- stream-chunk --> C
+  F <--> H
+  F -- tts-summary --> D
+  D -- summary text --> K

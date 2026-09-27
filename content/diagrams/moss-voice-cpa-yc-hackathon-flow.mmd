@@ -1,0 +1,21 @@
+sequenceDiagram
+  participant U as User
+  participant B as Browser
+  participant L as LiveKit room
+  participant A as Python agent
+  participant M as Moss taxcode index
+  U->>B: asks why is my standard deduction this amount
+  B->>L: mic audio over WebRTC
+  L->>A: audio track for agent-py
+  A->>A: Deepgram nova-3 turns speech into text
+  A->>M: search_taxcode query top_k 3
+  M-->>A: chunks with scores and time_taken_ms
+  A->>B: moss_context data message with matches and latency
+  B->>B: Knowledge Matches panel updates and PDF jumps to cited page
+  alt top score at or above 0.90
+    A->>A: LLM answers only from returned text and names the source
+  else top score below 0.90
+    A->>A: NO_CITATION_FOUND so agent refuses and calls record_concern
+  end
+  A->>L: MiniMax TTS audio for the reply
+  L->>B: spoken answer plays

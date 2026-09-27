@@ -1,0 +1,21 @@
+graph LR
+  subgraph BUILD [Build time on laptop]
+    A[Bake scripts in Node] -->|POST text and voice settings| B[ElevenLabs TTS]
+    A -->|POST sound prompts| C[ElevenLabs Sound Gen]
+    A -->|POST music prompt| D[ElevenLabs Music]
+    B -->|MP3 bytes| E[Committed MP3s]
+    C -->|MP3 bytes| E
+    D -->|MP3 bytes| E
+    F[ffmpeg outro script] -->|xfade zoompan grain| G[Outro MP4]
+  end
+  subgraph RUNTIME [Browser static Vite SPA]
+    H[Zustand stores] -->|scene and progress| I[Player and obstacles]
+    I -->|position prompts| J[R3F scenes and lighter]
+    H -->|subscribe slices| K[Howler audio hooks]
+    H -->|phase flags| L[HTML overlays]
+    E -->|served as hashed assets| K
+    G -->|served as asset| L
+    M[localStorage] -->|rehydrate on load| H
+    H -->|write puzzle and loop| M
+  end
+  N[Netlify static hosting] -->|serves dist| RUNTIME

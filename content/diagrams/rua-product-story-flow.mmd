@@ -1,0 +1,18 @@
+sequenceDiagram
+  participant V as Visitor
+  participant F as Waitlist form
+  participant R as API route
+  participant B as Netlify Blobs
+  participant N as Netlify Forms
+  participant W as Webhook
+  V->>F: types email and optional role
+  F->>F: regex check reveals optional fields
+  F->>R: POST JSON email role caringFor company
+  R->>R: lowercase, length check, honeypot check
+  R->>B: setJSON key at plus email
+  B-->>R: stored via blobs
+  R->>N: POST form-name waitlist to __forms.html
+  R->>W: POST JSON with 4 second timeout
+  N-->>R: submission_created sends email
+  R-->>F: ok true via blobs
+  F-->>V: You are on the list

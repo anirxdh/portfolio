@@ -1,0 +1,21 @@
+sequenceDiagram
+  participant V as Viewer
+  participant M as main.js
+  participant F as fate.js
+  participant D as drand API
+  participant S as sim.js
+  participant R as Renderer
+  V->>M: open page
+  M->>M: prng and sim selfTest
+  M->>F: ensureFates day 18 to today
+  F->>D: GET public round for each day
+  D-->>F: randomness hex or 404 if future
+  F->>F: cache in memory and localStorage
+  M->>S: evaluate simNow
+  S->>S: worldClock gives day and tod
+  S->>F: fateOf day
+  F-->>S: real hex or pseudo hex flagged
+  S->>S: dayKind buildPlan positionAt needsAt
+  S-->>M: npcs lots garden animals events
+  M->>R: draw poses and crossfade clips
+  R-->>V: frame at wall clock time

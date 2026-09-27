@@ -139,6 +139,39 @@ function makeRenderer(article, toc) {
   return renderer;
 }
 
+// Pull "## FAQ" → "### question" / answer paragraphs out of the markdown so they can be
+// emitted as FAQPage structured data (search engines and LLM crawlers read it directly).
+const plain = (md) =>
+  md
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[*_]{1,2}([^*_]+)[*_]{1,2}/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+function extractFaq(content) {
+  const tokens = marked.lexer(content);
+  const faqs = [];
+  let inFaq = false;
+  let current = null;
+  for (const t of tokens) {
+    if (t.type === 'heading' && t.depth <= 2) {
+      inFaq = t.depth === 2 && /^(faq|frequently asked questions?)$/i.test(t.text.trim());
+      current = null;
+      continue;
+    }
+    if (!inFaq) continue;
+    if (t.type === 'heading' && t.depth === 3) {
+      current = { question: plain(t.text), answer: '' };
+      faqs.push(current);
+    } else if (current && (t.type === 'paragraph' || t.type === 'list')) {
+      const text = t.type === 'list' ? t.items.map((i) => plain(i.text)).join(' ') : plain(t.text);
+      current.answer = `${current.answer} ${text}`.trim();
+    }
+  }
+  return faqs.filter((f) => f.question && f.answer);
+}
+
 function renderMarkdown(article) {
   const toc = [];
   const html = marked.parse(article.content, {
@@ -146,7 +179,7 @@ function renderMarkdown(article) {
     gfm: true,
     breaks: false,
   });
-  return { html, toc };
+  return { html, toc, faqs: extractFaq(article.content) };
 }
 
 // ---------- templates ----------
@@ -218,7 +251,7 @@ const articleCard = (a) => `
           <p class="card__meta"><time datetime="${a.date}">${fmtDate(a.date)}</time> · ${a.readingMinutes} min read</p>
         </a>`;
 
-function articlePage(a, html, toc, related) {
+function articlePage(a, html, toc, related, faqs = []) {
   const url = `${SITE}/blog/${a.slug}/`;
   const ogImage = a.cover ? `${SITE}${a.cover}` : DEFAULT_OG;
   const jsonLd = {
@@ -245,8 +278,21 @@ function articlePage(a, html, toc, related) {
       { '@type': 'ListItem', position: 3, name: a.title, item: url },
     ],
   };
+  const faqLd = faqs.length
+    ? {
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((f) => ({
+          '@type': 'Question',
+          name: f.question,
+          acceptedAnswer: { '@type': 'Answer', text: f.answer },
+        })),
+      }
+    : null;
   const extra = `<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>
-    <script type="application/ld+json">${JSON.stringify(breadcrumbs)}</script>`;
+    <script type="application/ld+json">${JSON.stringify(breadcrumbs)}</script>${
+      faqLd ? `\n    <script type="application/ld+json">${JSON.stringify(faqLd)}</script>` : ''
+    }`;
 
   return `${head({ title: `${a.title} — ${AUTHOR}`, description: a.description, url, ogImage, ogType: 'article', extra })}
   <body class="article-body" style="--accent:${a.accent}">
@@ -358,7 +404,7 @@ fs.mkdirSync(OUT, { recursive: true });
 fs.copyFileSync(path.join(ROOT, 'scripts', 'blog', 'blog.css'), path.join(OUT, 'blog.css'));
 
 for (const a of articles) {
-  const { html, toc } = renderMarkdown(a);
+  const { html, toc, faqs } = renderMarkdown(a);
   const related = articles
     .filter((b) => b.slug !== a.slug)
     .map((b) => ({ b, score: b.tags.filter((t) => a.tags.includes(t)).length }))
@@ -367,7 +413,7 @@ for (const a of articles) {
     .map((x) => x.b);
   const dir = path.join(OUT, a.slug);
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, 'index.html'), articlePage(a, html, toc, related));
+  fs.writeFileSync(path.join(dir, 'index.html'), articlePage(a, html, toc, related, faqs));
 }
 fs.writeFileSync(path.join(OUT, 'index.html'), indexPage(articles));
 

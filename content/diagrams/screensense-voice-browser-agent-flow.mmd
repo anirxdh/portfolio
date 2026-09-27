@@ -1,0 +1,21 @@
+sequenceDiagram
+  participant U as User
+  participant C as Content script
+  participant W as Service worker
+  participant B as FastAPI backend
+  participant M as AWS Bedrock
+  participant V as ElevenLabs
+  U->>W: Hold key and say fill out this form
+  W->>V: Audio to STT chain
+  V-->>W: Transcript
+  W->>B: POST task with screenshot DOM and Firecrawl markdown
+  B->>M: converse call
+  M-->>B: needs_clarification with question
+  B-->>W: JSON response
+  W->>C: tts-summary with the question
+  C->>V: Fetch speech through the worker
+  C-->>W: tts-playback-finished
+  W->>W: AwaitingReply so mic reopens for 10 s
+  U->>W: Speak name and email
+  W->>B: POST task with reply in history
+  B-->>W: type action with exact selector
