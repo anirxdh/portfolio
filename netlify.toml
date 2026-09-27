@@ -6,6 +6,11 @@
 [functions]
   node_bundler = "esbuild"
 
+[[headers]]
+  for = "/site.webmanifest"
+  [headers.values]
+    Content-Type = "application/manifest+json"
+
 # Send the old Netlify subdomain (and www) to the canonical domain — one URL for SEO.
 [[redirects]]
   from = "https://anirudhvasudevan.netlify.app/*"

@@ -7,6 +7,7 @@ import Navbar from './sections/Navbar.jsx';
 import Contact from './sections/Contact.jsx';
 import ImpactBand from './sections/ImpactBand.jsx';
 import Hackathons from './sections/Hackathons.jsx';
+import Writing from './sections/Writing.jsx';
 import Projects from './sections/Projects.jsx';
 import WorkExperience from './sections/Experience.jsx';
 import useScrollReveal from './hooks/useScrollReveal.js';
@@ -31,6 +32,7 @@ const App = () => {
         <ImpactBand />
         <Projects />
         <Hackathons />
+        <Writing />
         <WorkExperience />
         <Contact />
       </main>
