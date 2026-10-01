@@ -17,5 +17,5 @@ sequenceDiagram
   E->>H: play scream stinger
   E->>E: after 2.4s play outro MP4 with HTML subtitles
   E->>E: credits roll
-  E->>S: goToLanding resets both stores
-  S-->>U: back on the couch at 2 AM with loop count plus one
+  E->>S: goToLanding sets started false and wipes puzzleStore
+  S-->>U: back on the start screen with tapes and puzzles wiped

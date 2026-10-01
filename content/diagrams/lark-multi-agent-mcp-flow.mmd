@@ -1,0 +1,20 @@
+sequenceDiagram
+  participant U as User
+  participant W as Lark widget
+  participant G as Lark gateway
+  participant V as Video YT MCP
+  participant Y as YouTube
+  U->>W: types a query in the Video panel
+  W->>G: callTool video-yt__search with query
+  G->>G: proxy handler finds live session for video-yt
+  G->>V: session callTool search
+  V-->>G: numbered plain text list of results
+  G->>G: formatBackendResult passes text through
+  G-->>W: text result
+  W->>W: parseSearchResults extracts title channel and video id
+  W->>Y: loads thumbnails from i.ytimg.com
+  U->>W: taps a result
+  W->>G: callTool video-yt__play with video id
+  G->>V: session callTool play
+  V-->>G: ok
+  W->>Y: embeds youtube.com embed iframe with autoplay

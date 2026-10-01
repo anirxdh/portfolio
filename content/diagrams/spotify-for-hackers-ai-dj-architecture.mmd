@@ -1,0 +1,39 @@
+graph LR
+  subgraph S1[Browser shell]
+    A[Terminal and DJ tab]
+    B[Command parser]
+    C[Shell state page tsx]
+    D[Music audio element]
+    E[TTS audio element]
+    F[Web Speech fallback]
+    G[localStorage likes theme]
+  end
+  subgraph S2[Next.js route handlers]
+    H[iTunes proxy route]
+    I[DJ line route]
+    J[TTS route]
+  end
+  subgraph S3[External APIs]
+    K[iTunes Search API]
+    L[Groq llama 3.1 8b]
+    M[ElevenLabs eleven v3]
+  end
+  A -->|typed command| B
+  B -->|typed responses with stateChange| C
+  C -->|search query| H
+  H -->|term entity song limit| K
+  K -->|previews and artwork| H
+  H -->|normalized tracks| C
+  C -->|preview url from Apple CDN| D
+  D -->|ended event| C
+  C -->|current next host flowIndex| I
+  I -->|system and user prompt| L
+  L -->|one line under 22 words| I
+  I -->|line or canned fallback| C
+  C -->|delivery tag plus line and voiceId| J
+  J -->|text and voice settings| M
+  M -->|audio mpeg bytes| J
+  J -->|blob to object url| E
+  E -.->|on failure| F
+  C -->|liked tracks and vibe flag| G
+  C -->|duck to 14 pct or bed at 26 pct| D

@@ -1,0 +1,20 @@
+sequenceDiagram
+  participant P as Player
+  participant A as App.jsx
+  participant V as voice.js
+  participant E as ElevenLabs
+  participant W as Web Audio
+  P->>A: picks Ares Prime and Nova Sage then deploys
+  A->>A: runSimulationEngine merges LLM or local twin
+  A->>A: debateStage opening and token captured
+  A->>V: speakAgentLine Ares Prime line one
+  V->>V: applyEmotionVariation counts urgent words
+  V->>E: POST text-to-speech voiceId with voice_settings
+  A->>A: revealLine typewriter at duration over length ms
+  E-->>V: mp3 blob
+  V->>W: decodeAudioData then BufferSource to GainNode
+  W-->>V: source onended
+  V-->>A: provider elevenlabs
+  A->>A: both promises settle then push message and wait 350 ms
+  A->>V: speakAgentLine Nova Sage line two
+  A->>P: debateStage strategy shows three choices

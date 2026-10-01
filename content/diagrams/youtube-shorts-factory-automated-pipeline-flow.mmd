@@ -1,0 +1,20 @@
+sequenceDiagram
+  participant GA as GitHub Actions
+  participant PR as produce.ts
+  participant OA as OpenAI
+  participant FA as Fal.ai and ElevenLabs
+  participant FF as FFmpeg
+  participant R2 as Cloudflare R2
+  GA->>PR: cron fires, restore channel db
+  PR->>OA: gpt-4o-mini fact candidate as JSON
+  PR->>PR: embed fact body, cosine check against stored facts
+  PR->>OA: gpt-5.4 writes 3-act script, 4 to 6 segments
+  PR->>FA: FLUX image per segment and ElevenLabs narration per segment
+  FA-->>PR: png files, mp3 files, character alignment
+  PR->>FA: Hailuo image-to-video for first 2 clips
+  PR->>FF: zoompan Ken Burns for remaining clips
+  PR->>FF: retime clips, concat, scale 1080x1920, encode
+  PR->>OA: whisper-1 word timestamps from final audio
+  PR->>FF: burn resynced ASS karaoke captions, mix music
+  PR->>R2: upload mp4, thumbnail, checkpointed db
+  PR->>GA: email operator with production id

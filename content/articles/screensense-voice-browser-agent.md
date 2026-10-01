@@ -2,7 +2,7 @@
 draft: true
 title: "Teaching ScreenSense to Hold a Conversation While It Clicks"
 description: "How I rebuilt ScreenSense as a conversational voice browser agent with Firecrawl page context and ElevenLabs voice, and won Best Voice Agent."
-date: 2026-09-27
+date: 2026-09-30
 slug: screensense-voice-browser-agent
 project: "ScreenSense (v3)"
 tags: [Voice AI, Chrome Extension, Firecrawl, ElevenLabs, AWS Bedrock, Agents]
@@ -23,15 +23,13 @@ ScreenSense v3 is a voice-controlled Chrome extension and FastAPI backend that t
 
 ## Why I did not start over
 
-The design spec I wrote on March 21, 2026 (still in the repo under docs/superpowers/specs) lists the options I weighed.
+The spec I wrote on March 21, 2026 (still in the repo under docs/superpowers/specs) is headed "Approach 1: Firecrawl as Content Layer". The other approaches never made it into the doc, so here is what I remember weighing.
 
-The obvious approach was to hand the whole voice loop to a hosted conversational agent product and expose browser actions as tools. Faster to demo, but the hard part of ScreenSense was never the voice. It was grounding the model in real CSS selectors and re-observing the page after every click, and that loop already worked in v2.
-
-The second option was to keep the v2 loop and bolt on ElevenLabs speech-to-text and text-to-speech. That gives you a nicer voice on a one-shot command, not a conversation.
+The obvious one was to hand the whole voice loop to a hosted conversational agent product and expose browser actions as tools. Faster to demo, but the hard part of ScreenSense was never the voice. It was grounding the model in real CSS selectors and re-observing the page after every click, and that loop already worked in v2. The other was to keep the v2 loop and bolt on ElevenLabs speech-to-text and text-to-speech. That gives a nicer voice on a one-shot command, not a conversation.
 
 What I picked: keep the observe-act-observe loop, add Firecrawl so the model reads the whole page instead of just the viewport, and put a small state machine in the service worker that tracks listening, executing, speaking, and waiting on a reply. The spec's rule: Firecrawl reads pages, the DOM scraper acts on pages, ElevenLabs handles all voice.
 
-Constraints drove it. The sponsor APIs were Firecrawl and ElevenLabs, so both had to do real work. The spec is dated March 21 and the last commit landed March 23, so I had about two days. And demo latency is why transcription runs from the extension straight to the STT provider with no backend hop.
+Constraints drove it. The sponsor APIs were Firecrawl and ElevenLabs, so both had to do real work. The spec is dated March 21, the repo was created March 22 and last pushed March 23, so I had about two days. And demo latency is why transcription runs from the extension straight to the STT provider with no backend hop.
 
 ## What a session looks like
 
@@ -42,7 +40,7 @@ From the user's side, ScreenSense v3 works like this:
 3. The service worker captures a screenshot, scrapes the DOM into selectors, and asks the backend to pull the page through Firecrawl.
 4. The agent does one action at a time, and ElevenLabs speaks a short phrase for each: "Opening Amazon", "Adding to cart". 
 5. If the agent needs something, it asks out loud. When the question finishes playing, the mic reopens for 10 seconds and the loop continues with your reply.
-6. When the model returns type done, ScreenSense speaks the summary. Holding the key again within 30 seconds continues the same conversation.
+6. When the model returns type done, ScreenSense speaks the summary. Holding the key again continues the same conversation; the per-tab history is only reset when the model classifies your utterance as a new task or when the tab closes. The 30 second idle timer only drops the state back to Idle.
 
 ## Architecture
 
@@ -91,7 +89,7 @@ The cache is a dict keyed by URL with a 300 second TTL. On the reasoning side, b
 
 ### The conversation state machine
 
-src/background/conversation-manager.ts is 102 lines. It holds one state (Idle, Listening, Processing, Speaking, AwaitingReply, Executing), a Map from tab id to conversation turns, and a 30 second idle timer that resets on every transition out of Idle. Turns are capped at 20 per tab.
+src/background/conversation-manager.ts is 102 lines. It holds one state (Idle, Listening, Processing, Speaking, AwaitingReply, Executing), a Map from tab id to conversation turns, and a 30 second idle timer that resets on every transition into a non-Idle state. Turns are capped at 20 per tab.
 
 During a conversation, the prompt asks the model to label the utterance as new_task, reply, follow_up, correction, or interruption, and routeByIntent turns that into one of three outcomes:
 
@@ -115,7 +113,7 @@ After routing, classifyResponse in src/background/agent-executor.ts looks at the
 
 ![One clarifying turn in ScreenSense v3, from spoken command to the agent's question to the user's reply](/blog/diagrams/screensense-voice-browser-agent-flow.svg)
 
-This is what turned v3 from a command runner into something you can talk to. When ElevenLabs audio finishes in src/content/tts.ts, the ended listener sends tts-playback-finished to the service worker. If the conversation is in AwaitingReply, the handler waits 500 ms, tells the bubble to show listening, and sends start-recording to the offscreen document. A second timer stops the recording after 10 seconds if the user has not spoken.
+This is what turned v3 from a command runner into something you can talk to. When the audio finishes in src/content/tts.ts, the ended listener sends tts-playback-finished to the service worker. If the conversation is in AwaitingReply, the handler waits 500 ms, tells the bubble to show listening, and sends start-recording to the offscreen document. A second timer stops the recording after 10 seconds if the user has not spoken.
 
 The transcript then enters the normal pipeline with the conversation history attached, so the model sees its own question and the reply together. For a form fill, the next action types into the right input using the exact selector from the DOM snapshot.
 
@@ -132,11 +130,11 @@ There is a second turn-taking rule for interrupts. If you hold the key while the
   }
 ```
 
-I say "supposed to" because I checked while writing this, and nothing in the service worker ever transitions the state to Speaking. The content script's interrupt-tts handler works when called; the branch that calls it is dead. Holding the key during speech starts a new recording, but the speech keeps playing over you. That bug shipped.
+I say "supposed to" because nothing in the service worker ever transitions the state to Speaking. The content script's interrupt-tts handler works when called; the branch that calls it is dead. Holding the key during speech starts a new recording while the speech keeps playing over you. That bug shipped.
 
 ### Keeping the model call inside a budget
 
-Every iteration sends a fresh screenshot, DOM snapshot, Firecrawl markdown, conversation history, and action history. nova_reasoning.py trims each before the converse call. Screenshots are downscaled with Pillow to 1024 px wide and re-encoded as JPEG at quality 80. The DOM JSON is held under 30,000 characters by shortening text, trimming tables, lists, and headings to three entries, then capping buttons, links, inputs, and products at 15. Once the action history passes five entries, everything but the last three collapses into one line:
+Every iteration sends a fresh screenshot and DOM snapshot, plus the Firecrawl markdown from the first scrape, the conversation history, and the action history. nova_reasoning.py trims each before the converse call. Screenshots are downscaled with Pillow to 1024 px wide and re-encoded as JPEG at quality 80. The DOM JSON is held under 30,000 characters by shortening text, trimming tables, lists, and headings to three entries, then capping buttons, links, inputs, and products at 15. Once the action history passes five entries, everything but the last three collapses into one line:
 
 ```python
 # backend/services/nova_reasoning.py
@@ -152,7 +150,7 @@ Failed actions stay in that history as "FAILED: ... Try a different selector or 
 
 ## The hard parts
 
-The spec and the code disagree in several places, and I would rather list them than pretend otherwise.
+The spec and the code disagree in several places. I would rather list them.
 
 The STT order flipped. The spec says ElevenLabs first, Groq as fallback. The code tries Groq Whisper (whisper-large-v3-turbo) first, then ElevenLabs Scribe, then Deepgram. The comment says "most reliable, free tier". Honest, but the sponsor's STT ended up as the fallback in a hackathon the sponsor ran.
 
@@ -160,17 +158,15 @@ The reasoning model is ambiguous. The README says Claude Haiku 4.5. The code def
 
 Dead code from v2 survived. The spec says delete backend/services/nova_sonic.py (AWS Transcribe streaming) and backend/routers/transcribe.py. Both are still wired into main.py and unused by the extension. The spec also planned to summarize old turns with a model call at the 20-turn cap. The shipped code just drops them.
 
-Conversation history is stored twice: service-worker.ts keeps a conversations Map from before the refactor and also writes every turn into the ConversationManager. runPipeline and runFollowUp are near-duplicate 200-line functions that differ only in whether the input needs transcribing.
+Conversation history is stored twice: service-worker.ts keeps a conversations Map from before the refactor and also writes every turn into the ConversationManager. The manager's 30 second idle timer fires an onIdle callback that the service worker never registers, so the timer resets the state and nothing else; history lives until a new_task intent or a tab close. runPipeline and runFollowUp are near-duplicates of roughly 200 lines each; the real differences are whether the input needs transcribing and that the follow-up path scrapes the DOM and Firecrawl sequentially instead of in parallel.
 
 The TaskResponse type has a research field for background scraping. Nothing reads it. Firecrawl's extract and crawl endpoints are implemented and tested, but only scrape is in the live path.
 
 ## Results
 
-ScreenSense v3 won Best Voice Agent at the ElevenLabs x Firecrawl Hackathon. The submission was the unpacked extension, the local FastAPI backend, a Netlify landing page with two demo videos, and a YouTube demo linked from the README.
+ScreenSense v3 won Best Voice Agent at the ElevenLabs x Firecrawl Hackathon. The README's setup is load unpacked plus a local backend, and it links the YouTube demo and the Netlify landing page, whose folder in the repo holds two demo videos.
 
-The README claims 414 tests. Counting it() and test() blocks today gives 246 Jest cases across eight frontend files and 188 pytest functions across nine backend files, with AWS and Firecrawl mocked.
-
-The extension is not on the Chrome Web Store, and the backend binds 0.0.0.0 with CORS open. It is a local dev tool, not a product.
+The README claims 414 tests. Counting it() and test() blocks today gives 246 Jest cases across eight frontend files and 188 pytest functions across eight backend files, with AWS and Firecrawl mocked.
 
 ## What I would change
 

@@ -1,0 +1,32 @@
+graph LR
+  subgraph S1[Browser]
+    A[React app Vite]
+    B[AniBot widget]
+    C[useAiChat hook]
+    D[Hero R3F canvas]
+  end
+  subgraph S2[Netlify]
+    E[CDN static dist]
+    F[chat.js Function v2]
+    G[openai.js system prompt]
+  end
+  subgraph S3[External API]
+    H[OpenAI gpt-4o-mini]
+  end
+  subgraph S4[Build time]
+    I[build-blog.mjs]
+    J[Markdown articles]
+    K[Mermaid SVGs]
+  end
+  E -->|index.html and JS| A
+  A -->|React.lazy| B
+  B -->|message plus history| C
+  C -->|POST /api/chat| F
+  F -->|caps roles CORS| G
+  G -->|stream true| H
+  H -->|delta tokens| F
+  F -->|text/plain stream| C
+  A -->|useGLTF models| D
+  J -->|gray-matter marked| I
+  K -->|inlined figures| I
+  I -->|dist/blog html json feed| E

@@ -1,0 +1,32 @@
+graph LR
+  subgraph S1[Browser]
+    A[Transmit button]
+    B[Web Speech API]
+    C[Transmission panel]
+    D[Web Audio radio chain]
+    E[R3F Mars scene]
+  end
+  subgraph S2[Next.js server]
+    F[Rewrite proxy]
+  end
+  subgraph S3[FastAPI backend]
+    G[main.py endpoints]
+    H[In-memory sessions]
+    I[Character prompts]
+  end
+  subgraph S4[External APIs]
+    J[OpenAI gpt-4o-mini]
+    K[ElevenLabs TTS]
+  end
+  A -->|hold and release| B
+  B -->|final transcript| C
+  C -->|POST api chat with text and session id| F
+  F -->|forwards to port 8000| G
+  G -->|append user turn and read last 20| H
+  G -->|system prompt per colonist| I
+  G -->|chat completion max 120 tokens| J
+  G -->|reply text and voice id| K
+  K -->|MP3 bytes| G
+  G -->|MP3 body plus X-Zeph-Text header| C
+  C -->|decoded AudioBuffer| D
+  C -->|focus earth mars or idle| E

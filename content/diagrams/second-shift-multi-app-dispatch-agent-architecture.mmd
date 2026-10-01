@@ -1,0 +1,37 @@
+graph LR
+  subgraph S1[External apps]
+    A[Slack dispatch channel]
+    B[Google Sheets]
+    C[Google Calendar]
+    D[Gmail]
+  end
+  subgraph S2[FastAPI engine]
+    E[Slack poller]
+    F[LLM parser]
+    G[Guardrails]
+    H[Snapshot and fingerprint]
+    I[CP-SAT solver]
+    J[Rule checker]
+    K[SQLite ledger]
+    L[Verify read back]
+  end
+  subgraph S3[Browser]
+    M[Pixel dashboard]
+  end
+  A -->|new message every 4 s| E
+  E -->|text plus sender id| F
+  F -->|ParsedCallout strict schema| G
+  G -->|clarifying question| A
+  G -->|absence who and when| H
+  B -->|jobs skills windows travel| H
+  C -->|bookings and busy time| H
+  H -->|company plus absences| I
+  I -->|plan with changes| J
+  J -->|proposed plan and actions| K
+  M -->|approve| K
+  K -->|deterministic event ids| C
+  K -->|update job rows| B
+  K -->|route messages with metadata key| A
+  K -->|templated emails with key tag| D
+  K -->|after last write| L
+  L -->|pass fail checklist| M

@@ -1,0 +1,35 @@
+graph LR
+  subgraph S1[Browser in Chrome]
+    A[Web Speech API]
+    B[Regex intent tiers]
+    C[MCP client]
+    D[Zustand store and widgets]
+    E[Audio playback]
+  end
+  subgraph S2[Next.js server routes]
+    F[Groq SSE route]
+    G[ElevenLabs proxy]
+    H[Data routes]
+  end
+  subgraph S3[External services]
+    I[Groq llama 3.3 70b]
+    J[ElevenLabs Turbo v2.5]
+    K[Hosted MCP servers]
+    L[Public data APIs]
+  end
+  A -->|final transcript| B
+  B -->|matched family| H
+  B -->|music or video regex| C
+  B -->|unmatched action| C
+  C -->|intent plus tool catalogue| F
+  F -->|function tools| I
+  F -->|tool_call events over SSE| C
+  C -->|JSON-RPC tools/call| K
+  C -->|built-in tool fetch| H
+  H -->|weather maps news wiki APOD| L
+  H -->|speech string and payload| D
+  C -->|tool result| D
+  D -->|reply text| G
+  G -->|audio mpeg| E
+  E -->|barge-in resumes mic| A
+  G -->|text to speech stream| J

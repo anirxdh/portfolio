@@ -1,0 +1,38 @@
+graph LR
+  subgraph S1[Kiosk browser]
+    A[Auth page]
+    B[Voting page]
+  end
+  subgraph S2[Flask process]
+    C[Routes and JSON status]
+    D[CameraManager singleton]
+    E[FaceAuthSession threads]
+    F[GestureSession thread]
+  end
+  subgraph S3[Vision models]
+    G[Haar plus ArcFace]
+    H[YOLO hand box]
+    I[MediaPipe landmarks]
+    J[MediaPipe thumbs]
+  end
+  subgraph S4[Storage]
+    K[SQLite voters and votes]
+    L[voter_data ID photos]
+  end
+  A -->|poll auth_status 400 ms| C
+  B -->|poll gesture_status 300 ms| C
+  C -->|MJPEG video_feed 25 fps| A
+  C -->|MJPEG video_feed 25 fps| B
+  C -->|start and stop sessions| E
+  C -->|start and stop sessions| F
+  D -->|raw mirrored frame| E
+  D -->|raw mirrored frame| F
+  E -->|annotated display frame| D
+  F -->|annotated display frame| D
+  E -->|verify frame per unvoted voter| G
+  G -->|photo_path| L
+  F -->|conf 0.3 imgsz 320| H
+  F -->|count fingers 1 to 5| I
+  F -->|Thumb_Up or Thumb_Down| J
+  E -->|unvoted voters| K
+  C -->|record_vote anonymous insert| K

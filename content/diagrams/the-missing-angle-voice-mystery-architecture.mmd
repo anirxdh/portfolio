@@ -1,0 +1,29 @@
+graph LR
+  subgraph Browser
+    A[Vanilla JS SPA]
+    B[Three.js Spark rooftop]
+    C[11labs client WebRTC]
+  end
+  subgraph FastAPI server
+    D[SessionSink scene runner]
+    E[scenes.json story graph]
+    F[Speech Engine ws endpoints]
+    G[Reply hygiene filters]
+  end
+  subgraph External APIs
+    H[Groq llama 3.3 70b]
+    I[ElevenLabs TTS and STT]
+    J[ElevenLabs Speech Engine]
+    K[ElevenLabs Music API]
+  end
+  A -->|ws game or api game HTTP batch| D
+  D -->|reads scenes and canon hints| E
+  D -->|scripted answers and whiteboard insights| H
+  D -->|mp3 as base64 and scribe_v2 transcripts| I
+  A -->|loads 29 MB spz world| B
+  C -->|GET api speech-engine token| D
+  C -->|mic audio and voice replies| J
+  J -->|transcript over wss with JWT| F
+  F -->|streams suspect reply| H
+  H -->|raw text| G
+  K -->|scene beds generated at startup| D
