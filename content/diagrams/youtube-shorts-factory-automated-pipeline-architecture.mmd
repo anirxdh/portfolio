@@ -1,0 +1,33 @@
+graph LR
+  subgraph G[GitHub Actions cron]
+    A[daily-produce job]
+    B[daily-publish job]
+  end
+  subgraph P[Pipeline modules]
+    C[Content Brain]
+    D[Video Producer]
+    E[FFmpeg compositor]
+  end
+  subgraph X[External AI APIs]
+    F[OpenAI gpt-4o-mini and gpt-5.4]
+    H[Fal.ai FLUX and Hailuo]
+    I[ElevenLabs voice and music]
+    J[OpenAI Whisper]
+  end
+  subgraph S[Storage and review]
+    K[Cloudflare R2]
+    L[Railway dashboard]
+    M[YouTube Data API]
+  end
+  A -- restore channel db --> C
+  C -- fact and script via Zod --> F
+  C -- local MiniLM dedup --> D
+  D -- images and 2 animated clips --> H
+  D -- narration with timestamps --> I
+  D -- clips plus ASS karaoke --> E
+  E -- word timestamps resync --> J
+  E -- mp4 thumbnail and db --> K
+  K -- restore dbs at boot --> L
+  L -- approve or reject --> K
+  B -- pull dbs pick one approved --> K
+  B -- upload with AI metadata --> M

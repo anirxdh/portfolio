@@ -1,0 +1,20 @@
+sequenceDiagram
+  participant K as Kid
+  participant P as Play page
+  participant M as Mascot card
+  participant N as Netlify function
+  participant R as Upstash Redis
+  P->>N: POST api game start
+  N->>R: save game with 1h TTL
+  N-->>P: 3 rounds with options and correct names
+  P->>P: preload 3 mp3s with Audio preload auto
+  P->>N: POST api feedback prewarm for each round
+  N->>R: get or generate all 4 outcomes per round
+  K->>P: taps an animal name
+  P->>P: compare to correctName locally and add sticker
+  P->>N: POST api game guess in background
+  M->>N: POST api feedback with animalId guessId correct
+  N->>R: GET audiovisa fb key
+  R-->>N: text plus base64 mp3
+  N-->>M: JSON payload
+  M->>K: plays owl voice and locks Next until ended

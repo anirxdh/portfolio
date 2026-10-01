@@ -1,0 +1,23 @@
+sequenceDiagram
+  participant V as Voter
+  participant B as Browser
+  participant S as Flask routes
+  participant A as FaceAuthSession
+  participant G as GestureSession
+  participant D as SQLite
+  V->>B: steps in front of the webcam
+  B->>S: GET auth starts FaceAuthSession
+  A->>A: Haar cascade finds a face
+  A->>D: get_all_unvoted_voters
+  A->>A: DeepFace verify ArcFace per voter photo
+  A-->>B: auth_status state matched with voter name
+  B->>S: POST auth_success stores voter_id in session cookie
+  B->>S: GET voting starts GestureSession
+  V->>G: holds up three fingers
+  G->>G: MediaPipe landmarks count 3 for 3 seconds
+  G-->>B: gesture_status state confirming selected DMK
+  V->>G: holds thumbs up for 3 seconds
+  G-->>B: gesture_status state done
+  B->>S: POST confirm_vote with party
+  S->>D: record_vote inserts party only and sets has_voted
+  S-->>B: success then session cleared and vote_complete page

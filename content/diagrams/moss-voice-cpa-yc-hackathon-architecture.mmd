@@ -1,0 +1,35 @@
+graph LR
+  subgraph S1[Client]
+    A[Browser Next.js UI]
+  end
+  subgraph S2[Next.js server routes]
+    B[Presign upload]
+    C[Return doc]
+    D[LiveKit token]
+  end
+  subgraph S3[Python services]
+    E[FastAPI ingest]
+    F[LiveKit voice agent]
+  end
+  subgraph S4[External APIs]
+    G[AWS S3]
+    H[Unsiloed parse]
+    I[Moss indexes]
+    J[LiveKit Cloud]
+    K[LLM and MiniMax TTS]
+  end
+  A -->|Clerk session| B
+  A -->|Clerk session| C
+  A -->|Clerk session| D
+  B -->|presigned POST policy 5 min| A
+  A -->|direct upload under users prefix| G
+  C -->|presigned GET 15 min| A
+  E -->|download object| G
+  E -->|submit and poll job| H
+  E -->|upsert chunks tagged user_id| I
+  D -->|JWT plus dispatch metadata user_id| J
+  A -->|WebRTC audio| J
+  J -->|dispatch agent-py with metadata| F
+  F -->|filtered query top_k 3| I
+  F -->|STT LLM TTS calls| K
+  F -->|moss_context data message| A

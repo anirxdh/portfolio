@@ -1,0 +1,25 @@
+sequenceDiagram
+  participant D as Dispatcher
+  participant E as Engine
+  participant L as SQLite ledger
+  participant C as Google Calendar
+  participant S as Slack
+  participant G as Gmail
+  D->>E: POST approve plan
+  E->>C: list events on every tech calendar
+  E->>E: fingerprint fresh snapshot and compare to plan
+  alt fingerprint changed
+    E->>L: status stale, nothing written
+    E-->>D: plan is stale, re-plan needed
+  else fingerprint matches
+    E->>L: status executing
+    E->>L: mark cal+ J102 pending
+    E->>C: insert event with deterministic id
+    C-->>E: 201 created or 409 already exists
+    E->>L: mark cal+ J102 done
+    E->>S: find_by_key then post route with metadata
+    E->>G: find_by_key then send with SS tag and header
+    E->>C: read all calendars back
+    E->>E: check_schedule on real placements
+    E-->>D: 36 of 36 checks passed
+  end

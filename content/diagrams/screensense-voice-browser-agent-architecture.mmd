@@ -1,0 +1,36 @@
+graph LR
+  subgraph Page[Browser tab]
+    A[User holds key]
+    B[Content script]
+  end
+  subgraph Ext[Extension service worker]
+    D[Offscreen mic]
+    E[STT chain]
+    F[Conversation manager]
+    G[Pipeline and agent loop]
+  end
+  subgraph Api[FastAPI backend]
+    H[Task route]
+    I[Firecrawl service]
+    J[Bedrock reasoning]
+  end
+  subgraph Cloud[External APIs]
+    K[Groq ElevenLabs Deepgram]
+    L[Firecrawl API]
+    M[AWS Bedrock]
+    N[ElevenLabs TTS]
+  end
+  A -->|shortcut-hold| D
+  D -->|base64 audio| E
+  E -->|audio upload| K
+  K -->|transcript| F
+  B -->|DOM snapshot| G
+  F -->|command plus history| H
+  G -->|scrape URL| I
+  I -->|markdown 5 min cache| L
+  H -->|screenshot DOM markdown| J
+  J -->|converse call| M
+  M -->|one JSON action| G
+  G -->|execute-action| B
+  G -->|speak phrase| N
+  N -->|mp3 base64| B

@@ -1,0 +1,23 @@
+sequenceDiagram
+  participant U as User
+  participant C as Chat.tsx
+  participant A as askQuestion action
+  participant F as Firestore
+  participant L as langchain.ts
+  participant P as Pinecone
+  participant O as OpenAI
+  U->>C: types a follow-up question
+  C->>C: push human turn and Thinking placeholder
+  C->>A: askQuestion docId question
+  A->>F: count human turns in chat subcollection
+  A->>F: add human message
+  A->>L: generateLangchainCompletion
+  L->>P: describeIndexStats namespace exists
+  L->>F: load chat history
+  L->>O: rewrite question into standalone query
+  L->>P: similarity search in docId namespace
+  L->>O: answer with chunks and history
+  L-->>A: reply.answer
+  A->>F: add ai message
+  F-->>C: onSnapshot with both turns
+  C-->>U: answer replaces Thinking placeholder

@@ -1,0 +1,21 @@
+sequenceDiagram
+  participant U as Player
+  participant P as Player.tsx
+  participant S as puzzleStore and gameStore
+  participant X as useSceneFx and useGameAudio
+  participant H as Howler
+  participant E as EndingSequence
+  U->>P: press E on key trigger after tape 5
+  P->>S: collectKey sets hasFrontDoorKey true
+  S-->>X: subscription fires on hasFrontDoorKey
+  X->>H: fade out Margaret theme
+  X->>H: start heartbeat loop and ramp volume and rate over 45s
+  X->>X: suppress 60s scream stingers
+  U->>P: walk to front door and press E
+  P->>S: triggerEnding clears modals and sets endingActive
+  S-->>E: render jumpscare overlay
+  E->>H: play scream stinger
+  E->>E: after 2.4s play outro MP4 with HTML subtitles
+  E->>E: credits roll
+  E->>S: goToLanding sets started false and wipes puzzleStore
+  S-->>U: back on the start screen with tapes and puzzles wiped

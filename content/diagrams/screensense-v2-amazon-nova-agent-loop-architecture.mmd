@@ -1,0 +1,39 @@
+graph LR
+  subgraph P[Web page content script]
+    A[Shortcut handler]
+    B[DOM scraper]
+    C[Action executor]
+    D[Cursor bubble]
+  end
+  subgraph X[Extension service worker]
+    E[Offscreen recorder]
+    F[Agent loop]
+    G[Screenshot capture]
+  end
+  subgraph S[FastAPI backend]
+    H[Transcribe router]
+    I[Task router]
+    J[SSE event bus]
+  end
+  subgraph W[AWS and external]
+    K[Nova Lite on Bedrock]
+    L[AWS Transcribe]
+    M[ElevenLabs TTS]
+  end
+  A -- hold and release --> F
+  F -- start and stop --> E
+  E -- audio blob --> F
+  F -- capture tab --> G
+  F -- scrape-dom --> B
+  B -- JSON snapshot --> F
+  F -- WS audio --> H
+  H -- ogg opus --> L
+  F -- POST task and continue --> I
+  I -- JPEG plus DOM --> K
+  K -- one JSON action --> I
+  I -- action --> F
+  F -- execute-action --> C
+  C -- ok or FAILED --> F
+  J -- stage events --> D
+  F -- steps and speak --> D
+  D -- proxied via worker --> M

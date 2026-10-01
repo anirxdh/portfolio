@@ -1,0 +1,19 @@
+sequenceDiagram
+  participant U as User
+  participant B as Browser
+  participant F as FastAPI
+  participant O as OpenAI
+  participant E as ElevenLabs
+  U->>B: holds TRANSMIT and speaks
+  B->>B: Web Speech API builds transcript and camera lerps to Earth
+  U->>B: releases button
+  B->>F: POST api chat with text, session id and character
+  F->>F: append user turn to session history
+  F->>O: gpt-4o-mini with colonist system prompt, max 120 tokens
+  O-->>F: short in-character reply
+  F->>E: text to speech with character voice, eleven_turbo_v2_5
+  E-->>F: MP3 bytes
+  F-->>B: audio body plus X-Zeph-Text and X-Session-Id headers
+  B->>B: decode header text into chat log
+  B->>B: squelch burst, bandpass and waveshaper playback, camera lerps to Mars
+  B-->>U: colonist voice ends with second squelch, button re-enabled

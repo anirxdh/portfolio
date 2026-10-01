@@ -1,0 +1,22 @@
+graph LR
+  subgraph BROWSER [Browser tab static Vite build]
+    A[main.ts entry] -->|addSystem list| B[Game loop dt clamp]
+    C[levelData house data] -->|walls lights spawn| D[Level and Floors]
+    D -->|y banded AABBs| E[Shared collider list]
+    E -->|resolveCircle slide| F[Player controller]
+    E -->|segmentBlocked sight| G[Ghost body]
+    D -->|lightLevelAt sum| H[Sanity meter]
+    H -->|sanity value each frame| I[Director state machine]
+    I -->|state menace flags| G
+    F -->|running and door slams| I
+    J[Photo camera and EMF] -->|provoke on capture| I
+    G -->|tension signal| K[Web Audio synth and samples]
+    G -->|hunt and fear| L[DOM HUD overlays]
+  end
+  subgraph OFFLINE [Offline assets]
+    M[ElevenLabs mp3s] -->|fetched at start| K
+    N[Third party ghost GLB] -->|HEAD check then load| G
+  end
+  subgraph HOST [Vercel]
+    O[Static dist folder] -->|serves index and chunks| A
+  end

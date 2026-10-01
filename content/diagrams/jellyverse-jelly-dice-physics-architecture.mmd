@@ -1,0 +1,25 @@
+graph TD
+  subgraph PAGES [Four Vite pages]
+    A[Jelly Dice]
+    B[Jelly Duel]
+    C[Jelly Squish]
+    D[Jelly Lilliput]
+  end
+  subgraph ENGINE [Shared engine src engine]
+    E[Grabber pointer events] -->|grab poke tear fling| F[World 240 Hz solver]
+    F -->|corner spheres| G[Static colliders]
+    F -->|normal tangent amplitude| H[Jelly uniforms]
+    F -->|impact strength| I[WebAudio synth]
+    H -->|onBeforeCompile patch| J[GLSL deformer]
+    K[Stage renderer]
+  end
+  subgraph GPU [GPU]
+    J -->|vertex and depth pass| L[Wobbling mesh and shadow]
+    K -->|ACES PMREM shadows| L
+  end
+  A -->|createStage World Grabber| E
+  B -->|createStage World Grabber| E
+  C -->|createStage World Grabber| E
+  D -->|createStage World Grabber| E
+  B -->|wins losses streak| M[(localStorage)]
+  D -->|best score scene| M

@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/build-blog.mjs",
+    "diagrams": "bash scripts/render-diagrams.sh",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -37,6 +38,8 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^15.14.0",
+    "gray-matter": "^4.0.3",
+    "marked": "^18.0.14",
     "postcss": "^8.5.1",
     "tailwindcss": "^3.4.17",
     "vite": "^6.0.5"

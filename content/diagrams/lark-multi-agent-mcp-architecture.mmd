@@ -1,0 +1,34 @@
+graph LR
+  subgraph S1[Chat host sandbox]
+    A[ChatGPT or Claude]
+    B[Lark widget React]
+  end
+  subgraph S2[Lark gateway process]
+    C[MCP server endpoint]
+    D[Proxied tool registry]
+    E[Local tools]
+    F[Media proxy routes]
+    G[JSON files]
+  end
+  subgraph S3[Teammate MCP servers]
+    H[YouTube MCP]
+    I[Agent chat MCP]
+    J[Video YT MCP]
+  end
+  subgraph S4[External APIs]
+    K[Twilio Voice]
+    L[Audius and Deezer]
+  end
+  A -->|wake-up-lark returns widget| B
+  A -->|tool calls over MCP with OAuth| C
+  B -->|useWidget callTool| C
+  C -->|names with server prefix| D
+  C -->|contacts calls music| E
+  D -->|session callTool at boot or runtime| H
+  D -->|register list read send| I
+  D -->|search play queue| J
+  E -->|POST Calls.json inline TwiML| K
+  E -->|parallel search with timeouts| L
+  E -->|contacts and user-servers| G
+  B -->|same origin stream and cover| F
+  F -->|Range passthrough 206| L
