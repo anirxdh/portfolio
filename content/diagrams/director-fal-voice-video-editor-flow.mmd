@@ -1,0 +1,19 @@
+sequenceDiagram
+  participant U as User
+  participant S as Studio UI
+  participant A as Director agent
+  participant T as Tools and engine
+  participant X as fal and ElevenLabs
+  U->>A: around fifteen seconds make her say I love you
+  A->>T: highlight 15 to 20
+  T->>S: state_update with highlight
+  S-->>U: timeline strip flashes amber
+  A-->>U: speaks confirmation of the change
+  A->>T: replace_segment s3 with new dialogue
+  T->>S: state_update shot s3 status replacing
+  T->>X: ElevenLabs line then fal lipsync
+  X-->>T: new video url
+  T->>T: resolve_local then replace_clip_media
+  T->>S: state_update shot ready highlight cleared
+  S-->>U: preview plays the new take
+  A-->>U: the new take is in, how does it look

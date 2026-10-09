@@ -1,0 +1,20 @@
+sequenceDiagram
+  participant U as Visitor
+  participant W as AniBot widget
+  participant H as useAiChat hook
+  participant F as chat.js Function
+  participant O as OpenAI
+  U->>W: types a question and presses Enter
+  W->>H: sendMessage with text
+  H->>H: adds user bubble and shows typing dots
+  H->>F: POST /api/chat with message and last 10 turns
+  F->>F: checks origin length and roles
+  F->>O: chat.completions.create stream true
+  O-->>F: delta content chunks
+  F-->>H: text/plain bytes as they arrive
+  H->>H: first chunk creates assistant bubble
+  H->>H: flush setMessages at most every 40 ms
+  O-->>F: stream ends
+  F-->>H: stream closes
+  H->>W: final flush with complete text
+  W->>U: shows Markdown reply and follow ups

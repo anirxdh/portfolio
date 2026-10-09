@@ -1,0 +1,29 @@
+sequenceDiagram
+  participant U as User
+  participant CS as Content script
+  participant SW as Service worker
+  participant BE as FastAPI backend
+  participant NV as Nova Lite
+  U->>CS: release backtick after speaking
+  CS->>SW: shortcut-release
+  SW->>SW: stop recorder and wait for audio blob
+  SW->>SW: capture screenshot
+  SW->>BE: WS transcribe stream with audio
+  BE-->>SW: transcript text
+  SW->>CS: scrape-dom
+  CS-->>SW: DOM snapshot with selectors
+  SW->>BE: POST task with command, PNG screenshot, DOM
+  BE->>NV: converse with system prompt
+  NV-->>BE: one action as JSON
+  BE-->>SW: steps with first action
+  loop until done or 25 iterations
+    SW->>CS: execute-action
+    CS-->>SW: ok summary or FAILED error
+    SW->>CS: wait-for-dom-stable then scrape-dom
+    CS-->>SW: fresh snapshot
+    SW->>BE: POST task continue with history
+    BE->>NV: converse with continue prompt
+    NV-->>BE: next action or done
+    BE-->>SW: steps or done
+  end
+  SW->>CS: bubble-done-summary and tts All done

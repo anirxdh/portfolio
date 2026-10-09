@@ -1,0 +1,35 @@
+flowchart LR
+  subgraph Browser[Browser studio Next.js]
+    A[Talk orb mic]
+    B[State reducer]
+    C[Preview and timeline]
+  end
+  subgraph Local[Localhost processes]
+    D[livekit-server dev]
+    E[AgentSession STT LLM TTS]
+    F[Tools 23 function tools]
+    G[ProjectState]
+    H[Edit engine ops]
+    I[ffmpeg renderer]
+  end
+  subgraph Cloud[External APIs]
+    J[Deepgram nova-3]
+    K[Anthropic Claude]
+    L[ElevenLabs Flash]
+    M[fal models]
+  end
+  A -->|WebRTC audio| D
+  D -->|audio track| E
+  E -->|speech to text| J
+  E -->|tool calling| K
+  E -->|director voice| L
+  K -->|tool call| F
+  F -->|generate media| M
+  F -->|dialogue lines| L
+  F -->|pure op| H
+  H -->|new Timeline| G
+  F -->|mutate then publish| G
+  G -->|state_update JSON| D
+  D -->|data channel| B
+  B -->|render props| C
+  G -->|export| I

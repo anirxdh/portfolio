@@ -1,0 +1,38 @@
+graph LR
+  subgraph Browser
+    A[Home page]
+    B[Play page]
+    C[Mascot card]
+    D[Results page]
+  end
+  subgraph Netlify functions
+    E[api game start]
+    F[api feedback prewarm]
+    G[api feedback]
+    H[api leaderboard submit]
+  end
+  subgraph Upstash Redis
+    I[Game state 1h TTL]
+    J[Feedback cache b64 mp3]
+    K[Daily sorted set]
+  end
+  subgraph External APIs
+    L[OpenAI gpt-4o-mini]
+    M[ElevenLabs TTS]
+  end
+  N[Static mp3s on CDN]
+  A -->|preload todays 3 mp3s| N
+  B -->|POST mode| E
+  E -->|save rounds| I
+  E -->|rounds plus correct names| B
+  B -->|preload 3 clips| N
+  B -->|POST once per round| F
+  F -->|read round| I
+  F -->|get or generate 4 outcomes| J
+  J -.->|miss only| L
+  L -.->|short line| M
+  M -.->|mp3 bytes as base64| J
+  C -->|POST animal and guess| G
+  G -->|cache hit| J
+  D -->|POST nickname and score| H
+  H -->|zadd nickname and gameId| K

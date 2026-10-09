@@ -1,0 +1,30 @@
+graph LR
+  subgraph B[Browser SPA]
+    A[Clerk sign-in gate]
+    C[Six JSON datasets]
+    D[Plotly dashboards]
+    E[Doc builders]
+    F[localStorage cache]
+    G[TF-IDF search]
+    H[RagChat router]
+    I[Chatbot panel]
+  end
+  subgraph X[External APIs]
+    J[Clerk]
+    K[OpenAI gpt-4o-mini]
+  end
+  subgraph N[Node scripts only]
+    L[Pinecone index]
+  end
+  A -- hosted sign-in --> J
+  A -- signed in --> D
+  C -- build-time import --> D
+  C -- 142 sentence docs --> E
+  E -- v4 version stamp --> F
+  F -- load on query --> G
+  I -- question --> H
+  H -- query k times 2 --> G
+  G -- scored docs --> H
+  H -- prompt with records --> K
+  K -- SSE token stream --> I
+  C -. text-embedding-3-small .-> L

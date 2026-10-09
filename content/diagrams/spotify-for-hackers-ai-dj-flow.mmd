@@ -1,0 +1,21 @@
+sequenceDiagram
+  participant M as Music element
+  participant S as Shell page tsx
+  participant D as DJ route
+  participant G as Groq
+  participant T as TTS route
+  participant E as ElevenLabs
+  M->>S: ended event for current preview
+  S->>M: set src to next preview and play
+  S->>M: volume to 26 pct of user level
+  S->>D: POST current next queueSize flowIndex and host fields
+  D->>G: chat completion llama 3.1 8b max_tokens 70
+  G-->>D: one spoken line under 22 words
+  D-->>S: line or canned fallback with HTTP 200
+  S->>T: POST delivery tag plus line voiceId and settings
+  T->>E: text to speech eleven_v3 with server side key
+  E-->>T: audio mpeg bytes
+  T-->>S: audio mpeg bytes
+  S->>S: blob to object url on primed element
+  S->>S: play voice while music stays at bed level
+  S->>M: restore volume when voice ends

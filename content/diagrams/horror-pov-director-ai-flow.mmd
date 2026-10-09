@@ -1,0 +1,21 @@
+sequenceDiagram
+  participant P as Player
+  participant C as PhotoCamera
+  participant G as Ghost
+  participant D as Director
+  participant L as Level and Audio
+  P->>C: right mouse raise, FOV lerps 72 to 46
+  P->>C: left click shoot
+  C->>C: film minus 1, 0.8 s cooldown, 1500 flash for 0.13 s
+  C->>G: isPhotographable camera colliders
+  G-->>C: visible, within 20 m, in frustum, unoccluded
+  C->>G: flashHit plays GLB hit clip
+  C->>D: provoke calls startHunt
+  D->>D: state hunting, 11 s timer, menace at least 0.4
+  D-->>G: state now hunting
+  G->>G: phase toward player at species hunt speed
+  G->>L: state changed to hunting
+  L->>L: setHuntMode ground floor lights to 0.06, scream, shake, red pulse
+  D->>D: menace rises with proximity and sight
+  D->>G: timer out or menace 1, startRetreat 14 s cooldown
+  G->>L: hunt ended, lights return

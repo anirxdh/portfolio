@@ -1,0 +1,43 @@
+graph LR
+  subgraph Client[Browser]
+    A[Four step wizard]
+    B[SSE progress bar]
+  end
+  subgraph Server[Next.js API routes]
+    C[Upload route]
+    D[Transcribe route]
+    E[Knowledge route]
+    F[Avatar route]
+    G[Presenter poll route]
+    H[Composite route]
+    I[Progress store Map]
+  end
+  subgraph Disk[Local disk job folder]
+    J[Manifest and MP4 files]
+  end
+  subgraph Cloud[External APIs]
+    K[ElevenLabs Scribe v2]
+    L[DeepSeek V3 on DeepInfra]
+    M[ElevenLabs TTS timestamps]
+    N[D-ID Talks API]
+  end
+  A -->|mp4 or YouTube URL| C
+  C -->|manifest json| J
+  A -->|POST in order| D
+  A --> E
+  A --> F
+  D -->|raw video multipart| K
+  K -->|word timestamps| D
+  E -->|transcript text| L
+  L -->|summary and insights| E
+  F -->|script prompt| L
+  F -->|script for alignment| M
+  M -->|character timings| F
+  F -->|script.srt| J
+  F -->|image plus script| N
+  A -->|poll every 5s| G
+  G -->|talk status| N
+  A -->|presenter URL| H
+  H -->|download clip run ffmpeg| J
+  H -->|out_time percent| I
+  I -->|event stream| B

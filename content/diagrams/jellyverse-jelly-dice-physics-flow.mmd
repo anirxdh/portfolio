@@ -1,0 +1,22 @@
+sequenceDiagram
+  participant U as Finger
+  participant G as Grabber
+  participant W as World
+  participant B as Body
+  participant S as Jelly shader
+  participant P as Dice page
+  U->>G: pointerdown on canvas
+  G->>B: raycast hit, wake, uGrabW set to 1
+  U->>G: pointerup within 220 ms and no move
+  G->>B: tap impulse 3.2 plus torque
+  G->>P: release event, rolling true
+  loop every frame, 240 Hz sub steps
+    W->>B: gravity, integrate, corner spheres vs floor
+    B-->>W: impulse per unit mass above 0.35
+    W->>B: wobble into weakest slot
+    W->>P: onImpact strength to clack synth
+  end
+  W->>B: settleStep slerps nearest face flat
+  B->>S: uN uT uA uGrabD per frame
+  S-->>P: wobbling mesh and shadow rendered
+  P->>P: upValue per die, tally and aria-live

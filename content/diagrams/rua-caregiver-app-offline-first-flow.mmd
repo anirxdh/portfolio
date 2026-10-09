@@ -1,0 +1,20 @@
+sequenceDiagram
+  participant U as Caregiver
+  participant S as Med screen
+  participant R as Repository
+  participant D as SQLCipher DB
+  participant C as Core engine
+  participant N as iOS notifications
+  U->>S: enters fill date and day supply
+  S->>R: addFill
+  R->>C: uuidv7 for the new row
+  R->>D: insert med_fills row
+  R->>D: append change_log row
+  R-->>S: bumpDataVersion
+  S->>R: useData re-reads medications
+  R->>C: computeRunway with injected today
+  C-->>S: runway status and days remaining
+  S->>C: syncNotifications calls planNotifications
+  S->>N: getAllScheduledNotifications
+  S->>N: cancel stale keys and schedule missing keys
+  N-->>U: PHI free alert on the lead day

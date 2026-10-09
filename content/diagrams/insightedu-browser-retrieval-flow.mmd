@@ -1,0 +1,20 @@
+sequenceDiagram
+  participant U as User
+  participant C as Chatbot.jsx
+  participant R as RagChat
+  participant S as ragStore TF-IDF
+  participant O as OpenAI API
+  U->>C: types what about by gender
+  C->>R: generateResponse with onChunk
+  R->>R: isProjectQuery and isCrossDatasetQuery both false
+  R->>S: tfidfSearch query k=24
+  S-->>R: scored docs with boosts
+  R->>S: tfidfSearch with session dataset prepended
+  S-->>R: extra docs merged, top 12 kept
+  R->>R: buildContext tags each doc
+  R->>O: POST chat completions stream true
+  O-->>R: data lines with content deltas
+  R-->>C: onChunk accumulated text
+  C-->>U: message updates with blinking cursor
+  O-->>R: DONE
+  R-->>C: final answer saved to history

@@ -1,0 +1,33 @@
+flowchart LR
+  subgraph Deterministic spine
+    A[config frozen constants]
+    B[prng named streams]
+    C[clock day and tod]
+    D[fate beacon lookup]
+  end
+  subgraph Browser
+    E[sim evaluate now]
+    F[main render loop]
+    G[world npc ui]
+    H[player and camps]
+    I[localStorage]
+  end
+  subgraph External
+    J[drand beacon]
+    K[three.js on jsDelivr]
+  end
+  subgraph Optional Replit server
+    L[server.mjs static and ws]
+  end
+  A -->|seed epoch rollover| E
+  B -->|roll and scopeRng| E
+  C -->|worldClock nowMs| E
+  D -->|fateOf day hex| E
+  J -->|public round json| D
+  D -->|fate cache| I
+  F -->|Date.now every frame| E
+  E -->|npc pos pose label lots| G
+  E -->|same state read only| H
+  H -->|hero and portal unlocks| I
+  K -->|import map r184| F
+  L -.->|serves files optional presence| F

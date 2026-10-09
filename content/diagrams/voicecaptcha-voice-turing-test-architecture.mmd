@@ -1,0 +1,31 @@
+flowchart LR
+  subgraph S1[Browser on Vercel]
+    A[reCAPTCHA v2 checkbox]
+    B[MediaRecorder]
+    C[Web Speech API]
+    D[AnalyserNode orbs]
+    E[VoiceCaptchaPanel]
+  end
+  subgraph S2[Cloudflare Worker]
+    F[Worker routes]
+    G[ChallengeCoordinator DO]
+    H[Fuzzy scorer]
+  end
+  subgraph S3[External APIs]
+    I[Groq whisper large v3]
+    J[ElevenLabs TTS]
+  end
+  A -->|token gates Record| E
+  B -->|webm or mp4 blob| E
+  C -->|interim text highlights words| E
+  E -->|mic stream| D
+  E -->|GET api challenge| F
+  E -->|POST challengeId plus audio| F
+  E -->|POST text after pass| F
+  F -->|create get delete over internal fetch| G
+  F -->|multipart audio| I
+  I -->|transcript| H
+  H -->|ordered and bag scores| F
+  F -->|text with model id| J
+  J -->|mpeg bytes| F
+  F -->|base64 JSON| E

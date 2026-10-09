@@ -1,0 +1,30 @@
+flowchart LR
+  subgraph JS[JavaScript thread on the phone]
+    A[Expo Router screens]
+    B[useData hook]
+    C[Repository repo.ts]
+    F[Core engine pure TS]
+    G[Label parser]
+  end
+  subgraph DATA[Encrypted storage]
+    D[SQLCipher SQLite]
+    E[change_log and access_log]
+    L[Drizzle migrations]
+  end
+  subgraph IOS[iOS native]
+    I[Keychain key]
+    H[Local notifications]
+    K[Apple Vision OCR]
+  end
+  A -->|synchronous reads| B
+  B -->|re-runs on version bump| C
+  A -->|writes| C
+  C -->|drizzle queries| D
+  C -->|appends every write| E
+  I -->|PRAGMA key first| D
+  L -->|copy then migrate| D
+  C -->|rows plus injected today| F
+  F -->|runway digest plan| A
+  F -->|desired keys, applied by lib notifications| H
+  K -->|text lines optional module| G
+  G -->|fields with confidence| A

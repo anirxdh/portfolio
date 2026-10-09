@@ -1,0 +1,39 @@
+graph LR
+  subgraph B[Browser]
+    A[Clerk sign-in]
+    C[Dropzone uploader]
+    D[Chat panel]
+    E[react-pdf viewer]
+    O[Pricing page]
+  end
+  subgraph S[Next.js server actions]
+    F[generateEmbeddings action]
+    G[askQuestion action]
+    H[LangChain retrieval chain]
+    I[deleteDocument action]
+  end
+  subgraph X[External services]
+    J[Firebase Storage]
+    K[Firestore]
+    L[Pinecone namespace per doc]
+    M[OpenAI gpt-4o-mini]
+    N[Stripe Checkout]
+  end
+  A -- session cookie --> G
+  C -- uploadBytesResumable --> J
+  C -- metadata doc --> K
+  C -- docId --> F
+  F -- fetch PDF by download URL --> J
+  F -- split and embed --> L
+  D -- question --> G
+  G -- limit check and turns --> K
+  G -- docId and question --> H
+  H -- query rewrite and answer --> M
+  H -- retrieve chunks --> L
+  K -- onSnapshot chat --> D
+  J -- CORS GET --> E
+  I -- delete metadata doc --> K
+  I -- delete blob --> J
+  I -- delete vectors --> L
+  O -- createCheckoutSession --> N
+  N -. hasActiveMembership never set .-> K

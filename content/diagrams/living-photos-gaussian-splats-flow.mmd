@@ -1,0 +1,20 @@
+sequenceDiagram
+  participant U as Browser
+  participant N as Next.js routes
+  participant P as Pipeline
+  participant X as Marble FAL ElevenLabs
+  participant S as Stripe
+  U->>N: GET blob upload signed URL
+  U->>N: POST api scenes with photo URL
+  N-->>U: 201 scene with slug
+  N->>P: scene uploaded event
+  P->>X: submit Marble world and poll
+  X-->>P: spz URL full and low poly
+  P->>X: Hunyuan3D meshes and ambient sfx
+  P->>N: update scene status ready
+  U->>N: POST stripe checkout
+  N->>S: create checkout session
+  S->>N: webhook after hosted payment completes
+  N->>N: mark processed then mark paid
+  U->>N: GET scene page
+  N-->>U: paid scene with splat and audio URLs

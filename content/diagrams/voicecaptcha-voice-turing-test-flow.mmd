@@ -1,0 +1,22 @@
+sequenceDiagram
+  participant U as User
+  participant P as VoiceCaptchaPanel
+  participant W as Worker index.ts
+  participant D as ChallengeCoordinator DO
+  participant G as Groq Whisper
+  P->>W: GET api challenge
+  W->>D: POST create
+  D-->>W: challengeId and phrase after pruneExpired
+  W-->>P: phrase shown and Record enabled
+  U->>P: taps Record then reads the phrase aloud
+  U->>P: taps Check
+  P->>P: stop recognizer then await MediaRecorder stop event
+  P->>W: POST api verify-voice with challengeId and audio blob
+  W->>D: GET get id
+  D-->>W: phrase and created or 404 if expired
+  W->>G: multipart audio with whisper-large-v3
+  G-->>W: transcript text
+  W->>W: orderedWordScoreFuzzy and bagOfWordsScore then pick reason
+  W->>D: POST delete id
+  W-->>P: ok reason transcript matchScore humanLikeness note
+  P-->>U: human pass line and Play ElevenLabs voice button

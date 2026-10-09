@@ -1,0 +1,21 @@
+sequenceDiagram
+  participant U as User
+  participant C as Content script
+  participant S as Service worker
+  participant O as Offscreen doc
+  participant G as Groq API
+  participant E as ElevenLabs
+  U->>C: Hold backtick 200ms
+  C->>S: shortcut-hold
+  S->>O: start-recording
+  C->>S: shortcut-release on key up
+  S->>O: stop-recording
+  O-->>S: audio base64
+  S->>G: Whisper transcription
+  G-->>S: transcript
+  S->>G: Llama 4 Scout stream with tab PNG
+  G-->>S: SSE deltas
+  S-->>C: stream-chunk
+  S->>G: summary under 20 words
+  S-->>C: tts-summary
+  C->>E: text to speech

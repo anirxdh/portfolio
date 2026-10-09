@@ -26,6 +26,11 @@ export const navLinks = [
     },
     {
       id: 6,
+      name: 'Writing',
+      href: '/blog/',
+    },
+    {
+      id: 7,
       name: 'Explore',
       href: 'https://av-world.replit.app/',
       external: true,

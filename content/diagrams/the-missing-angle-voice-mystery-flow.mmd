@@ -1,0 +1,20 @@
+sequenceDiagram
+  participant P as Player
+  participant B as Browser
+  participant S as FastAPI
+  participant E as ElevenLabs Speech Engine
+  participant G as Groq
+  P->>B: clicks Start live voice
+  B->>S: GET api speech-engine token for SARA
+  S->>E: get_webrtc_token for the Sara engine id
+  S-->>B: conversation token
+  B->>E: Conversation.startSession over WebRTC
+  E->>S: opens wss ws sara with signed JWT header
+  S->>S: verify_speech_engine_jwt then ws.accept
+  B->>E: player speaks, mic audio over WebRTC
+  E->>S: transcript delivered to on_transcript
+  S->>G: llama 3.3 70b streaming with Sara prompt
+  G-->>S: reply tokens
+  S-->>E: session.send_response streams the reply
+  E-->>B: Sara voice audio plus agent message
+  B->>B: onModeChange plays video, onMessage logs the line
