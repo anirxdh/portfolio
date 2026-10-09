@@ -15,6 +15,7 @@ sequenceDiagram
   S->>T: POST delivery tag plus line voiceId and settings
   T->>E: text to speech eleven_v3 with server side key
   E-->>T: audio mpeg bytes
-  T-->>S: blob to object url on primed element
+  T-->>S: audio mpeg bytes
+  S->>S: blob to object url on primed element
   S->>S: play voice while music stays at bed level
   S->>M: restore volume when voice ends

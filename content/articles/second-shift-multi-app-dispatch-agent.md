@@ -2,37 +2,37 @@
 draft: true
 title: "Building Second Shift, a Dispatch Agent That Proves Its Own Writes"
 description: "How Second Shift re-plans a field crew's day across Slack, Sheets, Calendar and Gmail with a CP-SAT solver, then reads every write back to verify it landed."
-date: 2026-09-30
+date: 2026-10-03
 slug: second-shift-multi-app-dispatch-agent
 project: "Second Shift"
 tags: [OR-Tools, Multi-App Agents, Google APIs, Slack, FastAPI, Python]
 repo: https://github.com/anirxdh/second-shift
 live: https://youtu.be/fXl8JSo9rTc
 accent: "#4fc3f7"
-summary: "Second Shift is a multi-app AI agent that re-plans a field-service crew's day when a technician calls out sick, built solo in one day for the Multi-App AI Agent Hackathon. The LLM only extracts a schema. A CP-SAT solver plans, an independent checker verifies, and an idempotent ledger writes to four apps."
+summary: "Second Shift is a multi-app AI agent that re-plans a field-service crew's day when a technician calls out sick, built for the Multi-App AI Agent Hackathon on September 13, 2026. The LLM only extracts a schema. A CP-SAT solver plans, an independent checker verifies, and an idempotent ledger writes to four apps."
 ---
 
 ## A 6:45 AM problem
 
 Picture a small home-services company at 6:45 in the morning. Marco, one of only two gas-certified HVAC technicians, posts in Slack that he has a fever. Four customers expect him today, including an 11:00 contract job that cannot move. A dispatcher now has about an hour to find someone certified who can reach each customer inside the promised window, tell the crew, and email the customers whose visit changed.
 
-The Multi-App AI Agent Hackathon ran virtually on Sunday, September 13, 2026. The brief was one useful multi-step agent connecting at least three external apps, with proof that it works. The judging weights were posted up front: 30% technical execution, 25% reliability and evaluation, 20% usefulness, 15% originality, 10% demo. That second number shaped everything below.
+The Multi-App AI Agent Hackathon ran on Sunday, September 13, 2026. The brief was one useful multi-step agent connecting at least three external apps, with proof that it works. The published criteria, as I recorded them in ideas/40-hackathon-ideas.md, weighted 30% technical execution, 25% reliability and evaluation, 20% usefulness, 15% originality, 10% demo. That second number shaped everything below.
 
-Second Shift is a multi-app AI dispatch agent that re-plans a field-service crew's day across Slack, Google Sheets, Google Calendar and Gmail when a technician calls out, then reads every write back to prove the new day is right, built by Anirudh Vasudevan for the Multi-App AI Agent Hackathon. I built it alone in one day. The source is public in the anirxdh/second-shift repo. The demo company, Bayside Home Services with six technicians and sixteen jobs, is synthetic.
+Second Shift is a multi-app AI dispatch agent, built by Anirudh Vasudevan for that hackathon, that re-plans a field-service crew's day across Slack, Google Sheets, Google Calendar and Gmail when a technician calls out, then reads every write back to prove the new day is right. The README dates it to the hackathon day, and the final README commit links the version submitted before the 4:00 PM deadline. The source is public in the anirxdh/second-shift repo. The demo company, Bayside Home Services with six technicians and sixteen jobs, is synthetic.
 
 ## Why the LLM only fills a schema
 
-The obvious approach is an LLM with read and write tools for all four apps, reasoning its way to a new schedule. I rejected that in the first hour because of the 25% reliability weight. A model that picks who does which job cannot be audited. If it sends Wei to a gas job he is not certified for, the only defense is another model call.
+The obvious approach is an LLM with read and write tools for all four apps, reasoning its way to a new schedule. I rejected that before writing any code because of the 25% reliability weight. A model that picks who does which job cannot be audited. If it sends Wei to a gas job he is not certified for, the only defense is another model call.
 
-A middle option was to let the model propose a schedule and have code validate it. A validator can only say no, though. It cannot find the chain move where Wei's plumbing job goes to Ana so that Wei, the only other gas-certified tech, is free for Marco's contract job. That is a constraint problem, and OR-Tools CP-SAT solves exactly that.
+A middle option was to let the model propose a schedule and have code validate it. A validator can only say no, though. It cannot find the chain move where Wei's plumbing job goes to Ana so that Wei, the only other gas-certified HVAC tech, is free for Marco's contract job. That is a constraint problem, and OR-Tools CP-SAT solves exactly that.
 
-So I shrank the model's job to one thing: read a Slack message and fill a strict schema saying who is out and for which hours. Everything else is code. Guardrails decide whether to plan, ask, simulate or ignore. The solver decides who does what. A separate checker decides whether the plan is legal. A dispatcher decides whether it happens. Templates decide what customers are told. I had ranked 40 candidate ideas against the judging weights first (ideas/40-hackathon-ideas.md), and this one let me show real depth in a day.
+So I shrank the model's job to one thing: read a Slack message and fill a strict schema saying who is out and for which hours. Everything else is code. Guardrails decide whether to plan, ask, simulate or ignore. The solver decides who does what. A separate checker decides whether the plan is legal. A dispatcher decides whether it happens. Templates decide what customers are told. This idea came out of a ranked list of 40 (ideas/40-hackathon-ideas.md), ranked against the judging weights.
 
 ## What a dispatcher sees
 
-A technician posts in #dispatch: "Woke up with a fever, can't make it in today." Within seconds the bot replies that Marco is out, 3 of his 4 visits can go to teammates, one customer will be asked to pick a new time, and nothing changes until someone approves.
+A technician posts in #dispatch: "Woke up with a fever, can't make it in today." The bot replies in Slack that Marco is out, 3 of his 4 visits can go to teammates, one customer will be asked to pick a new time, and nothing changes until someone approves.
 
-The dispatcher opens the pixel-art console. The crew board shows every tech's day as a before and after timeline, and a Plan and proof panel lists every write the agent intends to make. They click Approve. The agent re-reads Sheets and Calendar, confirms nothing moved, writes to all four apps, then reads them back and shows a pass/fail checklist. The console also has What if? for a simulation that can never write, a Risk scan over every tech, and a Reliability lab with six faults you can arm to crash the run on purpose.
+The dispatcher opens the pixel-art console. The crew board shows every tech's day as a before and after timeline, and a Plan and proof panel lists every write the agent intends to make. They click Approve. The agent re-reads Sheets and Calendar, confirms nothing moved, writes to all four apps, then reads them back and shows a pass/fail checklist. A What if? mode runs the same planner as a simulation that can never write.
 
 ## Architecture
 
@@ -89,11 +89,11 @@ W_TECH_CHANGE = 60
 W_SHIFT = 1
 ```
 
-The objective maximizes coverage weighted by priority, with a large bonus for protected jobs, a penalty for bumping a previously covered job, a small penalty for changing a job's technician, and one point per minute of start-time movement. On the demo data with Marco out, the solver moves Wei's plumbing job J601 to Ana so Wei can take the protected gas job J102, covering 3 of 4 displaced jobs. The greedy baseline in evals/scenarios.py, which never moves anyone else's job, covers 1. The fourth job, J104, gets an honest reschedule request. num_workers=1 and random_seed=0 are deliberate: the same input must give the same plan for a demo and an audit log.
+The objective maximizes coverage weighted by priority, with a large bonus for protected jobs, a penalty for bumping a previously covered job, a small penalty for changing a job's technician, and one point per minute of start-time movement. On the demo data with Marco out, the solver moves Wei's plumbing job J601 to Ana so Wei can take the protected gas job J102, covering 3 of 4 displaced jobs. The greedy baseline in evals/scenarios.py, which never moves anyone else's job, covers 1. The fourth job, J104, gets an honest reschedule request.
 
 ### A checker that shares no code with the solver
 
-second_shift/validate.py is deliberately boring. check_schedule takes a company and a map of job id to placements and re-derives SKILL, EQUIPMENT, WINDOW, SHIFT, ABSENT, PROTECTED_MOVED, DOUBLE_BOOKED and TRAVEL violations from raw data. check_plan adds an ACCOUNTING check that every job appears exactly once. It runs on the proposed plan, and again on the placements read back from the real calendars after execution. The scenario verification_catches_tampering deletes a booking behind the agent's back and confirms the read-back flags it.
+second_shift/validate.py is deliberately boring. check_schedule takes a company and a map of job id to placements and re-derives SKILL, EQUIPMENT, WINDOW, SHIFT, ABSENT, PROTECTED_MOVED, DOUBLE_BOOKED and TRAVEL violations from raw data, among others. check_plan adds an ACCOUNTING check that every job appears exactly once. It runs on the proposed plan, and again on the placements read back from the real calendars after execution. The scenario verification_catches_tampering deletes a booking behind the agent's back and confirms the read-back flags it.
 
 ### Approve, fingerprint, ledger, write, read back
 
@@ -135,15 +135,15 @@ Calendar events get a caller-chosen id from clock.event_id, a SHA-1 of plan id a
 
 ## The hard parts
 
-The Slack SDK retries on 429 by default, which is exactly what I did not want: a silent retry inside the client could post a route message twice while the engine thinks it posted once. SlackChat constructs WebClient with retry_handlers set to an empty list, and google_errors.py does no automatic retries either. The engine owns every retry.
+The Slack SDK ships with its own retry handlers, and the rate-limit handler is one line away, which is exactly what I did not want: a retry inside the client could post a route message twice while the engine thinks it posted once. SlackChat constructs WebClient with retry_handlers set to an empty list so nothing can be added later, and google_errors.py does no automatic retries either. The engine owns every retry.
 
 Gmail search lags a few seconds behind a send, so a resume that searched Sent right after a crash might miss the message and send again. The Gmail adapter remembers message ids it sent in-process and checks those first, and the ledger stays the first line of defense.
 
-Some things are honestly simplified. Drive times come from a zone-to-zone table, not a routing API. One technician per message. The trace step is still labelled "Read the message (Claude)" even though the default provider became OpenAI partway through the day. And the dashboard is around 2,000 lines of hand-written app.js with no framework, fast to write and slow to change.
+Some things are honestly simplified. Drive times come from a zone-to-zone table, not a routing API. One technician per message. The parser's docstring in second_shift/parse.py says OpenAI is the default and Groq or Claude come in through LLM_PROVIDER, but the module docstring in engine.py and the trace label "Read the message (Claude)" still name Claude. The labels never caught up with the provider change. And the dashboard is around 2,000 lines of app.js with no framework, fast to write and slow to change.
 
 ## Results
 
-These numbers come from the repo's own generated reports and README, not independent measurement. evals/REPORT.md records 30 of 30 reliability scenarios passing. evals/LLM_REPORT.md records 15 of 15 real Slack phrasings reaching the correct decision on gpt-4.1-mini, including a prompt injection. The first run was 14 of 15: "Jordan might be out later, not sure yet" was ignored instead of asked about, I added one rule to the system prompt, and it passed. The README reports a live run with 36 of 36 read-back checks and 0 retries, and 104 tests passing under pytest. evals/PREPAREDNESS.md names Marco, Jordan and Wei as single points of failure.
+These numbers come from the repo's own generated reports and README, not independent measurement. evals/REPORT.md records 30 of 30 reliability scenarios passing. evals/LLM_REPORT.md records 15 of 15 real Slack phrasings reaching the correct decision on gpt-4.1-mini, including a prompt injection. The first run was 14 of 15 per docs/BRIEF.md: "Jordan might be out later, not sure yet" was ignored instead of asked about, I added one rule to the system prompt, and it passed. The README's results table lists a live run on real Google and Slack with 36 of 36 read-back checks and 0 retries (the in-memory happy_path_execution scenario in evals/REPORT.md reaches the same 36 of 36 count), and 104 tests passing under `uv run pytest -q`, which the README breaks down as 30 scenarios plus 74 adapter unit tests. I am quoting those files here, not re-running them for this article. evals/PREPAREDNESS.md names Marco, Jordan and Wei as single points of failure.
 
 The README links the final demo video and, separately, the version submitted before the 4:00 PM deadline. No placement or award is recorded in the repo, so I am not claiming one.
 
@@ -173,7 +173,7 @@ Second Shift records every intended write in a SQLite ledger with a stable key b
 
 ### How does Second Shift prove the new schedule is actually correct?
 
-After the last write, Second Shift reads every technician's Google Calendar, the Jobs sheet, Slack history and Gmail Sent back from the live APIs. It checks that each job has exactly one booking on the right calendar at the planned time, that each sheet row shows the planned values, and that each Slack post and email can be found by its key. Then it runs the rule checker against what it just read back, so a booking deleted behind its back shows up as a failed check.
+After the last write, Second Shift reads every technician's Google Calendar, the Jobs sheet, Slack history and Gmail Sent back from the live APIs and checks that each booking, sheet row, post and email matches the plan. Then it runs the rule checker against what it just read back, so a booking deleted behind its back shows up as a failed check.
 
 ## Links
 

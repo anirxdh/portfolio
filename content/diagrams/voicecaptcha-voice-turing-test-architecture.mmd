@@ -1,4 +1,4 @@
-graph LR
+flowchart LR
   subgraph S1[Browser on Vercel]
     A[reCAPTCHA v2 checkbox]
     B[MediaRecorder]
@@ -18,7 +18,7 @@ graph LR
   A -->|token gates Record| E
   B -->|webm or mp4 blob| E
   C -->|interim text highlights words| E
-  D -->|boost and pulse per frame| E
+  E -->|mic stream| D
   E -->|GET api challenge| F
   E -->|POST challengeId plus audio| F
   E -->|POST text after pass| F
@@ -27,4 +27,5 @@ graph LR
   I -->|transcript| H
   H -->|ordered and bag scores| F
   F -->|text with model id| J
-  J -->|mpeg bytes as base64 JSON| E
+  J -->|mpeg bytes| F
+  F -->|base64 JSON| E

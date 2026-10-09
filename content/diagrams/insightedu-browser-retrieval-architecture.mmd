@@ -16,14 +16,15 @@ graph LR
   subgraph N[Node scripts only]
     L[Pinecone index]
   end
-  A -- Google OAuth allowlist --> J
+  A -- hosted sign-in --> J
   A -- signed in --> D
   C -- build-time import --> D
   C -- 142 sentence docs --> E
   E -- v4 version stamp --> F
   F -- load on query --> G
   I -- question --> H
-  H -- top 12 docs --> G
+  H -- query k times 2 --> G
+  G -- scored docs --> H
   H -- prompt with records --> K
   K -- SSE token stream --> I
   C -. text-embedding-3-small .-> L

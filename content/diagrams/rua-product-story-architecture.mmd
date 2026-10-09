@@ -12,7 +12,7 @@ graph LR
     E[SQLCipher SQLite]
     F[Core engine pure TS]
     G[Workflow engine]
-    H[Apple Vision OCR]
+    H[OCR seam Vision spike]
   end
   subgraph SITE[Waitlist site rua-site on Netlify]
     I[Next.js page and form]
@@ -24,12 +24,12 @@ graph LR
   A -->|screens became report figures| M
   A -->|design tokens ported| D
   B -->|six workflows became templates| G
-  C -->|six guides bundled as data| D
+  C -->|six guide format ported| D
   D -->|reads rows| E
   E -->|rows plus injected today| F
   F -->|runway and digest| D
   G -->|pauses at human confirm| E
-  H -->|label text on device| D
+  H -->|optional native module| D
   I -->|JSON POST email role| J
   J -->|setJSON first| K
   J -->|replay best effort| L

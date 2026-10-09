@@ -6,12 +6,13 @@ sequenceDiagram
   participant NV as Nova Lite
   U->>CS: release backtick after speaking
   CS->>SW: shortcut-release
-  SW->>SW: capture screenshot and stop recorder
+  SW->>SW: stop recorder and wait for audio blob
+  SW->>SW: capture screenshot
   SW->>BE: WS transcribe stream with audio
   BE-->>SW: transcript text
   SW->>CS: scrape-dom
   CS-->>SW: DOM snapshot with selectors
-  SW->>BE: POST task with command, JPEG, DOM
+  SW->>BE: POST task with command, PNG screenshot, DOM
   BE->>NV: converse with system prompt
   NV-->>BE: one action as JSON
   BE-->>SW: steps with first action

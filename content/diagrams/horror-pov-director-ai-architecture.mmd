@@ -9,9 +9,10 @@ graph LR
     H -->|sanity value each frame| I[Director state machine]
     I -->|state menace flags| G
     F -->|running and door slams| I
-    J[Photo camera and EMF] -->|provoke on capture| I
+    J[Photo camera] -->|provoke on capture| I
     G -->|tension signal| K[Web Audio synth and samples]
-    G -->|hunt and fear| L[DOM HUD overlays]
+    G -->|hunt flag| L[DOM HUD overlays]
+    H -->|fear vignette| L
   end
   subgraph OFFLINE [Offline assets]
     M[ElevenLabs mp3s] -->|fetched at start| K

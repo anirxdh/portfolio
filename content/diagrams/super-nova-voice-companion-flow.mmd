@@ -8,14 +8,12 @@ sequenceDiagram
   U->>V: says check my relay inbox
   V->>O: final transcript after wake prefix strip
   O->>O: no regex family matches so phase becomes orchestrating
-  O->>G: POST intent plus tool catalogue with host prefixed slugs
-  G->>G: streams llama 3.3 70b and aggregates tool_call deltas by index
+  O->>G: POST intent plus raw tool catalogue
+  G->>G: slugs tools by host prefix, streams llama 3.3 70b, aggregates tool_call deltas by index
   G-->>O: tool_call event with read-inbox slug
-  O->>M: JSON-RPC tools/call read-inbox with mcp-session-id
-  M-->>O: result text says agent not registered
   O->>M: tools/call register with args built from inputSchema
-  M-->>O: registered
-  O->>M: tools/call read-inbox again
+  O->>M: JSON-RPC tools/call read-inbox with mcp-session-id
+  M-->>O: fallback only if result still says not registered then register and retry once
   M-->>O: inbox messages
   O->>O: relay widget opens and phase becomes speaking
   O->>E: POST reply text with calm preset

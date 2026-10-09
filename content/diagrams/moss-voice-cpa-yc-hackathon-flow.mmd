@@ -11,7 +11,7 @@ sequenceDiagram
   A->>M: search_taxcode query top_k 3
   M-->>A: chunks with scores and time_taken_ms
   A->>B: moss_context data message with matches and latency
-  B->>B: Knowledge Matches panel updates and PDF jumps to cited page
+  B->>B: Knowledge Matches panel shows chunks scores and latency
   alt top score at or above 0.90
     A->>A: LLM answers only from returned text and names the source
   else top score below 0.90

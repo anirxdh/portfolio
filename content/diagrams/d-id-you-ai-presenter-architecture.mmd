@@ -24,15 +24,16 @@ graph LR
   A -->|mp4 or YouTube URL| C
   C -->|manifest json| J
   A -->|POST in order| D
+  A --> E
+  A --> F
   D -->|raw video multipart| K
   K -->|word timestamps| D
-  D --> E
   E -->|transcript text| L
   L -->|summary and insights| E
-  E --> F
   F -->|script prompt| L
   F -->|script for alignment| M
-  M -->|character timings to SRT| J
+  M -->|character timings| F
+  F -->|script.srt| J
   F -->|image plus script| N
   A -->|poll every 5s| G
   G -->|talk status| N

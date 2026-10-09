@@ -10,6 +10,7 @@ graph LR
     F[Scene generate pipeline]
     G[Stripe webhook route]
     H[In-memory store]
+    M[Stripe checkout route]
   end
   subgraph S3 [External APIs]
     I[World Labs Marble]
@@ -25,7 +26,8 @@ graph LR
   E -->|mesh per object glb| J
   E -->|ambient sfx and narration| K
   F -->|status ready| H
-  A -->|checkout session| L
+  A -->|POST checkout| M
+  M -->|create session| L
   L -->|checkout completed| G
   G -->|mark paid once per event id| H
   H -->|paid scene assets| B

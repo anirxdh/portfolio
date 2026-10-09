@@ -13,6 +13,7 @@ sequenceDiagram
   B-->>R: stored via blobs
   R->>N: POST form-name waitlist to __forms.html
   R->>W: POST JSON with 4 second timeout
-  N-->>R: submission_created sends email
+  N-->>R: 200 ok
+  N->>N: submission_created emails owner
   R-->>F: ok true via blobs
   F-->>V: You are on the list

@@ -14,7 +14,7 @@ sequenceDiagram
   S->>R: useData re-reads medications
   R->>C: computeRunway with injected today
   C-->>S: runway status and days remaining
-  S->>C: planNotifications with stable keys
+  S->>C: syncNotifications calls planNotifications
   S->>N: getAllScheduledNotifications
   S->>N: cancel stale keys and schedule missing keys
   N-->>U: PHI free alert on the lead day

@@ -3,7 +3,7 @@ graph LR
     A[Web Speech API]
     B[Regex intent tiers]
     C[MCP client]
-    D[Zustand store and widgets]
+    D[Orchestration hook and store]
     E[Audio playback]
   end
   subgraph S2[Next.js server routes]
@@ -29,7 +29,7 @@ graph LR
   H -->|weather maps news wiki APOD| L
   H -->|speech string and payload| D
   C -->|tool result| D
-  D -->|reply text| G
+  D -->|reply text via speakWithElevenLabs| G
   G -->|audio mpeg| E
-  E -->|barge-in resumes mic| A
+  A -->|final transcript during playback barges in| E
   G -->|text to speech stream| J

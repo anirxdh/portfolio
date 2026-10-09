@@ -18,7 +18,8 @@ graph LR
     J[OpenAI gpt-4o-mini]
     K[ElevenLabs TTS]
   end
-  A -->|hold and release| B
+  A -->|hold and release| C
+  C -->|start and stop recognizer| B
   B -->|final transcript| C
   C -->|POST api chat with text and session id| F
   F -->|forwards to port 8000| G

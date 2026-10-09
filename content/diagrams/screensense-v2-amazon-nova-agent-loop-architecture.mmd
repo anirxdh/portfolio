@@ -5,7 +5,7 @@ graph LR
     C[Action executor]
     D[Cursor bubble]
   end
-  subgraph X[Extension service worker]
+  subgraph X[Extension background]
     E[Offscreen recorder]
     F[Agent loop]
     G[Screenshot capture]
@@ -34,6 +34,6 @@ graph LR
   I -- action --> F
   F -- execute-action --> C
   C -- ok or FAILED --> F
-  J -- stage events --> D
+  J -- stage events --> F
   F -- steps and speak --> D
   D -- proxied via worker --> M

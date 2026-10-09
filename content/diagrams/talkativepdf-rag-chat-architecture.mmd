@@ -4,6 +4,7 @@ graph LR
     C[Dropzone uploader]
     D[Chat panel]
     E[react-pdf viewer]
+    O[Pricing page]
   end
   subgraph S[Next.js server actions]
     F[generateEmbeddings action]
@@ -31,5 +32,8 @@ graph LR
   H -- retrieve chunks --> L
   K -- onSnapshot chat --> D
   J -- CORS GET --> E
-  I -- delete doc blob and vectors --> L
+  I -- delete metadata doc --> K
+  I -- delete blob --> J
+  I -- delete vectors --> L
+  O -- createCheckoutSession --> N
   N -. hasActiveMembership never set .-> K

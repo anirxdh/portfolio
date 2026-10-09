@@ -5,7 +5,7 @@ sequenceDiagram
   participant D as D-ID result URL
   participant F as ffmpeg child process
   W->>P: open event stream for video id
-  W->>C: POST presenterUrl layout audioMode captions
+  W->>C: POST presenterUrl layout audioMode captionSize
   C->>D: download talking head MP4
   D-->>C: presenter clip saved to tmp dir
   C->>C: read SRT and write caption text files

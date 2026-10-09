@@ -23,9 +23,10 @@ graph LR
   A -->|shortcut-hold| D
   D -->|base64 audio| E
   E -->|audio upload| K
-  K -->|transcript| F
+  K -->|transcript| G
+  G -->|record turn| F
   B -->|DOM snapshot| G
-  F -->|command plus history| H
+  G -->|command plus history| H
   G -->|scrape URL| I
   I -->|markdown 5 min cache| L
   H -->|screenshot DOM markdown| J

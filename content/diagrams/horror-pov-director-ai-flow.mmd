@@ -12,10 +12,10 @@ sequenceDiagram
   C->>G: flashHit plays GLB hit clip
   C->>D: provoke calls startHunt
   D->>D: state hunting, 11 s timer, menace at least 0.4
-  D-->>G: justEnteredHunt flag next frame
-  G->>G: teleport to nearest room if over 11 m, phase toward player
+  D-->>G: state now hunting
+  G->>G: phase toward player at species hunt speed
   G->>L: state changed to hunting
-  L->>L: setHuntMode lights to 0.06, scream, shake, red pulse
+  L->>L: setHuntMode ground floor lights to 0.06, scream, shake, red pulse
   D->>D: menace rises with proximity and sight
   D->>G: timer out or menace 1, startRetreat 14 s cooldown
   G->>L: hunt ended, lights return

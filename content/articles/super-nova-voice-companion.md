@@ -1,8 +1,7 @@
 ---
-draft: true
 title: "Wiring a Voice-Only Companion to MCP, Groq and ElevenLabs"
 description: "How Super Nova turns continuous speech into MCP tool calls and on-screen widgets with a hand-written MCP client, regex-first routing, and ElevenLabs TTS."
-date: 2026-09-30
+date: 2026-10-03
 slug: super-nova-voice-companion
 project: "Super Nova"
 tags: [MCP, Voice AI, Groq, ElevenLabs, Next.js, Web Speech API]
@@ -16,15 +15,13 @@ summary: "Super Nova is a voice-only AI companion built for ElevenLabs' #ElevenH
 
 Super Nova has exactly one clickable thing: a glowing orb at the bottom of the screen. You tap it once to wake the microphone. After that, every action comes from your voice. Say "what's the weather in Tokyo" and a weather card slides onto the wall. Say "play some lofi" and a music desk appears with a visualizer. Nine pixel-art sprites snap to the office room that matches your request.
 
-Super Nova is a voice-only AI companion web app that converts continuous speech into tool calls against MCP servers and public APIs, renders each result as an on-screen widget and speaks a reply, built by Anirudh Vasudevan for the ElevenLabs #ElevenHacks hackathon in May 2026. The README states the thesis: chat is still typing into a smaller box. I wanted to know whether voice in, fast inference, and fast speech out could feel like a real interface.
-
-The source is public at anirxdh/Voice-companion, about 12,500 lines of TypeScript in a Next.js 15 app. The interesting parts are the routing layer that decides whether a sentence needs an LLM, the MCP client I wrote by hand, and the code that keeps a Chrome microphone open while the app is making noise.
+Super Nova is a voice-only AI companion web app that converts continuous speech into tool calls against MCP servers and public APIs, renders each result as an on-screen widget and speaks a reply, built by Anirudh Vasudevan for the ElevenLabs #ElevenHacks hackathon in May 2026. The README states the thesis: chat is still typing into a smaller box. I wanted to know whether voice in, fast inference, and fast speech out could feel like a real interface. The source is public: about 12,500 lines of TypeScript in a Next.js 15 app.
 
 ## Why regex runs before the LLM
 
-The obvious design is the one in my own README diagram: speech goes to Groq, Groq classifies the intent, the intent runs. I built that first. It was too slow, and wrong in a specific way. "What's the weather" does not need a 70B model to decide it is a weather request. Every round trip added a few hundred milliseconds before anything happened on screen, and the model sometimes picked a plausible but wrong tool.
+The obvious design is the one in my own README diagram: speech goes to Groq, Groq classifies the intent, the intent runs. The shipped code does not work that way. "What's the weather" does not need a 70B model to decide it is a weather request. The README's own estimate puts a Groq classification at about 200 ms, and that is a round trip spent before anything moves on screen. A regex makes the same decision for free.
 
-So the final build is two tiers, and the LLM is the second one. hooks/use-orchestration.ts walks a chain of deterministic matchers from lib/environment-intents.ts: local time, weather, news, sticky notes, browse-a-URL, directions, maps, Wikipedia, NASA APOD, timers and alarms, open and close browser. Each family is a set of regexes with its own extractor (extractWeatherCityQuery, extractDirectionsFromTo, extractTimerDurationSec). On a match, the hook calls an internal /api/* route, opens the widget, and speaks the route's speech string. No model is involved.
+So the shipped build is two tiers, and the LLM is the second one. hooks/use-orchestration.ts walks a chain of matchers from lib/environment-intents.ts: local time, weather, news, sticky notes, browse-a-URL, directions, maps, Wikipedia, NASA APOD, timers and alarms, open and close browser. Each family is a set of regexes with its own extractor (extractWeatherCityQuery, extractDirectionsFromTo, extractTimerDurationSec). On a match, the hook calls an internal /api/* route, opens the widget, and speaks the route's speech string.
 
 Only the residue reaches orchestrateIntent() in lib/mcp-client.ts. Even there, music and YouTube commands are regex-matched and sent straight to the hosted MCP servers. Groq with tool calling is the last resort, and pure conversation goes to a separate /api/conversation route with no tools.
 
@@ -32,17 +29,17 @@ The constraint was the demo loop: ElevenLabs was the sponsor, so the spoken repl
 
 ## What happens when you talk to it
 
-You open the live site in Chrome, because the Web Speech API is Chromium-only, and click the orb. The app requests mic permission, resumes an AudioContext inside that click so later playback is not blocked by autoplay rules, and starts continuous recognition.
+You open the live site in Chrome (the Web Speech API is Chromium-only) and click the orb. The app requests mic permission, resumes an AudioContext inside that click so autoplay rules do not block later playback, and starts continuous recognition.
 
-You speak. When Chrome marks a result final, the hook strips an optional "hey vee" prefix and hands the sentence to runIntent. The phase moves to thinking, which stops the mic. A widget opens: a weather card, a map with travel times, a news ribbon, a countdown timer, a Wikipedia dossier, a NASA photo, a music player with a 30-second Deezer preview, or a YouTube embed. The sprite for that room walks to its desk. A reply plays with the mic back on, and if you talk over it, your new sentence becomes the next intent.
+You speak. When Chrome marks a result final, the hook strips an optional "hey vee" prefix and hands the sentence to runIntent. The phase moves to thinking, which stops the mic. A widget opens: weather card, map with travel times, news ribbon, countdown timer, Wikipedia dossier, NASA photo, a music player with a 30-second Deezer preview, or a YouTube embed. The sprite for that room walks to its desk, and a reply plays.
 
 ## Architecture
 
-Super Nova is a single Next.js 15 App Router project on Vercel. The browser does most of the work. The server side is a set of thin route handlers that hold the two secret keys (Groq and ElevenLabs) and expose public data as JSON.
+Super Nova is a single Next.js 15 App Router project on Vercel. The browser does most of the work. The server side is a set of thin route handlers that hold the two secret keys (Groq and ElevenLabs) and return public data as JSON.
 
 ![Super Nova architecture: browser, Next.js routes, MCP servers and public APIs](/blog/diagrams/super-nova-voice-companion-architecture.svg)
 
-On the left, hooks/use-voice.ts feeds final transcripts to hooks/use-orchestration.ts, which either resolves the request through a Next.js route or hands it to lib/mcp-client.ts, which talks JSON-RPC to the hosted MCP servers or asks /api/groq to pick a tool. One Zustand store drives the widgets, phase machine and sprites. On the right are three hosted MCP servers on mcp-use.com (music, YouTube, agent messaging) plus key-free public APIs: Open-Meteo, Nominatim, OSRM, OpenStreetMap, Hacker News, Wikipedia, and NASA APOD.
+On the left, hooks/use-voice.ts feeds final transcripts to hooks/use-orchestration.ts, which either resolves the request through a Next.js route or hands it to lib/mcp-client.ts for JSON-RPC to the hosted MCP servers or a tool pick from /api/groq. One Zustand store drives the widgets, phase machine and sprites. On the right are three hosted MCP servers (music, YouTube, agent messaging) plus key-free public APIs: Open-Meteo, Nominatim, OSRM, OpenStreetMap, Hacker News, Wikipedia, and NASA APOD.
 
 The main choices, and why:
 
@@ -61,7 +58,7 @@ The main choices, and why:
 
 ### Keeping a Chrome microphone open
 
-Chrome's SpeechRecognition is not built for always-on use. It fires onend after a few seconds of silence, raises no-speech and network errors on its own schedule, and transcribes the app's own speaker output. hooks/use-voice.ts is 364 lines mostly about this.
+Chrome's SpeechRecognition is not built for always-on use. It fires onend after a few seconds of silence, raises no-speech and network errors on its own schedule, and transcribes the app's own speaker output. Most of hooks/use-voice.ts deals with this.
 
 On onend, if no hold is active, the hook restarts recognition after 450 ms; no-speech and network errors restart after 300 ms, while not-allowed and audio-capture stop the loop for real.
 
@@ -104,15 +101,15 @@ const response = await fetch(serverUrl, {
 });
 ```
 
-parseMcpPayload() handles both reply shapes: JSON is parsed directly, and an SSE body is parsed from its last data: line. Every call runs inside an AbortController timeout (18 seconds by default, 30 for tools/call) and a retry() wrapper with linear backoff. Discovery uses Promise.allSettled so one dead server does not block the others.
+parseMcpPayload() handles both reply shapes: JSON is parsed directly, and an SSE body is parsed from its last data: line. Every JSON-RPC call after initialize runs inside an AbortController timeout (18 seconds by default, 14 for tools/list, 30 for tools/call) and a retry() wrapper with linear backoff. Discovery uses Promise.allSettled so one dead server does not block the others.
 
-The messaging relay added a wrinkle: its tools fail with a "not registered" error until an agent calls register. executeMCPTool() detects that text, finds the sibling register tool, builds its arguments from the tool's inputSchema.properties and required arrays, then retries the original call once.
+The messaging relay added a wrinkle: its inbox and send tools fail with a "not registered" error until an agent calls register. So for any messaging tool that messagingToolLikelyUsesAgent() matches (read-inbox, send-message, unread-count and friends), executeMCPTool() calls invokeRelayRegister() first, with arguments built from the register tool's inputSchema.properties and required arrays, and only then calls the tool. If the result still reads as unregistered, it registers again and retries the original call once. That second path is the fallback, not the normal route.
 
 ### Namespacing tools for Groq
 
 When a request falls through to the LLM, the browser POSTs the intent plus the tool catalogue to /api/groq, which calls Groq with OpenAI-style function tools and streams tokens back as SSE.
 
-First, the music server and the YouTube server both expose play and search, and function calling needs unique names. lib/groq-slugs.ts prefixes each tool with the first label of its server's hostname:
+First, the music server and the YouTube server both expose play and search, and function calling needs unique names. On the server, lib/groq-slugs.ts prefixes each tool with the first label of its hostname:
 
 ```ts
 // lib/groq-slugs.ts
@@ -143,11 +140,11 @@ After the stream ends, the route parses each arguments string and sends one tool
 
 ![One request through Super Nova: inbox check via Groq, auto-registration on the messaging MCP, ElevenLabs speech](/blog/diagrams/super-nova-voice-companion-flow.svg)
 
-The diagram follows "check my relay inbox". No regex family claims it, but lib/intent.ts marks it as an action, so it reaches orchestrateIntent(). Groq picks the read-inbox slug, the first tools/call returns a registration error, the client registers and retries, and the inbox opens as the relay widget while a short reply is spoken.
+The diagram follows "check my relay inbox". No regex family claims it, but lib/intent.ts marks it as an action, so it reaches orchestrateIntent(). Groq picks the read-inbox slug, the client registers first, then calls read-inbox, and retries once if the relay still says it is not registered. The relay widget opens while a short reply is spoken.
 
 ### Built-in tools that look remote
 
-Half of Super Nova's capabilities are Next.js routes, not MCP servers. I did not want two code paths in the Groq tier, so lib/mcp-builtin.ts declares a synthetic server at a fake veil.builtin URL (from the project's original codename) with six tools: headlines, maps_place, browse_page, wiki_scout, orbit_apod and sticky_note. Each has a JSON-schema inputSchema like the remote ones, and getAvailableTools() returns both kinds in one array.
+Half of Super Nova's capabilities are Next.js routes, not MCP servers. I did not want two code paths in the Groq tier, so lib/mcp-builtin.ts declares a synthetic server at a fake veil.builtin URL (Veil was the codename) with six tools: headlines, maps_place, browse_page, wiki_scout, orbit_apod and sticky_note. Each has a JSON-schema inputSchema like the remote ones, and getAvailableTools() returns both kinds in one array.
 
 executeMCPTool() checks isVeilBuiltinServerUrl() first. For built-ins it skips JSON-RPC and calls runVeilBuiltinToolOutput(), which fetches the matching /api/* route and reshapes the JSON into an MCP-style result with a content text block and structuredContent.
 
@@ -155,57 +152,53 @@ executeMCPTool() checks isVeilBuiltinServerUrl() first. For built-ins it skips J
 
 Every reply goes through app/api/elevenlabs/route.ts, which forwards to the ElevenLabs stream endpoint with model eleven_turbo_v2_5, picks one of four voice_settings presets (calm, warm, urgent, focused), and pipes the upstream body back as audio/mpeg.
 
-The client in lib/elevenlabs.ts is simpler than the README suggests. speakWithElevenLabs() awaits response.blob() and plays it through a new Audio element, so the browser waits for the whole MP3 before the first sound. My README claims playback starts at the first chunk. The code does not do that.
+The client in lib/elevenlabs.ts is simpler than the README suggests: speakWithElevenLabs() awaits response.blob() and plays it through a new Audio element, so the browser waits for the whole MP3 before the first sound. The README's claim that playback starts at the first chunk is not what the code does.
 
-Music is different. A play command returns a Deezer previewUrl, and lib/music-player.ts wires it into an AudioContext with an AnalyserNode (fftSize 256) that components/playback-wall-visualizer.tsx reads every frame. That is the only real FFT in the app; the mic "level" shown while listening is derived from transcript length, not audio.
+Music is different. A play command returns a Deezer previewUrl, and lib/music-player.ts wires it into an AudioContext with an AnalyserNode (fftSize 256) that components/playback-wall-visualizer.tsx reads every frame. That is the only real FFT in the app; the mic level shown while listening comes from transcript length, not audio.
 
 ## The hard parts
 
-The microphone ate most of the build. Stopping it during speech meant no barge-in. Leaving it on meant the reply interrupted itself. The combination that works (finals only, phase holds, media suppression with a control-phrase allowlist) came from a lot of talking at my laptop.
+The microphone was the hardest part. Stopping it during speech meant no barge-in. Leaving it on meant the reply interrupted itself. The combination that works is finals only, phase holds, and media suppression with a control-phrase allowlist.
 
-Some things are hacky or broken, and I would rather say so:
+Some things are hacky or broken:
 
-- hooks/use-orchestration.ts calls /api/browser at four sites, for an agent-browser integration meant to click and type inside the embedded page. That route does not exist, and the calls fail silently.
+- hooks/use-orchestration.ts calls /api/browser at four sites for an agent-browser integration meant to click and type inside the embedded page. The route does not exist, so the calls fail silently.
 - Sticky notes write a JSON file at process.cwd(), which does not persist on Vercel's read-only filesystem.
-- The README lists lib/mic-analyser.ts and a Three.js colony. The analyser file does not exist, and the Three.js scene sits unimported in components/_legacy/three-d. The live background is a PNG and an MP4 loop.
-- There is unimported scaffolding from an earlier, more ambitious design: agents/*.ts, services/proactive-service.ts, lib/context-engine.ts, lib/perception-layer.ts.
+- The README describes lib/mic-analyser.ts and a Three.js colony. The analyser file does not exist, the Three.js scene sits unimported in components/_legacy/three-d next to other unused scaffolding (agents/*.ts, services/proactive-service.ts, lib/context-engine.ts, lib/perception-layer.ts), and the live background is an MP4 loop with PNG backdrops behind the widgets.
 - The directions route only trusts OSRM for driving. Walking and cycling are haversine distance times 1.28 and 1.18 path factors.
 - There are no tests and no CI.
-- The regex tier has sharp edges. wantsMapsOrchestration carries a list of non-map keywords so "show me the news" does not become a map search.
+- The regex tier has sharp edges: wantsMapsOrchestration carries a list of non-map keywords so "show me the news" does not become a map search.
 
 ## What shipped
 
-Super Nova is live at voice-companion-rust.vercel.app and the source is public. The README links a demo GIF and a YouTube walkthrough. It was built for the ElevenLabs #ElevenHacks hackathon with Cursor; the README says seven days, while the Git history shows commits between May 11 and May 14, 2026. No placement or award is recorded in the repository.
-
-What works: the voice loop with barge-in, the regex-routed widgets, music with a real visualizer, and the Groq fallback with namespaced MCP tools and relay auto-registration.
+Super Nova is live at voice-companion-rust.vercel.app and the source is public. The README links a demo GIF and a YouTube walkthrough. It was built with Cursor for ElevenLabs #ElevenHacks; the README says seven days, and the Git history shows commits from May 11 to May 14, 2026. No placement or award is recorded in the repository.
 
 ## What I would change
 
-I would move speech synthesis to real streaming. The server already proxies a stream; the client should use MediaSource or the Web Audio API to start playback on the first chunk. Nothing else would do more for perceived latency.
+I would move speech synthesis to real streaming. The server already proxies a stream; the client should use MediaSource or the Web Audio API to start playback on the first chunk. Nothing else would cut perceived latency more.
 
-I would replace the regex tier with a small classifier that returns a family and extracted slots, keeping the fast path but not the hand-written exception lists. I would delete the dead scaffolding, build /api/browser or remove its call sites, move notes to a real store, and switch to an MCP SDK.
+I would replace the regex tier with a small classifier that returns a family and extracted slots, keeping the fast path but not the hand-written exception lists. I would also delete the dead scaffolding, move notes to a real store, and switch to an MCP SDK.
 
 ## Key takeaways
 
-- Decide whether a request needs an LLM before calling one. A deterministic tier in front of tool calling removes most of the latency and wrong-tool errors.
-- Function-calling tool names must be unique. Prefix each tool with a stable label from its server, and tell the model what the prefixes mean.
+- Decide whether a request needs an LLM before calling one. A deterministic tier in front of tool calling removes a round trip from the common case.
+- Function-calling tool names must be unique, so prefix each tool with a stable label from its server and tell the model what the prefixes mean.
 - Streamed tool calls arrive as fragments. Aggregate by index and parse arguments only after the stream closes, or you will JSON.parse half an object.
 - Present local capabilities as a fake MCP server with real inputSchemas, so the model sees one shape and the dispatcher picks the transport at runtime.
-- For an always-on mic, let only final transcripts interrupt speech, and re-queue the interrupting sentence as the next command.
 
 ## FAQ
 
 ### How does Super Nova decide whether to use an LLM?
 
-Super Nova runs a chain of regex matchers from lib/environment-intents.ts before any model call. About a dozen families (weather, news, maps, timers, Wikipedia, NASA and more) execute against internal Next.js routes with no LLM, and music and YouTube commands go straight to their MCP servers. Only requests that match none of these go to Groq's llama-3.3-70b-versatile with tool calling.
+Super Nova runs a chain of regex matchers from lib/environment-intents.ts before any model call. About a dozen families run against internal Next.js routes with no LLM, and music and YouTube commands go straight to their MCP servers. Only requests that match none of these reach Groq's llama-3.3-70b-versatile with tool calling.
 
 ### How does Super Nova talk to MCP servers without an SDK?
 
-Super Nova's lib/mcp-client.ts implements the MCP Streamable HTTP transport by hand. It POSTs JSON-RPC 2.0 requests, sends initialize with protocolVersion 2024-11-05, stores the mcp-session-id header per server, then calls tools/list and tools/call. It parses both JSON and SSE replies, wraps each call in a timeout with retries, and discovers servers with Promise.allSettled.
+Super Nova's lib/mcp-client.ts implements the MCP Streamable HTTP transport by hand. It POSTs JSON-RPC 2.0 requests, sends initialize with protocolVersion 2024-11-05, stores the mcp-session-id header per server, then calls tools/list and tools/call. It parses both JSON and SSE replies and wraps each call in a timeout with retries.
 
 ### How does Super Nova handle interruptions while it is speaking?
 
-While a reply plays, Super Nova keeps the microphone running. If Chrome produces a final transcript during the speaking phase, hooks/use-voice.ts calls interruptSpeech() to stop the ElevenLabs audio and re-queues that transcript as the next intent. Interim results are ignored so the reply's own echo cannot trigger a false interruption.
+Super Nova keeps the microphone open while a reply plays. If Chrome produces a final transcript during the speaking phase, hooks/use-voice.ts stops the ElevenLabs audio with interruptSpeech() and re-queues that sentence as the next intent. Interim results never interrupt.
 
 ## Links
 

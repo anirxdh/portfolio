@@ -1,4 +1,4 @@
-graph LR
+flowchart LR
   subgraph S1[Browser shell]
     A[Terminal and DJ tab]
     B[Command parser]
@@ -33,7 +33,7 @@ graph LR
   C -->|delivery tag plus line and voiceId| J
   J -->|text and voice settings| M
   M -->|audio mpeg bytes| J
-  J -->|blob to object url| E
+  J -->|audio bytes to primed element| E
   E -.->|on failure| F
   C -->|liked tracks and vibe flag| G
   C -->|duck to 14 pct or bed at 26 pct| D

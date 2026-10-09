@@ -15,7 +15,7 @@ sequenceDiagram
   B->>S: GET voting starts GestureSession
   V->>G: holds up three fingers
   G->>G: MediaPipe landmarks count 3 for 3 seconds
-  G-->>B: gesture_status state confirming selected DMK
+  G-->>B: gesture_status state confirming selected party 3
   V->>G: holds thumbs up for 3 seconds
   G-->>B: gesture_status state done
   B->>S: POST confirm_vote with party

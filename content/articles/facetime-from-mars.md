@@ -1,8 +1,7 @@
 ---
-draft: true
 title: "Faking a 225 Million Kilometer Phone Call to Mars"
 description: "How FaceTime from Mars turns browser speech recognition, gpt-4o-mini and ElevenLabs voices into a push-to-talk call with three AI Mars colonists."
-date: 2026-09-30
+date: 2026-10-03
 slug: facetime-from-mars
 project: "FaceTime from Mars"
 tags: [Voice AI, ElevenLabs, Web Audio API, React Three Fiber, FastAPI, Next.js]
@@ -14,11 +13,11 @@ summary: "FaceTime from Mars is a push-to-talk voice call with three AI colonist
 
 ## The latency problem that became the product
 
-Every voice AI demo I had seen at hackathons had the same awkward gap. You speak, you stop, and you wait a few seconds while speech recognition, a language model and text-to-speech each take their turn. The gap reads as a bug.
+Most voice AI demos I had seen at hackathons had the same awkward gap. You speak, you stop, and you wait a few seconds while speech recognition, a language model and text-to-speech each take their turn. The gap reads as a bug.
 
 For the ElevenLabs x Replit hackathon I decided to make the gap the whole point. If the person on the other end is 225 million kilometers away, a delay is not a bug. It is physics. So the app became a call to Mars.
 
-FaceTime from Mars is a push-to-talk voice chat web app that lets you talk to three fictional Mars colonists living in the year 2159, built by Anirudh Vasudevan for the ElevenLabs x Replit Hack 3 hackathon. You hold a transmit button, speak, and a character-specific ElevenLabs voice answers through a space-radio filter while a 3D camera swings from Earth to Mars. The source is public in the anirxdh/facetime-from-mars-2159 repo. The design spec is dated April 5, 2026 and the last commit landed April 9, so this was about four days of work.
+FaceTime from Mars is a push-to-talk voice chat web app that lets you talk to three fictional Mars colonists living in the year 2159, built by Anirudh Vasudevan for the ElevenLabs x Replit Hack 3 hackathon. You hold a transmit button, speak, and a character-specific ElevenLabs voice answers through a space-radio filter while a 3D camera swings from Earth to Mars. The design spec is dated April 5, 2026 and the last commit landed April 9, so this was about four days of work.
 
 ## Why a walkie-talkie and not a real-time voice agent
 
@@ -28,7 +27,7 @@ First, the demo. A full-duplex agent sounds like a call center. I wanted a radio
 
 Second, cost. The browser ships a free speech recognizer. The Web Speech API is not great, but it is zero backend and zero dollars. The spec notes the trade: Web Speech API over Whisper, good enough for demos.
 
-Third, control over the audio. I wanted the colonist's voice to pass through my own filter chain so it sounds like a bad antenna. That is easy with a complete MP3 I can decode into an AudioBuffer, and much harder with a streaming WebRTC track.
+The spec records only those two reasons. The third was in my head and never made it onto the page: control over the audio. The spec does call for a radio filter built from Web Audio nodes, and that is easy when the backend hands me a complete MP3 I can decode into an AudioBuffer. I did not want to spend hackathon hours finding out how to do the same thing to a streaming WebRTC track.
 
 So the pipeline is plain: speech-to-text in the browser, text to a FastAPI backend, a short LLM reply, ElevenLabs text-to-speech, one MP3 back. Everything else exists to make that round trip feel deliberate.
 
@@ -38,9 +37,9 @@ FaceTime from Mars opens on three character cards: Zeph, a 16-year-old who has n
 
 A three-second "Establishing quantum relay" screen plays. It is a fixed timer in frontend/src/app/page.tsx, not a real connection. Then /api/intro returns the colonist's scripted opening line as audio, so Zeph says hello before you do anything.
 
-You hold the TRANSMIT button. The status bar reads TRANSMITTING, your live transcript appears, and the 3D camera glides toward Earth. You release. The status changes to SIGNAL IN TRANSIT, a "225M km" indicator pulses, and the camera pulls back. A few seconds later a burst of static plays, the camera dives toward Mars, and the colonist answers through a radio filter. A second burst of static closes the transmission.
+You hold the TRANSMIT button, your live transcript appears, and the 3D camera glides toward Earth. You release, a "225M km" indicator pulses, and the camera pulls back. A few seconds later a burst of static plays, the camera dives toward Mars, and the colonist answers through a radio filter.
 
-Topic chips suggest openers, a Mars clock shows the current sol, and every 15 to 30 seconds the screen glitches for 200 milliseconds. Ending the call shows a report with the duration, messages sent and received, and the colonist's first three lines.
+Topic chips suggest openers, a Mars clock shows the current sol, and every 15 to 30 seconds the screen glitches for 200 milliseconds. Ending the call shows a short report.
 
 ## Architecture
 
@@ -48,9 +47,7 @@ FaceTime from Mars is a monorepo with two services. The frontend is a Next.js 16
 
 ![FaceTime from Mars architecture: browser, Next.js proxy, FastAPI backend, OpenAI and ElevenLabs](/blog/diagrams/facetime-from-mars-architecture.svg)
 
-On the left is the browser. TransmitButton.tsx drives the Web Speech API. TransmissionPanel.tsx owns the conversation state, the fetch calls and the Web Audio playback chain. MarsScene.tsx moves the camera from a focus value lifted up to page.tsx. On the right, backend/main.py holds the character definitions, an in-memory sessions dict and the endpoints: /api/chat calls OpenAI then ElevenLabs, /api/intro seeds a new session with the opening line, and /api/characters returns metadata without the prompts.
-
-Each layer, and why.
+On the left is the browser. TransmitButton.tsx is only the hold-to-talk control; it maps mouse and touch events to onStart and onStop. TransmissionPanel.tsx starts and stops the Web Speech API recognizer, owns the conversation state, the fetch calls and the Web Audio playback chain. MarsScene.tsx moves the camera from a focus value lifted up to page.tsx. On the right, backend/main.py holds the character definitions, an in-memory sessions dict and the endpoints: /api/chat calls OpenAI then ElevenLabs, /api/intro seeds a new session with the opening line, and /api/characters returns metadata without the prompts. Here is each layer and why I chose it.
 
 | Layer | Choice | Why |
 |---|---|---|
@@ -84,7 +81,7 @@ The chat endpoint has to hand back the MP3 and the text that was spoken. The usu
 
 HTTP headers must be ASCII and LLM output is not, so _safe_header runs the text through urllib.parse.quote with newlines flattened. The CORS middleware lists both headers in expose_headers so the browser may read them. On the frontend, sendMessage in TransmissionPanel.tsx reads the headers, calls decodeURIComponent on the text, and checks the content-type. Audio becomes a Blob and goes to the playback chain. If ElevenLabs returned anything other than 200, the backend falls back to plain JSON with the text and a null audio field, and the call degrades to a chat instead of failing.
 
-The header is still named X-Zeph-Text even though there are three characters. The project started with only Zeph and I never renamed it.
+The header is still named X-Zeph-Text even though there are three characters. The design spec only had Zeph, and the header name never changed when the other two colonists arrived.
 
 ### Making clean TTS sound like a bad antenna
 
@@ -105,7 +102,7 @@ ElevenLabs output is too clean for a call from Mars. The fix is playWithRadioEff
 
 The curve maps samples from minus one to one onto a gently saturating S shape. Quiet parts stay almost linear; loud parts get squashed, which adds a slight crunch without turning into noise. A gain of 1.2 after the shaper makes up for level lost in the bandpass.
 
-Around each reply, playRadioBeep fires a squelch: 150 to 200 milliseconds of white noise through a 2000 Hz bandpass, plus a sine chirp at 1200 Hz when the transmission opens and 800 Hz when it closes, decaying in 120 milliseconds. No audio files ship with the app. If decodeAudioData throws, a catch block falls back to a plain Audio element: no radio effect, but you still hear the voice.
+Around each reply, playRadioBeep fires a squelch: 150 to 200 milliseconds of white noise through a 2000 Hz bandpass, plus a sine chirp at 1200 Hz when the transmission opens and 800 Hz when it closes, decaying in 120 milliseconds. If decodeAudioData throws, a catch block falls back to a plain Audio element: no radio effect, but you still hear the voice.
 
 ### The camera follows the conversation
 
@@ -120,7 +117,7 @@ TransmissionPanel knows nothing about 3D. It calls an onFocusChange callback wit
     camera.lookAt(currentLookAt.current);
 ```
 
-Each focus value maps to a camera position and a separate look-at point: near Earth at (5, 2, -2), near Mars at (-3, 0.5, 4), or the wide view at (1, 0.5, 7). Both vectors lerp toward their targets by delta times 1.5 every frame. Because the look-at point moves independently, the camera turns and travels at once, and a focus change mid-transition just redirects it.
+Each focus value maps to a camera position and a separate look-at point: near Earth at (5, 2, -2), near Mars at (-3, 0.5, 4), or the wide view at (1, 0.5, 7). Because the look-at point moves independently, the camera turns and travels at once, and a focus change mid-transition just redirects it.
 
 The planets have no texture images. Mars is a THREE.CanvasTexture drawn at runtime: a rust gradient on a 1024 by 512 canvas, 8000 random translucent circles for craters, two pale polar bands and five dark ellipses. Earth is a blue canvas with six green ellipses. Crude up close, fine at the camera's distances, and nothing to ship or license.
 
@@ -142,7 +139,7 @@ AmbientSound.tsx builds the background drone from oscillators. Two sawtooth wave
     lfoGain.connect(drone2.frequency);
 ```
 
-Connecting a GainNode into another oscillator's frequency AudioParam is the Web Audio way to do frequency modulation. On top, a scheduler fires a random sine blip between 2.2 and 4.8 kHz every 5 to 10 seconds, panned across the stereo field. Master gain is 0.03. Browsers block audio until a user gesture, so the AudioContext is created only when you click the speaker icon.
+Connecting a GainNode into another oscillator's frequency AudioParam is the Web Audio way to do frequency modulation. On top, a scheduler fires a random sine blip between 2.2 and 4.8 kHz every 5 to 10 seconds, panned across the stereo field. Browsers block audio until a user gesture, so the AudioContext is created only when you click the speaker icon.
 
 ### Three characters, one prompt shape
 
@@ -152,27 +149,27 @@ Session history is keyed by character and session id together, so switching from
 
 ## The hard parts
 
-The README says the conversation runs on the Claude API. The code imports the OpenAI SDK and calls gpt-4o-mini. The docs drifted from the code during the build and I never corrected them. The code is the truth.
+The README says the conversation runs on the Claude API. The code imports the OpenAI SDK and calls gpt-4o-mini. The docs drifted from the code and I never corrected them.
 
 The waveform visualizer is fake. WaveformVisualizer.tsx draws 40 bars with random heights every frame while isPlaying is true. There is no AnalyserNode. It looks right from across the room.
 
-CORS is a wildcard, while replit.md claims it is restricted to localhost. The endpoints have no authentication and every call spends paid credits. /api/health also reports the first eight characters of each API key, a leftover debugging aid. Fine for a weekend demo; not fine for anything public.
+CORS is a wildcard, while replit.md claims it is restricted to localhost. The endpoints have no authentication and every call spends paid credits. /api/health also returns the first eight characters of each API key in its JSON response body. Fine for a weekend demo; not fine for anything public.
 
 Sessions live in a Python dict. Restarting the backend wipes every conversation.
 
-Deployment broke in a way I did not expect. Replit's autoscale runtime defaulted stdout to ASCII, and the backend crashed the first time it printed a non-ASCII log line. The last commit wraps sys.stdout and sys.stderr in a UTF-8 TextIOWrapper. start.sh also boots FastAPI in the background and polls /api/health for up to 30 seconds before it execs next start.
+Deployment broke in a way I did not expect. The last commit is titled "Fix ASCII stdout crash in Replit deployment, sanitize TTS error output" and it does two things. It wraps sys.stdout and sys.stderr in a UTF-8 TextIOWrapper, with a code comment saying the Replit deployment defaulted to ASCII. And it ASCII-encodes the ElevenLabs error body before the intro endpoint prints it. Put together, a print of non-ASCII text under an ASCII stdout is the likely trigger, but the commit does not spell that out.
 
-The Web Speech API only really works in Chrome. Elsewhere the transmit button shows an alert.
+The Web Speech API is Chrome-first. In a browser that has no SpeechRecognition at all, holding the transmit button just shows an alert that says to try Chrome.
 
 ## Results
 
-FaceTime from Mars took 2nd place at the ElevenLabs x Replit Hackathon. The shipped build has three characters with their own ElevenLabs voices, the radio chain, the camera choreography, the procedural soundscape, the Mars clock, glitches, topic chips and the end-of-call report. It was deployed to Replit autoscale; that deployment is no longer up, so there is no live link here.
+FaceTime from Mars took 2nd place at the ElevenLabs x Replit Hackathon. The shipped build has three characters with their own ElevenLabs voices, the radio chain, the camera choreography, the procedural soundscape, the Mars clock, glitches, topic chips and the end-of-call report. As of this writing, the Replit autoscale deployment returns Replit's "This app isn't live yet" page, so there is no live link here.
 
 ## What I would do differently
 
 The upgrade I skipped is the one I would do first: ElevenLabs Conversational AI or a LiveKit agent for full-duplex voice, with the radio filter moved into an AudioWorklet so you can interrupt Dr. Nova mid-sentence. Short of that, I would stream the reply; starting playback on the first chunk would cut the perceived wait more than any model choice.
 
-The waveform would get a real AnalyserNode. The health endpoint would stop printing key prefixes, CORS would be locked to the app origin, and sessions would move to Redis or SQLite so a restart does not drop a call. And the README would say gpt-4o-mini.
+The waveform would get a real AnalyserNode. The health endpoint would stop returning key prefixes, CORS would be locked to the app origin, and sessions would move to Redis or SQLite so a restart does not drop a call.
 
 ## Key takeaways
 
@@ -194,7 +191,7 @@ The FastAPI backend of FaceTime from Mars returns the MP3 bytes as the response 
 
 ### Which models and APIs power FaceTime from Mars?
 
-FaceTime from Mars uses the browser Web Speech API for speech-to-text, OpenAI gpt-4o-mini for the colonist's reply, and the ElevenLabs text-to-speech REST API with the eleven_turbo_v2_5 model and a distinct voice per character. The README mentions the Claude API, but the shipped backend calls gpt-4o-mini. The 3D scene runs on React Three Fiber.
+FaceTime from Mars uses the browser Web Speech API for speech-to-text, OpenAI gpt-4o-mini for the colonist's reply, and the ElevenLabs text-to-speech REST API with the eleven_turbo_v2_5 model and a distinct voice per character. The 3D scene runs on React Three Fiber.
 
 ## Links
 

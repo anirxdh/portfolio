@@ -3,7 +3,7 @@ graph LR
     A[Home page]
     B[Play page]
     C[Mascot card]
-    D[localStorage]
+    D[Results page]
   end
   subgraph Netlify functions
     E[api game start]
@@ -21,7 +21,7 @@ graph LR
     M[ElevenLabs TTS]
   end
   N[Static mp3s on CDN]
-  A -->|GET daily preview then preload| N
+  A -->|preload todays 3 mp3s| N
   B -->|POST mode| E
   E -->|save rounds| I
   E -->|rounds plus correct names| B
@@ -34,6 +34,5 @@ graph LR
   M -.->|mp3 bytes as base64| J
   C -->|POST animal and guess| G
   G -->|cache hit| J
-  B -->|score on results| H
+  D -->|POST nickname and score| H
   H -->|zadd nickname and gameId| K
-  B -->|stickers and streak| D

@@ -155,9 +155,12 @@ const results = await pipeline(
       : agent(writePrompt(p), { label: `write:${p.slug}`, phase: 'Write', schema: WRITE_SCHEMA, effort: 'high' }),
   async (w, p) => {
     if (!w) return null
-    let check = await agent(checkPrompt(p, w), { label: `check:${p.slug}`, phase: 'Check', schema: CHECK_SCHEMA, effort: 'high' })
+    // Stored first-pass report from the previous run: revise from it before spending a fresh check.
+    let check = p.issues_path
+      ? { ok: false, issues: [`Read the stored fact-check report for this article in the JSON file ${p.issues_path}: key "${p.slug}", use the LAST entry of its "checks" array (fields: issues, style_violations, unverifiable_claims). Fix every item that is still present in the article (some may already be fixed; verify each against the file).`], style_violations: [], unverifiable_claims: [] }
+      : await agent(checkPrompt(p, w), { label: `check:${p.slug}`, phase: 'Check', schema: CHECK_SCHEMA, effort: 'high' })
     let rounds = 0
-    while (check && !check.ok && rounds < 2) {
+    while (check && !check.ok && rounds < 3) {
       rounds += 1
       const revised = await agent(revisePrompt(p, check), { label: `revise:${p.slug}#${rounds}`, phase: 'Revise', schema: WRITE_SCHEMA, effort: 'high' })
       if (!revised) break

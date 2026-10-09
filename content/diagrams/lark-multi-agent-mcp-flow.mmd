@@ -6,7 +6,7 @@ sequenceDiagram
   participant Y as YouTube
   U->>W: types a query in the Video panel
   W->>G: callTool video-yt__search with query
-  G->>G: proxy handler finds live session for video-yt
+  G->>G: proxy handler forwards through its backend session
   G->>V: session callTool search
   V-->>G: numbered plain text list of results
   G->>G: formatBackendResult passes text through

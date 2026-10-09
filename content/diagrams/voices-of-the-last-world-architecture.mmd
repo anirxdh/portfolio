@@ -1,10 +1,10 @@
-graph LR
+flowchart LR
   subgraph S1[Browser React SPA]
     A[App.jsx state machine]
     B[engine.js]
     C[simulator.js local twin]
     D[mergeEngineOutputWithLocal]
-    E[DebateScreen typewriter]
+    E[DebateScreen render]
     F[voice.js]
     G[Web Audio graph]
     H[Core AI DSP chain]
@@ -17,11 +17,12 @@ graph LR
   A -->|deploy two agents| B
   B -->|key set strict json_schema| J
   J -->|4 lines decision result| B
-  B -->|no key or error| C
+  B -->|no key| C
   C -->|same schema| D
+  C -->|on Groq error direct| A
   B -->|normalized speakers| D
   D -->|only creative fields overlaid| E
-  E -->|one line at a time| F
+  A -->|one line at a time| F
   F -->|emotion adjusted voice_settings| K
   K -->|mp3 blob| G
   G -->|Core AI only| H
