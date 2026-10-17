@@ -11,8 +11,14 @@ import { SHOW_PROJECT_EVENT } from '../components/CommandPalette/events.js';
 
 const projectCount = myProjects.length;
 
-const Projects = () => {
-  const [selectedProjectIndex, setSelectedProjectIndex] = useState(0);
+// Projects is lazy-loaded (see App.jsx). If the command palette picked a project before this
+// section mounted, getInitialProjectId returns it so the carousel starts there.
+// eslint-disable-next-line react/prop-types
+const Projects = ({ getInitialProjectId }) => {
+  const [selectedProjectIndex, setSelectedProjectIndex] = useState(() => {
+    const index = myProjects.findIndex((p) => p.id === getInitialProjectId?.());
+    return index === -1 ? 0 : index;
+  });
 
   // The command palette (and anything else) can switch the carousel to a project by id.
   useEffect(() => {

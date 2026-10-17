@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 // Latest long-form articles. The list comes from /blog/index.json, which the static blog
 // generator writes at build time, so the homepage needs no rebuild when articles change.
@@ -20,10 +20,40 @@ const Writing = () => {
     };
   }, []);
 
+  // The cards arrive after the fetch, so useScrollReveal (which looks for .reveal-up once, when the
+  // app mounts) never sees them and they stayed at opacity 0. Reveal them here with the same
+  // rules: fade in when scrolled into view, and all of them after 4 seconds regardless.
+  const sectionRef = useRef(null);
+  useEffect(() => {
+    const cards = sectionRef.current ? [...sectionRef.current.querySelectorAll('.reveal-up:not(.is-visible)')] : [];
+    if (!cards.length) return undefined;
+    const reveal = (el) => el.classList.add('is-visible');
+    if (typeof IntersectionObserver === 'undefined') {
+      cards.forEach(reveal);
+      return undefined;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting) return;
+          reveal(e.target);
+          io.unobserve(e.target);
+        });
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -6% 0px' },
+    );
+    cards.forEach((el) => io.observe(el));
+    const fallback = setTimeout(() => cards.forEach(reveal), 4000);
+    return () => {
+      clearTimeout(fallback);
+      io.disconnect();
+    };
+  }, [articles]);
+
   if (!articles || articles.length === 0) return null;
 
   return (
-    <section className="c-space my-20" id="writing">
+    <section className="c-space my-20" id="writing" ref={sectionRef}>
       <div className="flex items-end justify-between gap-5 flex-wrap">
         <div>
           <h2 className="head-text">Writing</h2>

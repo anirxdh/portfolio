@@ -1,17 +1,49 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 
 import Button from '../components/Button.jsx';
 
 // react-globe.gl is heavy and below the fold — load it on demand.
 const Globe = lazy(() => import('react-globe.gl'));
 
+// Always HTTPS, and pinned to the installed three-globe version so unpkg answers directly instead
+// of redirecting to the latest release first. Same images as before.
+const GLOBE_TEXTURES = 'https://unpkg.com/three-globe@2.41.11/example/img';
+const GLOBE_IMAGE = `${GLOBE_TEXTURES}/earth-night.jpg`;
+const GLOBE_BUMP = `${GLOBE_TEXTURES}/earth-topology.png`;
+
 const About = () => {
   const [hasCopied, setHasCopied] = useState(false);
-  const scrollToContact = () => {
-    const contactSection = document.getElementById("contact");
-    if (contactSection) {
-      contactSection.scrollIntoView({ behavior: "smooth" });
+
+  // The globe chunk (about 300 KB gzipped) and its two textures (about 1 MB) load once the globe
+  // is within a screen of the viewport. On a desktop that is right away; on a phone it is a few
+  // cards down, so the first load stays light.
+  const globeBox = useRef(null);
+  const [showGlobe, setShowGlobe] = useState(false);
+  useEffect(() => {
+    const el = globeBox.current;
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      setShowGlobe(true);
+      return undefined;
     }
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        io.disconnect();
+        setShowGlobe(true);
+      },
+      { rootMargin: '100% 0px' },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  // Go through the #hash like the navbar links, so App.jsx can make sure the lazy-loaded
+  // sections between here and Contact are in place before the page lands.
+  const scrollToContact = () => {
+    const contactSection = document.getElementById('contact');
+    if (!contactSection) return;
+    if (window.location.hash === '#contact') contactSection.scrollIntoView({ behavior: 'smooth' });
+    else window.location.hash = 'contact';
   };
   const handleCopy = () => {
     navigator.clipboard.writeText(' anirudhvasudevan11@gmail.com');
@@ -73,20 +105,25 @@ const About = () => {
 
         <div className="col-span-1 xl:row-span-4">
           <div className="grid-container reveal-up">
-            <div className="rounded-3xl w-full sm:h-[326px] h-fit flex justify-center items-center">
-              <Suspense fallback={null}>
-                <Globe
-                  height={326}
-                  width={326}
-                  backgroundColor="rgba(0, 0, 0, 0)"
-                  backgroundImageOpacity={0.5}
-                  showAtmosphere
-                  showGraticules
-                  globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
-                  bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
-                  labelsData={[{ lat: 37.7749, lng: -122.4194, text: 'San Francisco, CA', color: 'white', size: 15 }]}
-                />
-              </Suspense>
+            {/* min-h keeps the globe's 326px on phones before it loads, so the cards below never jump. */}
+            <div
+              ref={globeBox}
+              className="rounded-3xl w-full sm:h-[326px] h-fit min-h-[326px] flex justify-center items-center">
+              {showGlobe && (
+                <Suspense fallback={null}>
+                  <Globe
+                    height={326}
+                    width={326}
+                    backgroundColor="rgba(0, 0, 0, 0)"
+                    backgroundImageOpacity={0.5}
+                    showAtmosphere
+                    showGraticules
+                    globeImageUrl={GLOBE_IMAGE}
+                    bumpImageUrl={GLOBE_BUMP}
+                    labelsData={[{ lat: 37.7749, lng: -122.4194, text: 'San Francisco, CA', color: 'white', size: 15 }]}
+                  />
+                </Suspense>
+              )}
             </div>
             <div>
               <h3 className="grid-headtext">Based in San Francisco, building at the intersection of AI and the web.</h3>
