@@ -34,6 +34,8 @@ I like building a whole product in a weekend and putting it in front of judges. 
 | 3rd Place | ElevenHacks, ElevenLabs x Zed | [Apartment 4B](https://apartment-4b.netlify.app), a first-person horror game voiced with ElevenLabs |
 | Best Voice Agent | ElevenLabs x Firecrawl | [ScreenSense](/blog/screensense-voice-browser-agent/), a Chrome extension you control by talking |
 
+Across ElevenHacks Season 1 I submitted a project to all 11 hacks and finished 4th overall on the season leaderboard.
+
 I have also been invited to build at hackathons hosted at Y Combinator in San Francisco, including the Moss conversational AI hackathon, where I built [Tax It Easy](/blog/moss-voice-cpa-yc-hackathon/), a voice CPA that only says what it can back up with your tax return.
 
 ## Things I have built
@@ -47,9 +49,10 @@ Every project write-up is on the [Writing](/blog/) page.
 
 ## Patent and research
 
-- **Granted patent:** Contactless Integrated Voting System, patent ID 202341031598 (May 2023). It lets people vote using speech and hand gestures instead of touching a machine. Here is [the engineering behind CIVS](/blog/civs-contactless-voting-patent/).
+- **Granted patent:** Contactless Integrated Voting System (filed as *A System and a Method for Contactless Voting*, Indian application 202341031598, May 2023), assigned to SRM Institute of Science and Technology. It lets people vote using speech and hand gestures instead of touching a machine. Here is [the engineering behind CIVS](/blog/civs-contactless-voting-patent/).
 - **EMNLP (Main Conference):** *ConsensusDrift: Semantic Salience Can Override Majority Evidence in LLM Aggregation*, with Gokul Srinath Seetha Ram and Rashmi Elavazhagan.
-- **Paper:** *A Deep CNN for Remote Life Activities Detection using FMCW Radar under Realistic Environments.*
+- **Paper:** [*A Deep Convolutional Neural Network for Remote Life Activities Detection Using FMCW Radar Under Realistic Environments*](https://doi.org/10.1007/978-3-031-31153-6_32) (Springer, 2023).
+- More on [Google Scholar](https://scholar.google.com/citations?user=NvrJL_YAAAAJ) and [ORCID](https://orcid.org/0009-0005-2249-312X).
 
 ## Education
 
@@ -90,4 +93,9 @@ You can email Anirudh Vasudevan at anirudhvasudevan11@gmail.com, message him on 
 - [LinkedIn](https://www.linkedin.com/in/anirudhvasudev/)
 - [GitHub](https://github.com/anirxdh)
 - [LeetCode](https://leetcode.com/u/anirudhvasudev/)
+- [Devpost](https://devpost.com/anirxdh)
+- [Google Scholar](https://scholar.google.com/citations?user=NvrJL_YAAAAJ)
+- [ORCID](https://orcid.org/0009-0005-2249-312X)
+- [X](https://x.com/anirxdhv)
+- [YouTube](https://www.youtube.com/@anirudhvasudevan5581)
 - [Resume (PDF)](/assets/anirudh-vasudevan-resume.pdf)

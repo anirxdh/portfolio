@@ -3,9 +3,16 @@
 export const SITE = 'https://anirudhvasudevan.com';
 export const PERSON_ID = `${SITE}/#person`;
 
+// Every URL here was checked to be his (2026-10-17). Do not add same-handle accounts that
+// belong to other people (e.g. medium.com/@anirxdh is a different person).
 export const SAME_AS = [
   'https://www.linkedin.com/in/anirudhvasudev/',
   'https://github.com/anirxdh',
+  'https://scholar.google.com/citations?user=NvrJL_YAAAAJ',
+  'https://orcid.org/0009-0005-2249-312X',
+  'https://devpost.com/anirxdh',
+  'https://x.com/anirxdhv',
+  'https://www.youtube.com/@anirudhvasudevan5581',
   'https://leetcode.com/u/anirudhvasudev/',
   'https://www.instagram.com/anirxdh/',
 ];
@@ -34,6 +41,7 @@ export const person = (extra = {}) => ({
     '2nd Place, ElevenLabs x Replit Hackathon (FaceTime from Mars)',
     '3rd Place, ElevenHacks, ElevenLabs x Zed (Apartment 4B)',
     'Best Voice Agent, ElevenLabs x Firecrawl Hackathon (ScreenSense)',
+    '4th overall, ElevenHacks Season 1',
     'Granted patent: Contactless Integrated Voting System (202341031598)',
   ],
   knowsAbout: [
