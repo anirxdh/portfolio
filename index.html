@@ -62,8 +62,9 @@
       }
     </script>
 
-    <!-- Structured Data: Person (same @id as /about/; source: scripts/blog/person.mjs) -->
-    <script type="application/ld+json">
+    <!-- Structured Data: Person (same @id as /about/). Generated from scripts/blog/person.mjs:
+         the build rewrites this block in dist/index.html, so edit person.mjs, not this copy. -->
+    <script type="application/ld+json" id="person-ld">
       {
         "@context": "https://schema.org",
         "@type": "Person",

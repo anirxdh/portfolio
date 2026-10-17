@@ -1,6 +1,6 @@
 ---
-title: "About Anirudh Vasudevan"
-description: "Anirudh Vasudevan is a full-stack and AI engineer in San Francisco, a Member of Technical Staff at Rivo, and a 5x hackathon winner with a granted patent."
+title: "About Anirudh Vasudevan: Bio, Hackathons, Patent and Research"
+description: "The story of Anirudh Vasudevan, a full-stack and AI engineer in San Francisco: Rivo, Nonlinear, five hackathon wins, a granted patent, research and education."
 date: 2026-10-17
 slug: about
 ---

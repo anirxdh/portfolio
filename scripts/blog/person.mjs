@@ -1,7 +1,11 @@
-// Single source of truth for the Person entity used in structured data across the static pages.
-// index.html carries a hand-maintained copy of the same object (keep the @id identical).
+// Single source of truth for the Person entity used in structured data across every page.
+// index.html keeps a copy in <script id="person-ld"> so the dev server has it too, but the build
+// (scripts/build-blog.mjs) overwrites that block in dist/index.html with person(), so the two can
+// never drift in production. It also warns when the source copy is out of date.
 export const SITE = 'https://anirudhvasudevan.com';
 export const PERSON_ID = `${SITE}/#person`;
+// The one url for the Person. Author and publisher references use the same value.
+export const PERSON_URL = `${SITE}/`;
 
 // Every URL here was checked to be his (2026-10-17). Do not add same-handle accounts that
 // belong to other people (e.g. medium.com/@anirxdh is a different person).
@@ -23,7 +27,7 @@ export const person = (extra = {}) => ({
   name: 'Anirudh Vasudevan',
   givenName: 'Anirudh',
   familyName: 'Vasudevan',
-  url: `${SITE}/`,
+  url: PERSON_URL,
   image: `${SITE}/assets/anirudh-avatar.png`,
   jobTitle: 'Member of Technical Staff',
   description:
@@ -50,5 +54,7 @@ export const person = (extra = {}) => ({
     'Product analytics', 'Growth engineering',
   ],
   sameAs: SAME_AS,
+  // Already published on /about/ and /resume/.
+  email: 'mailto:anirudhvasudevan11@gmail.com',
   ...extra,
 });

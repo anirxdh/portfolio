@@ -1,16 +1,25 @@
-import { useState } from 'react';
-
 // `disabled` locks the whole input (while AniBot is thinking); `busy` only holds the send button
 // (while a reply is still streaming in), so a visitor can type the next question meanwhile.
-const ChatInput = ({ onSend, disabled, busy = false, voice }) => {
-  const [input, setInput] = useState('');
+// The mic waits for the reply to finish, so a spoken question is never dropped or talked over.
+// `value`/`onChange` hold the typed draft; while listening, the box shows that draft plus the
+// words heard so far, read-only, and Send (or Enter) finishes listening and sends both.
+const ChatInput = ({ value, onChange, onSend, disabled, busy = false, voice }) => {
+  const listening = !!voice?.listening;
+  const heard = listening ? [value.trim(), voice.interim].filter(Boolean).join(' ') : '';
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (input.trim() && !disabled && !busy) {
-      onSend(input.trim());
-      setInput('');
+    if (listening) {
+      // Nothing spoken yet: stop the mic and send the typed draft as-is.
+      if (!voice.interim) {
+        voice.cancelListening();
+        if (value.trim() && !disabled && !busy) onSend(value.trim());
+        return;
+      }
+      voice.stopListening();
+      return;
     }
+    if (value.trim() && !disabled && !busy) onSend(value.trim());
   };
 
   const handleKeyDown = (e) => {
@@ -20,15 +29,22 @@ const ChatInput = ({ onSend, disabled, busy = false, voice }) => {
     }
   };
 
+  const sendDisabled = listening ? !heard : disabled || busy || !value.trim();
+
   return (
     <form onSubmit={handleSubmit} className="p-4 border-t border-black-300 bg-black-200">
       <div className="flex gap-2">
         <input
           type="text"
-          value={voice?.listening ? voice.interim || '' : input}
-          onChange={(e) => setInput(e.target.value)}
+          value={listening ? heard : value}
+          onChange={(e) => {
+            if (listening) return;
+            if (voice?.error) voice.clearError();
+            onChange(e.target.value);
+          }}
+          readOnly={listening}
           onKeyDown={handleKeyDown}
-          placeholder={voice?.listening ? 'Listening… speak now' : 'Type or tap the mic…'}
+          placeholder={listening ? 'Listening… speak now' : 'Type or tap the mic…'}
           aria-label="Type your message"
           disabled={disabled}
           className="flex-1 bg-black-300 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -36,12 +52,12 @@ const ChatInput = ({ onSend, disabled, busy = false, voice }) => {
         {voice?.canListen && (
           <button
             type="button"
-            onClick={voice.listening ? voice.stopListening : voice.startListening}
-            disabled={disabled && !voice.listening}
-            aria-label={voice.listening ? 'Stop listening' : 'Talk to AniBot'}
-            aria-pressed={voice.listening}
+            onClick={listening ? voice.stopListening : voice.startListening}
+            disabled={(disabled || busy) && !listening}
+            aria-label={listening ? 'Stop listening' : 'Talk to AniBot'}
+            aria-pressed={listening}
             className={`px-3 py-2 rounded-lg flex items-center justify-center min-w-[44px] transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-              voice.listening ? 'bg-red-500/90 text-white animate-pulse' : 'bg-black-300 text-gray-300 hover:text-white hover:bg-black-500'
+              listening ? 'bg-red-500/90 text-white animate-pulse' : 'bg-black-300 text-gray-300 hover:text-white hover:bg-black-500'
             }`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5" aria-hidden="true" focusable="false">
@@ -51,7 +67,7 @@ const ChatInput = ({ onSend, disabled, busy = false, voice }) => {
         )}
         <button
           type="submit"
-          disabled={disabled || busy || !input.trim()}
+          disabled={sendDisabled}
           aria-label="Send message"
           className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center min-w-[44px]"
         >
@@ -69,9 +85,11 @@ const ChatInput = ({ onSend, disabled, busy = false, voice }) => {
           </svg>
         </button>
       </div>
+      <p role="status" aria-live="polite" className={voice?.error ? 'mt-2 text-xs text-amber-300' : 'sr-only'}>
+        {voice?.error || ''}
+      </p>
     </form>
   );
 };
 
 export default ChatInput;
-

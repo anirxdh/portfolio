@@ -25,7 +25,10 @@
 }
 
 * { box-sizing: border-box; }
-html { color-scheme: dark; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; overflow-x: clip; }
+/* scroll-padding-top keeps anchor targets (#faq, TOC links, /projects/#card) clear of the sticky
+   header. It matches the header height: one 74px row on wide screens, and on narrow screens the
+   header is not sticky at all (see the nav media query below). */
+html { color-scheme: dark; scroll-behavior: smooth; -webkit-text-size-adjust: 100%; overflow-x: clip; scroll-padding-top: 96px; }
 body {
   margin: 0;
   background: var(--black-100);
@@ -80,6 +83,13 @@ img, svg { max-width: 100%; height: auto; }
 .topbar__nav { display: flex; flex-wrap: wrap; gap: 6px 24px; font-size: 1rem; color: var(--neutral-400); }
 .topbar__nav a { transition: color .2s; }
 .topbar__nav a:hover, .topbar__nav a[aria-current='page'] { color: #fff; }
+/* Below this width the brand and the nav no longer fit on one row and the header grows to two or
+   three rows (about 150px on a 390px phone). A header that tall would cover a fifth of the screen
+   and hide anchor targets, so it scrolls away with the page instead of sticking. */
+@media (max-width: 760px) {
+  .topbar { position: static; }
+  html { scroll-padding-top: 16px; }
+}
 @media (max-width: 640px) {
   .topbar__inner { padding-top: 14px; padding-bottom: 14px; row-gap: 8px; }
   .topbar__nav { gap: 4px 18px; font-size: 15px; }
@@ -131,7 +141,7 @@ h1 {
 .prose { min-width: 0; }
 .prose > :first-child { margin-top: 0; }
 .prose p { margin: 0 0 1.25em; }
-.prose h2, .prose h3 { font-weight: 600; color: #fff; scroll-margin-top: 96px; position: relative; letter-spacing: -0.005em; }
+.prose h2, .prose h3 { font-weight: 600; color: #fff; position: relative; letter-spacing: -0.005em; }
 .prose h2 { font-size: clamp(1.45rem, 2.4vw, 1.85rem); line-height: 1.2; margin: 2.2em 0 0.7em; }
 .prose h3 { font-size: 1.2rem; line-height: 1.35; margin: 1.8em 0 0.6em; color: var(--white-800); }
 .prose .anchor { position: absolute; left: -1.1em; color: var(--black-500); opacity: 0; transition: opacity .2s; font-weight: 400; }
@@ -150,6 +160,8 @@ h1 {
   background: var(--black-200); border: 1px solid var(--black-300); line-height: 1.55; font-size: 14px;
 }
 .prose pre code { background: none; padding: 0; font-size: inherit; }
+/* Long identifiers in inline code (env var names, file paths) wrap instead of running off a phone screen. */
+.prose :not(pre) > code { overflow-wrap: anywhere; }
 /* Code blocks: a header bar holds the language label and the Copy button (added by the inline script). */
 .prose .code { margin: 1.4em 0; border-radius: 8px; background: var(--black-200); border: 1px solid var(--black-300); overflow: hidden; }
 .prose .code pre { margin: 0; border: 0; border-radius: 0; background: none; }
@@ -227,7 +239,7 @@ a.series__item:hover, .series__item[aria-current] { background: var(--black-300)
 .index { position: relative; z-index: 1; max-width: 80rem; margin: 0 auto; padding: 48px var(--gutter) 80px; }
 .index__head { max-width: 760px; margin-bottom: 40px; }
 .featured { margin-bottom: 20px; }
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 20px; }
 .card {
   display: flex; flex-direction: column; gap: 12px; padding: 24px; border-radius: 16px;
   background: var(--black-200); border: 1px solid var(--black-300); transition: border-color .25s ease, transform .25s ease;
@@ -267,7 +279,6 @@ a.chip:hover { border-color: var(--black-500); color: #fff; }
 
 /* ---------- projects ---------- */
 .psec + .psec { margin-top: 64px; }
-.pcard { scroll-margin-top: 96px; }
 .pcard:hover { transform: none; }
 .pcard .card__title a { transition: color .2s; }
 .pcard .card__title a:hover { text-decoration: underline; text-decoration-color: var(--accent); text-underline-offset: 4px; }

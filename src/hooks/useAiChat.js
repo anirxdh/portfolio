@@ -61,8 +61,8 @@ export const useAiChat = () => {
   const addMessage = (msg) => setMessages((prev) => [...prev, msg]);
   const patchMessage = (id, patch) => setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, ...patch } : m)));
 
-  // Streams a reply from /api/chat. Resolves true once the reply is on screen, false when the live
-  // AI failed before saying anything (non-2xx, network error, timeout, or an empty stream).
+  // Streams a reply from /api/chat. Resolves to the reply ({ id, content }) once it is on screen, or
+  // null when the live AI failed before saying anything (non-2xx, network error, timeout, empty stream).
   const streamLive = async (text, conversationHistory) => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), FIRST_BYTE_TIMEOUT_MS);
@@ -76,13 +76,13 @@ export const useAiChat = () => {
       });
     } catch (err) {
       console.warn('AniBot live AI unreachable, answering from notes.', err);
-      return false;
+      return null;
     } finally {
       clearTimeout(timer);
     }
     if (!response.ok || !response.body) {
       console.warn(`AniBot live AI returned ${response.status}, answering from notes.`);
-      return false;
+      return null;
     }
 
     // Stream the response token by token as it arrives from the server.
@@ -111,11 +111,13 @@ export const useAiChat = () => {
       // A stream that breaks after real text keeps what arrived; one that breaks before falls back.
       console.warn('AniBot stream interrupted.', err);
     }
-    if (created) patchMessage(assistantId, { content: acc });
-    return created;
+    if (!created) return null;
+    patchMessage(assistantId, { content: acc });
+    return { id: assistantId, content: acc };
   };
 
-  // Answers from the build-time knowledge base and shows the reply a line at a time.
+  // Answers from the build-time knowledge base and shows the reply a line at a time. Resolves to the
+  // reply ({ id, content }); the "from my notes" footnote rides along as `note`, outside the content.
   const answerFromNotes = async (text, previousQuestions) => {
     const { engine, index } = await loadNotes();
     const reply = engine.answerLocally(index, text, { previous: previousQuestions, seen: seenRef.current });
@@ -126,7 +128,7 @@ export const useAiChat = () => {
     setIsLoading(false);
     if (prefersReducedMotion() || lines.length < 3) {
       addMessage({ id, role: 'assistant', content: reply.text, note: reply.note, source: 'notes', timestamp: new Date() });
-      return;
+      return { id, content: reply.text };
     }
     addMessage({ id, role: 'assistant', content: lines[0], source: 'notes', timestamp: new Date() });
     for (let i = 2; i <= lines.length; i += 1) {
@@ -134,12 +136,17 @@ export const useAiChat = () => {
       patchMessage(id, { content: lines.slice(0, i).join('\n') });
     }
     patchMessage(id, { note: reply.note });
+    return { id, content: reply.text };
   };
 
+  // Sends one question and resolves to the assistant message it produced: { id, content, isError }.
+  // Only one request runs at a time; while one is in flight this resolves to null and sends nothing
+  // (check isBusy() first if the text must not be lost).
   const sendMessage = useCallback(async (userMessage) => {
     const text = String(userMessage || '').trim();
-    if (!text || busyRef.current) return;
+    if (!text || busyRef.current) return null;
     busyRef.current = true;
+    let reply = null;
 
     // Snapshot before this message lands in state.
     const prior = messagesRef.current.filter((m) => m.id !== 'welcome' && !m.isError);
@@ -153,28 +160,32 @@ export const useAiChat = () => {
 
     try {
       const online = typeof navigator === 'undefined' || navigator.onLine !== false;
-      let answered = false;
       if (online && Date.now() >= liveRetryAtRef.current) {
-        answered = await streamLive(text, conversationHistory);
-        if (answered) setMode('live');
+        reply = await streamLive(text, conversationHistory);
+        if (reply) setMode('live');
       }
-      if (!answered) {
+      if (!reply) {
         liveRetryAtRef.current = Date.now() + RETRY_LIVE_AFTER_MS;
-        await answerFromNotes(text, previousQuestions);
+        reply = await answerFromNotes(text, previousQuestions);
         setMode('notes');
       }
+      reply = { ...reply, isError: false };
     } catch (err) {
       console.error('Chat error:', err);
       setError('Failed to get response. Please try again.');
-      addMessage({ id: newId(), role: 'assistant', content: ERROR_MESSAGE, timestamp: new Date(), isError: true });
+      reply = { id: newId(), content: ERROR_MESSAGE, isError: true };
+      addMessage({ ...reply, role: 'assistant', timestamp: new Date() });
     } finally {
       setIsLoading(false);
       setIsStreaming(false);
       busyRef.current = false;
     }
+    return reply;
     // streamLive and answerFromNotes only touch refs and state setters, so this stays stable.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const isBusy = useCallback(() => busyRef.current, []);
 
   const clearMessages = useCallback(() => {
     setMessages([welcome()]);
@@ -189,6 +200,7 @@ export const useAiChat = () => {
     error,
     mode,
     sendMessage,
+    isBusy,
     clearMessages,
   };
 };
