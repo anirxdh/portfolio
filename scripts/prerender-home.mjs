@@ -325,6 +325,9 @@ function footer() {
   const links = [
     exists('about') && ['/about/', 'About'],
     exists('projects') && ['/projects/', 'Projects'],
+    exists('hackathons') && ['/hackathons/', 'Hackathons'],
+    exists('research') && ['/research/', 'Research'],
+    exists('uses') && ['/uses/', 'Uses'],
     exists('blog') && ['/blog/', 'Writing'],
     exists('resume') ? ['/resume/', 'Resume'] : ['/assets/anirudh-vasudevan-resume.pdf', 'Resume'],
   ].filter(Boolean);

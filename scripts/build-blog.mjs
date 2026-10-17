@@ -366,7 +366,7 @@ const head = ({ title, description, url, ogImage = DEFAULT_OG, ogType = 'website
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="alternate" type="application/rss+xml" title="${AUTHOR} | Writing" href="${SITE}/blog/feed.xml" />
-    <meta property="og:type" content="${ogType}" />
+    <meta property="og:type" content="${ogType}" />${ogType === 'profile' ? '\n    <meta property="profile:first_name" content="Anirudh" />\n    <meta property="profile:last_name" content="Vasudevan" />\n    <meta property="profile:username" content="anirxdh" />' : ''}
     <meta property="og:url" content="${url}" />
     <meta property="og:title" content="${esc(title)}" />
     <meta property="og:description" content="${esc(description)}" />
