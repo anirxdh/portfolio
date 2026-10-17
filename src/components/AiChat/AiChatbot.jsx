@@ -3,6 +3,7 @@ import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import useAiChat from '../../hooks/useAiChat';
 import useVoice from '../../hooks/useVoice';
+import { ANIBOT_HASH, ANIBOT_OPEN_EVENT, takePendingOpen } from '../../data/anibotEvents';
 import FloatingChatButton from './FloatingChatButton';
 import ChatHeader from './ChatHeader';
 import ChatMessages from './ChatMessages';
@@ -13,7 +14,40 @@ import FollowUps from './FollowUps';
 const AiChatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
-  const { messages, isLoading, isStreaming, sendMessage } = useAiChat();
+  const { messages, isLoading, isStreaming, mode, sendMessage } = useAiChat();
+  // Typing stays allowed while a reply streams in; sending waits until it finishes.
+  const busy = isLoading || isStreaming;
+
+  // Other parts of the page (the command palette, links to /#anibot) can open the chat,
+  // optionally with a question to ask right away. See src/data/anibotEvents.js.
+  useEffect(() => {
+    const openWith = (question) => {
+      setIsOpen(true);
+      if (question) {
+        setShowSuggestions(false);
+        sendMessage(question);
+      }
+    };
+    const onOpen = (e) => {
+      takePendingOpen();
+      openWith(e.detail?.question);
+    };
+    const onHash = () => {
+      if (window.location.hash !== ANIBOT_HASH) return;
+      openWith();
+      // Drop the hash so the same link opens the chat again next time.
+      window.history.replaceState(null, '', window.location.pathname + window.location.search);
+    };
+    const pending = takePendingOpen();
+    if (pending) openWith(pending.question);
+    else onHash();
+    window.addEventListener(ANIBOT_OPEN_EVENT, onOpen);
+    window.addEventListener('hashchange', onHash);
+    return () => {
+      window.removeEventListener(ANIBOT_OPEN_EVENT, onOpen);
+      window.removeEventListener('hashchange', onHash);
+    };
+  }, [sendMessage]);
   const [voiceReplies, setVoiceReplies] = useState(false);
   const voice = useVoice({
     // Talking to AniBot implies you want to hear it back.
@@ -91,6 +125,19 @@ const AiChatbot = () => {
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Answers link to homepage sections ("/#contact", "/#work"). Follow those in place: close the
+  // chat and scroll, instead of reloading the page.
+  const handleLinkClick = (e) => {
+    const a = e.target.closest?.('a[href]');
+    const m = a && /^\/?#([\w-]+)$/.exec(a.getAttribute('href'));
+    const el = m && m[1] !== ANIBOT_HASH.slice(1) && document.getElementById(m[1]);
+    if (!el) return;
+    e.preventDefault();
+    setIsOpen(false);
+    el.scrollIntoView({ behavior: 'smooth' });
+    window.history.replaceState(null, '', `#${m[1]}`);
+  };
+
   const hasAssistantReply = messages.some(
     (msg) => msg.role === 'assistant' && msg.id !== 'welcome',
   );
@@ -119,10 +166,12 @@ const AiChatbot = () => {
           onKeyDown={(e) => {
             if (e.key === 'Escape') handleClose();
           }}
+          onClick={handleLinkClick}
           className="chat-window fixed bottom-6 right-6 w-[400px] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-3rem)] bg-black-200 border border-black-300 rounded-lg shadow-2xl flex flex-col z-50 backdrop-blur-sm focus:outline-none">
           <ChatHeader
             onClose={handleClose}
             onMinimize={handleMinimize}
+            mode={mode}
             canSpeak={voice.canSpeak}
             voiceReplies={voiceReplies}
             onToggleVoice={() => {
@@ -130,25 +179,25 @@ const AiChatbot = () => {
               setVoiceReplies((v) => !v);
             }}
           />
-          
+
           <ChatMessages messages={messages} isLoading={isLoading} />
-          
-          {showSuggestions && messages.length <= 1 && !isLoading && (
+
+          {showSuggestions && messages.length <= 1 && !busy && (
             <SuggestedQuestions
               onQuestionClick={handleSuggestedQuestion}
-              disabled={isLoading}
+              disabled={busy}
             />
           )}
 
-          {hasAssistantReply && !isLoading && (
+          {hasAssistantReply && !busy && (
             <FollowUps
               onQuestionClick={handleSuggestedQuestion}
               onContact={handleContact}
-              disabled={isLoading}
+              disabled={busy}
             />
           )}
 
-          <ChatInput onSend={handleSend} disabled={isLoading} voice={voice} />
+          <ChatInput onSend={handleSend} disabled={isLoading} busy={isStreaming} voice={voice} />
         </div>
       )}
 

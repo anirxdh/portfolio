@@ -1,11 +1,13 @@
 import { useState } from 'react';
 
-const ChatInput = ({ onSend, disabled, voice }) => {
+// `disabled` locks the whole input (while AniBot is thinking); `busy` only holds the send button
+// (while a reply is still streaming in), so a visitor can type the next question meanwhile.
+const ChatInput = ({ onSend, disabled, busy = false, voice }) => {
   const [input, setInput] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (input.trim() && !disabled) {
+    if (input.trim() && !disabled && !busy) {
       onSend(input.trim());
       setInput('');
     }
@@ -49,7 +51,7 @@ const ChatInput = ({ onSend, disabled, voice }) => {
         )}
         <button
           type="submit"
-          disabled={disabled || !input.trim()}
+          disabled={disabled || busy || !input.trim()}
           aria-label="Send message"
           className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center min-w-[44px]"
         >

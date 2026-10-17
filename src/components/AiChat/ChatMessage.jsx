@@ -9,11 +9,12 @@ const markdownComponents = {
   li: ({ children }) => <li className="leading-relaxed">{children}</li>,
   strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
   em: ({ children }) => <em className="italic">{children}</em>,
-  a: ({ children, href }) => (
+  // Homepage sections ("/#contact") open in place; pages and other sites open in a new tab so
+  // the conversation stays put.
+  a: ({ children, href = '' }) => (
     <a
       href={href}
-      target="_blank"
-      rel="noopener noreferrer"
+      {...(/^\/?#/.test(href) ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
       className="text-blue-400 underline underline-offset-2 hover:text-blue-300"
     >
       {children}
@@ -67,6 +68,9 @@ const ChatMessage = ({ message }) => {
               </ReactMarkdown>
             </div>
           )}
+
+          {/* Footnote on answers that came from the offline notes (kept out of the spoken text). */}
+          {message.note && <p className="text-xs mt-2 italic text-white-600">{message.note}</p>}
 
           {/* Timestamp */}
           <div className="text-xs mt-1 text-gray-400">
