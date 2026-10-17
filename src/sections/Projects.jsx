@@ -7,11 +7,22 @@ import { Center, OrbitControls } from '@react-three/drei';
 import { myProjects } from '../constants/index.js';
 import CanvasLoader from '../components/Loading.jsx';
 import DemoComputer from '../components/DemoComputer.jsx';
+import { SHOW_PROJECT_EVENT } from '../components/CommandPalette/events.js';
 
 const projectCount = myProjects.length;
 
 const Projects = () => {
   const [selectedProjectIndex, setSelectedProjectIndex] = useState(0);
+
+  // The command palette (and anything else) can switch the carousel to a project by id.
+  useEffect(() => {
+    const onShow = (e) => {
+      const index = myProjects.findIndex((p) => p.id === e.detail?.id);
+      if (index !== -1) setSelectedProjectIndex(index);
+    };
+    window.addEventListener(SHOW_PROJECT_EVENT, onShow);
+    return () => window.removeEventListener(SHOW_PROJECT_EVENT, onShow);
+  }, []);
 
   const handleNavigation = (direction) => {
     setSelectedProjectIndex((prevIndex) => {
@@ -42,7 +53,7 @@ const Projects = () => {
   }, [selectedProjectIndex, imageCount]);
 
   return (
-    <section className="c-space my-20">
+    <section className="c-space my-20" id="projects">
       <h2 className="head-text">My Selected Work</h2>
 
       <div className="grid lg:grid-cols-2 grid-cols-1 mt-12 gap-5 w-full">
@@ -84,15 +95,32 @@ const Projects = () => {
               ))}
             </div>
 
-            <a
-              className="flex items-center gap-2 cursor-pointer text-white-600"
-              href={currentProject.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label={`${isSource ? 'View source for' : 'View'} ${currentProject.title}${isSource ? '' : ' live'}`}>
-              <p>{isSource ? 'View Source' : 'Check Live Site'}</p>
-              <img src="/assets/arrow-up.png" alt="" aria-hidden="true" className="w-3 h-3" />
-            </a>
+            <div className="flex items-center gap-x-6 gap-y-3 flex-wrap">
+              {currentProject.article && (
+                <a
+                  className="text-white-600 hover:text-white transition-colors underline underline-offset-4"
+                  href={`/blog/${currentProject.article}/`}>
+                  Read the deep dive
+                  <span className="sr-only"> on {currentProject.title}</span>
+                  <span aria-hidden="true"> →</span>
+                </a>
+              )}
+
+              <a
+                className="flex items-center gap-2 cursor-pointer text-white-600 hover:text-white transition-colors"
+                href={currentProject.href}
+                target="_blank"
+                rel="noopener noreferrer">
+                <span>
+                  {isSource ? 'View Source' : 'Check Live Site'}
+                  <span className="sr-only">
+                    {' '}
+                    for {currentProject.title} (opens in a new tab)
+                  </span>
+                </span>
+                <img src="/assets/arrow-up.png" alt="" aria-hidden="true" className="w-3 h-3" />
+              </a>
+            </div>
           </div>
 
           <div className="flex justify-between items-center mt-7">
@@ -102,6 +130,14 @@ const Projects = () => {
               aria-label="View previous project">
               <img src="/assets/left-arrow.png" alt="" aria-hidden="true" />
             </button>
+
+            <p className="text-sm text-white-600 tabular-nums" aria-live="polite">
+              <span className="sr-only">Project </span>
+              {selectedProjectIndex + 1}
+              <span aria-hidden="true"> / </span>
+              <span className="sr-only"> of </span>
+              {projectCount}
+            </p>
 
             <button
               className="arrow-btn focus:outline-none focus:ring-2 focus:ring-blue-400"
