@@ -47,6 +47,8 @@ I have also been invited to build at hackathons hosted at Y Combinator in San Fr
 
 Every project is listed on the [Projects](/projects/) page, and every write-up is on the [Writing](/blog/) page.
 
+More: my full [hackathon record](/hackathons/), the [patent and papers](/research/), and the [tools I use](/uses/).
+
 ## Patent and research
 
 - **Granted patent:** Contactless Integrated Voting System (filed as *A System and a Method for Contactless Voting*, Indian application 202341031598, May 2023), assigned to SRM Institute of Science and Technology. It lets people vote using speech and hand gestures instead of touching a machine. Here is [the engineering behind CIVS](/blog/civs-contactless-voting-patent/).
