@@ -1,4 +1,5 @@
-// Deterministic checks for content/articles/*.md: frontmatter, length, style rules, diagram refs.
+// Deterministic checks for content/articles/*.md (frontmatter, length, style rules, diagram refs)
+// and content/pages/*.md (frontmatter, style rules). Both get a privacy check for phone numbers.
 // Usage: node scripts/lint-articles.mjs   (exit 1 on any error)
 import fs from 'node:fs';
 import path from 'node:path';
@@ -6,9 +7,12 @@ import matter from 'gray-matter';
 
 const ROOT = process.cwd();
 const SRC = path.join(ROOT, 'content', 'articles');
+const PAGES = path.join(ROOT, 'content', 'pages');
 const DIAGRAMS = path.join(ROOT, 'content', 'diagrams');
 const BANNED =
   /\b(delve|crucial|robust|comprehensive|nuanced|multifaceted|furthermore|moreover|additionally|pivotal|landscape|tapestry|underscore|foster|showcase|intricate|vibrant|seamless|leverage|harness|journey|testament|game-changer)\b/gi;
+// US-style phone numbers: (952) 245 7395, 952-245-7395, 952.245.7395. The site never publishes one.
+const PHONE = /(?:\(\d{3}\)\s?|\b\d{3}[\s.-])\d{3}[\s.-]\d{4}\b/;
 
 let errors = 0;
 let warnings = 0;
@@ -84,6 +88,36 @@ for (const file of files) {
 
   // secrets / PII smell test
   if (/sk-[A-Za-z0-9]{20,}|xi-api-key|AKIA[0-9A-Z]{16}|pk_live_|sk_live_/.test(raw)) err(file, 'possible secret in article');
+  if (PHONE.test(prose)) err(file, `looks like a phone number: "${prose.match(PHONE)[0]}"`);
 }
-console.log(`\n${files.length} articles, ${errors} errors, ${warnings} warnings`);
+
+// ---------- content/pages/*.md (about, resume, projects) ----------
+const pages = fs.existsSync(PAGES) ? fs.readdirSync(PAGES).filter((f) => f.endsWith('.md')).sort() : [];
+for (const name of pages) {
+  const file = `pages/${name}`;
+  const raw = fs.readFileSync(path.join(PAGES, name), 'utf8');
+  let parsed;
+  try {
+    parsed = matter(raw);
+  } catch (e) {
+    err(file, `frontmatter does not parse: ${e.message}`);
+    continue;
+  }
+  const { data, content } = parsed;
+  for (const k of ['title', 'description', 'date', 'slug']) {
+    if (!data[k]) err(file, `missing frontmatter "${k}"`);
+  }
+  if (data.description && (data.description.length < 100 || data.description.length > 170))
+    warn(file, `description length ${data.description.length}`);
+  // Frontmatter carries real copy here (resume entries, project blurbs), so check it like prose.
+  const text = `${JSON.stringify(data)}\n${content.replace(/```[\s\S]*?```/g, '')}`;
+  const dashes = (text.match(/[—–]/g) || []).length;
+  if (dashes) err(file, `${dashes} em/en dash(es)`);
+  const banned = [...text.matchAll(BANNED)].map((m) => m[0].toLowerCase());
+  if (banned.length) warn(file, `banned words: ${[...new Set(banned)].join(', ')}`);
+  if (PHONE.test(raw)) err(file, `looks like a phone number: "${raw.match(PHONE)[0]}"`);
+  if (/sk-[A-Za-z0-9]{20,}|xi-api-key|AKIA[0-9A-Z]{16}|pk_live_|sk_live_/.test(raw)) err(file, 'possible secret in page');
+}
+
+console.log(`\n${files.length} articles, ${pages.length} pages, ${errors} errors, ${warnings} warnings`);
 process.exit(errors ? 1 : 0);
