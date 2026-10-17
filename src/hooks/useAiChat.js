@@ -2,7 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 
 const API_URL = import.meta.env.VITE_CHAT_API_URL || '/api/chat';
 
-const WELCOME_MESSAGE = "Hey! I'm AniBot 👋 — Anirudh's AI assistant.\n\nAsk me anything about his work at Rivo, his AI agent & RAG projects, hackathons (including the YC AI Hackathon), or how to get in touch. What would you like to know?";
+const WELCOME_MESSAGE = "Hey! I'm AniBot 👋, Anirudh's AI assistant.\n\nAsk me anything about his work at Rivo, his AI agent & RAG projects, hackathons (including the YC AI Hackathon), or how to get in touch. What would you like to know?";
 
 export const useAiChat = () => {
   const [messages, setMessages] = useState([
@@ -15,6 +15,7 @@ export const useAiChat = () => {
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isStreaming, setIsStreaming] = useState(false);
 
   // Always read the latest messages without re-creating sendMessage every render.
   const messagesRef = useRef(messages);
@@ -32,6 +33,7 @@ export const useAiChat = () => {
 
     setMessages((prev) => [...prev, userMsg]);
     setIsLoading(true);
+    setIsStreaming(true);
     setError(null);
 
     try {
@@ -116,6 +118,7 @@ export const useAiChat = () => {
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setIsLoading(false);
+      setIsStreaming(false);
     }
   }, [isLoading]);
 
@@ -134,6 +137,7 @@ export const useAiChat = () => {
   return {
     messages,
     isLoading,
+    isStreaming,
     error,
     sendMessage,
     clearMessages,

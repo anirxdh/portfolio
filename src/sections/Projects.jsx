@@ -28,6 +28,7 @@ const Projects = () => {
   }, [selectedProjectIndex]);
 
   const currentProject = myProjects[selectedProjectIndex];
+  const isSource = currentProject.href.includes('github.com');
   const imageCount = currentProject.textures?.length || 1;
 
   const [imgIndex, setImgIndex] = useState(0);
@@ -88,8 +89,8 @@ const Projects = () => {
               href={currentProject.href}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label={`View ${currentProject.title} live`}>
-              <p>Check Live Site</p>
+              aria-label={`${isSource ? 'View source for' : 'View'} ${currentProject.title}${isSource ? '' : ' live'}`}>
+              <p>{isSource ? 'View Source' : 'Check Live Site'}</p>
               <img src="/assets/arrow-up.png" alt="" aria-hidden="true" className="w-3 h-3" />
             </a>
           </div>

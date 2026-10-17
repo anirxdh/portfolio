@@ -29,9 +29,6 @@
   to = "/.netlify/functions/:splat"
   status = 200
 
-# SPA fallback: serve index.html for any path that isn't a real file or function
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# No SPA fallback: the app has no client-side routes (only #anchors), so unknown paths get a
+# real 404 (public/404.html) instead of a soft-404 homepage.
 

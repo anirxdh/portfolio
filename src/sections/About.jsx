@@ -42,6 +42,9 @@ const About = () => {
               <p className="grid-subtext">
               I’m a Full-Stack &amp; AI Engineer focused on frontend and AI integration. I’m currently a Member of Technical Staff at Rivo (a San Francisco fintech), building voice AI agents and owning observability, analytics, and growth. I hold an MS in Computer Science from the University of Minnesota, and I’m a 5× hackathon winner with a top-10 finish at the YC AI Hackathon.
               </p>
+              <a href="/about/" className="inline-block mt-3 text-white-600 hover:text-white underline underline-offset-4 transition-colors">
+                More about me →
+              </a>
             </div>
           </div>
         </div>

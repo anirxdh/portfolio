@@ -48,6 +48,8 @@ CONTACT
 - Email: anirudhvasudevan11@gmail.com
 - Phone: (952) 245-7395
 - Portfolio: https://anirudhvasudevan.com/
+- About page: https://anirudhvasudevan.com/about/
+- Writing (project deep dives): https://anirudhvasudevan.com/blog/
 - LinkedIn: https://www.linkedin.com/in/anirudhvasudev/
 - GitHub: https://github.com/anirxdh
 - Based in: San Francisco, CA (originally from India)
@@ -121,7 +123,7 @@ KEY PROJECTS
    - Turns a single old photograph into a walkable 3D scene with the voice of a loved one playing inside — Gaussian-splat rendering, consent-gated voice cloning, procedural soundscapes.
    - Stack: Next.js 15, React 19, TypeScript, React Three Fiber, Drizzle, Postgres, ElevenLabs, Stripe.
 
-4. **FaceTime from Mars** (🥈 2nd place, ElevenLabs x Replit) (live: https://facetime-from-mars-2158--anirxdh.replit.app)
+4. **FaceTime from Mars** (🥈 2nd place, ElevenLabs x Replit) (code: https://github.com/anirxdh/facetime-from-mars-2159)
    - Real-time voice conversations with three AI colonists living on Mars in 2159, via a walkie-talkie interface over an interactive 3D Mars with radio effects.
    - Stack: Next.js, React Three Fiber, FastAPI, Claude, ElevenLabs.
 

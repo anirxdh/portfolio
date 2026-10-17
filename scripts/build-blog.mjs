@@ -13,6 +13,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import matter from 'gray-matter';
 import { marked } from 'marked';
+import { PERSON_ID, person } from './blog/person.mjs';
 
 const ROOT = process.cwd();
 const SRC = path.join(ROOT, 'content', 'articles');
@@ -79,6 +80,7 @@ const articles = fs
   .filter(Boolean)
   .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 
+const PUBLISHED = new Set(articles.map((a) => a.slug));
 const slugs = new Set();
 for (const a of articles) {
   if (slugs.has(a.slug)) throw new Error(`[blog] duplicate slug "${a.slug}"`);
@@ -98,6 +100,12 @@ function makeRenderer(article, toc) {
 
   renderer.link = ({ href, title, tokens }) => {
     const text = renderer.parser.parseInline(tokens);
+    // Never link to an article that is still a draft (it would 404); keep the words, drop the link.
+    const draftLink = /^\/blog\/([a-z0-9-]+)\/?(#.*)?$/.exec(href);
+    if (draftLink && !PUBLISHED.has(draftLink[1])) {
+      console.warn(`[blog] ${article.file}: unlinked draft reference ${href}`);
+      return text;
+    }
     const external = /^https?:\/\//.test(href) && !href.startsWith(SITE);
     const attrs = external ? ' target="_blank" rel="noopener noreferrer"' : '';
     return `<a href="${esc(href)}"${title ? ` title="${esc(title)}"` : ''}${attrs}>${text}</a>`;
@@ -198,7 +206,7 @@ const head = ({ title, description, url, ogImage, ogType = 'website', extra = ''
     <link rel="icon" type="image/png" sizes="96x96" href="/icon-96.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
-    <link rel="alternate" type="application/rss+xml" title="${AUTHOR} — Writing" href="${SITE}/blog/feed.xml" />
+    <link rel="alternate" type="application/rss+xml" title="${AUTHOR} | Writing" href="${SITE}/blog/feed.xml" />
     <meta property="og:type" content="${ogType}" />
     <meta property="og:url" content="${url}" />
     <meta property="og:title" content="${esc(title)}" />
@@ -212,36 +220,50 @@ const head = ({ title, description, url, ogImage, ogType = 'website', extra = ''
     <meta name="twitter:description" content="${esc(description)}" />
     <meta name="twitter:image" content="${ogImage}" />
     <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+    <link rel="preload" as="font" type="font/woff" href="https://fonts.cdnfonts.com/s/85793/GeneralSans-Regular.woff" crossorigin />
     <link rel="stylesheet" href="/blog/blog.css" />
     ${extra}
   </head>`;
 
-const siteNav = (current) => `
+const siteNav = (current) => {
+  const cur = (k) => (current === k ? ' aria-current="page"' : '');
+  return `
     <header class="topbar">
-      <a class="topbar__home" href="/">
-        <img src="/assets/anirudh-avatar.png" alt="" width="28" height="28" />
-        <span>Anirudh Vasudevan</span>
-      </a>
-      <nav class="topbar__nav" aria-label="Site">
-        <a href="/#about">About</a>
-        <a href="/#hackathons">Hackathons</a>
-        <a href="/blog/"${current === 'blog' ? ' aria-current="page"' : ''}>Writing</a>
-        <a href="/#contact">Contact</a>
-      </nav>
+      <div class="topbar__inner">
+        <a class="topbar__home" href="/">Anirudh's Website &lt;/&gt;</a>
+        <nav class="topbar__nav" aria-label="Site">
+          <a href="/">Home</a>
+          <a href="/about/"${cur('about')}>About</a>
+          <a href="/#hackathons">Hackathons</a>
+          <a href="/#work">Work</a>
+          <a href="/blog/"${cur('blog')}>Writing</a>
+          <a href="/#contact">Contact</a>
+        </nav>
+      </div>
     </header>`;
+};
 
 const siteFooter = () => `
     <footer class="sitefoot">
-      <p>Written by <a href="/">${AUTHOR}</a>, Full-Stack &amp; AI Engineer in San Francisco.</p>
+      <p>© ${new Date().getFullYear()} <a href="/about/">${AUTHOR}</a>. Full-stack &amp; AI engineer in San Francisco.</p>
       <p class="sitefoot__links">
+        <a href="/about/">About</a>
+        <a href="/blog/">Writing</a>
+        <a href="/assets/anirudh-vasudevan-resume.pdf">Resume</a>
         <a href="https://github.com/anirxdh" target="_blank" rel="noopener noreferrer">GitHub</a>
         <a href="https://www.linkedin.com/in/anirudhvasudev/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
         <a href="/blog/feed.xml">RSS</a>
       </p>
     </footer>`;
+
+const authorBox = () => `
+      <aside class="author" aria-label="About the author">
+        <img src="/assets/anirudh-avatar.png" alt="Anirudh Vasudevan" width="56" height="56" loading="lazy" />
+        <div>
+          <p class="author__name"><a href="/about/">Anirudh Vasudevan</a></p>
+          <p class="author__bio">Full-stack and AI engineer in San Francisco. Member of Technical Staff at Rivo, building production voice AI agents. 5x hackathon winner, granted patent, EMNLP author.</p>
+        </div>
+      </aside>`;
 
 const articleCard = (a) => `
         <a class="card" href="/blog/${a.slug}/" style="--accent:${a.accent}">
@@ -261,8 +283,8 @@ function articlePage(a, html, toc, related, faqs = []) {
     description: a.description,
     datePublished: a.date,
     dateModified: a.updated || a.date,
-    author: { '@type': 'Person', name: AUTHOR, url: SITE + '/' },
-    publisher: { '@type': 'Person', name: AUTHOR, url: SITE + '/' },
+    author: { '@id': PERSON_ID, '@type': 'Person', name: AUTHOR, url: SITE + '/about/' },
+    publisher: { '@id': PERSON_ID, '@type': 'Person', name: AUTHOR, url: SITE + '/' },
     mainEntityOfPage: url,
     image: ogImage,
     keywords: a.tags.join(', '),
@@ -294,7 +316,7 @@ function articlePage(a, html, toc, related, faqs = []) {
       faqLd ? `\n    <script type="application/ld+json">${JSON.stringify(faqLd)}</script>` : ''
     }`;
 
-  return `${head({ title: `${a.title} — ${AUTHOR}`, description: a.description, url, ogImage, ogType: 'article', extra })}
+  return `${head({ title: `${a.title} | ${AUTHOR}`, description: a.description, url, ogImage, ogType: 'article', extra })}
   <body class="article-body" style="--accent:${a.accent}">
     <a class="skip" href="#content">Skip to article</a>
     <div class="glow" aria-hidden="true"></div>
@@ -334,6 +356,7 @@ function articlePage(a, html, toc, related, faqs = []) {
         <article class="prose">
           ${html}
           <p class="tags">${a.tags.map((t) => `<span>${esc(t)}</span>`).join('')}</p>
+          ${authorBox()}
         </article>
       </div>
 
@@ -352,14 +375,70 @@ function articlePage(a, html, toc, related, faqs = []) {
 `;
 }
 
+function profilePage(page, html, toc, faqs) {
+  const url = `${SITE}/about/`;
+  const profileLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ProfilePage',
+    url,
+    name: page.title,
+    description: page.description,
+    dateModified: page.date,
+    mainEntity: person({ mainEntityOfPage: url }),
+  };
+  const breadcrumbs = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE + '/' },
+      { '@type': 'ListItem', position: 2, name: 'About', item: url },
+    ],
+  };
+  const faqLd = faqs.length
+    ? { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqs.map((f) => ({ '@type': 'Question', name: f.question, acceptedAnswer: { '@type': 'Answer', text: f.answer } })) }
+    : null;
+  const extra = [profileLd, breadcrumbs, faqLd].filter(Boolean).map((o) => `<script type="application/ld+json">${JSON.stringify(o)}</script>`).join('\n    ');
+  return `${head({ title: `${AUTHOR} | Full-Stack & AI Engineer in San Francisco`, description: page.description, url, ogImage: DEFAULT_OG, ogType: 'profile', extra })}
+  <body class="article-body profile-body">
+    <a class="skip" href="#content">Skip to content</a>
+    <div class="glow" aria-hidden="true"></div>
+    ${siteNav('about')}
+    <main id="content" class="article">
+      <header class="article__head profile__head">
+        <img class="profile__avatar" src="/assets/anirudh-avatar.png" alt="Anirudh Vasudevan" width="96" height="96" />
+        <div>
+          <p class="eyebrow"><span>About</span><span class="dot">·</span><span>San Francisco</span></p>
+          <h1>Anirudh Vasudevan</h1>
+          <p class="standfirst">Full-stack and AI engineer. Member of Technical Staff at Rivo. 5x hackathon winner, granted patent, EMNLP author.</p>
+          <p class="links">
+            <a class="pill" href="/assets/anirudh-vasudevan-resume.pdf">Resume</a>
+            <a class="pill" href="https://www.linkedin.com/in/anirudhvasudev/" target="_blank" rel="noopener noreferrer">LinkedIn ↗</a>
+            <a class="pill" href="https://github.com/anirxdh" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+            <a class="pill" href="/#contact">Contact</a>
+          </p>
+        </div>
+      </header>
+      <div class="article__layout">
+        ${toc.length > 2 ? `<aside class="toc" aria-label="On this page"><p class="toc__title">On this page</p><ol>${toc.map((t) => `<li><a href="#${t.id}">${esc(t.text)}</a></li>`).join('')}</ol></aside>` : ''}
+        <article class="prose">
+          ${html}
+        </article>
+      </div>
+    </main>
+    ${siteFooter()}
+  </body>
+</html>
+`;
+}
+
 function indexPage(list) {
   const url = `${SITE}/blog/`;
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Blog',
-    name: `${AUTHOR} — Writing`,
+    name: `${AUTHOR} | Writing`,
     url,
-    author: { '@type': 'Person', name: AUTHOR, url: SITE + '/' },
+    author: { '@id': PERSON_ID, '@type': 'Person', name: AUTHOR, url: SITE + '/about/' },
     blogPost: list.map((a) => ({
       '@type': 'BlogPosting',
       headline: a.title,
@@ -369,7 +448,7 @@ function indexPage(list) {
   };
   const [featured, ...rest] = list;
   return `${head({
-    title: `Writing — ${AUTHOR}`,
+    title: `Writing | ${AUTHOR}`,
     description:
       'Deep dives into the AI products, voice agents, and hackathon builds Anirudh Vasudevan shipped: architecture, decisions, and what actually worked.',
     url,
@@ -417,6 +496,36 @@ for (const a of articles) {
 }
 fs.writeFileSync(path.join(OUT, 'index.html'), indexPage(articles));
 
+// About page (the canonical "who is Anirudh Vasudevan" page).
+const ABOUT_SRC = path.join(ROOT, 'content', 'pages', 'about.md');
+let aboutPage = null;
+if (fs.existsSync(ABOUT_SRC)) {
+  const { data, content } = matter(fs.readFileSync(ABOUT_SRC, 'utf8'));
+  aboutPage = { ...data, date: isoDay(data.date), content, file: 'pages/about.md', tags: [] };
+  const { html, toc, faqs } = renderMarkdown(aboutPage);
+  fs.mkdirSync(path.join(DIST, 'about'), { recursive: true });
+  fs.writeFileSync(path.join(DIST, 'about', 'index.html'), profilePage(aboutPage, html, toc, faqs));
+}
+
+// llms.txt: a plain-text map of the site for LLM crawlers (https://llmstxt.org).
+fs.writeFileSync(
+  path.join(DIST, 'llms.txt'),
+  `# Anirudh Vasudevan
+
+> Anirudh Vasudevan is a full-stack and AI engineer in San Francisco. He is a Member of Technical Staff at Rivo (voice AI agents, React Native apps, analytics and growth), was previously the founding engineer at Nonlinear, holds an MS in Computer Science from the University of Minnesota, is a 5x hackathon winner (Y Combinator AI Hackathon top 10, ElevenLabs hackathon wins), holds a granted patent for a contactless voting system, and co-wrote an EMNLP paper.
+
+## Profile
+- [About Anirudh Vasudevan](${SITE}/about/): biography, current work, hackathons, patent, research, education, contact
+- [Portfolio home](${SITE}/): projects, experience, hackathons, AniBot chat assistant
+- [Resume (PDF)](${SITE}/assets/anirudh-vasudevan-resume.pdf)
+- [LinkedIn](https://www.linkedin.com/in/anirudhvasudev/)
+- [GitHub](https://github.com/anirxdh)
+
+## Writing (project deep dives)
+${articles.map((a) => `- [${a.title}](${SITE}/blog/${a.slug}/): ${a.description}`).join('\n')}
+`,
+);
+
 // Machine-readable index for the homepage "Writing" section.
 fs.writeFileSync(
   path.join(OUT, 'index.json'),
@@ -441,7 +550,7 @@ fs.writeFileSync(
 const rss = `<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>${AUTHOR} — Writing</title>
+    <title>${AUTHOR} | Writing</title>
     <link>${SITE}/blog/</link>
     <description>Deep dives into the AI products, voice agents, and hackathon builds Anirudh Vasudevan shipped.</description>
     <language>en-us</language>
@@ -467,6 +576,7 @@ const today = new Date().toISOString().slice(0, 10);
 const latest = articles[0]?.date || today;
 const urls = [
   { loc: `${SITE}/`, lastmod: latest },
+  ...(aboutPage ? [{ loc: `${SITE}/about/`, lastmod: aboutPage.date }] : []),
   { loc: `${SITE}/blog/`, lastmod: latest },
   ...articles.map((a) => ({ loc: `${SITE}/blog/${a.slug}/`, lastmod: a.updated || a.date })),
 ];
