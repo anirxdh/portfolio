@@ -1,4 +1,7 @@
-graph LR
+flowchart LR
+  subgraph PRE[Precursor 2025]
+    P[AiCaretaker Flask chatbot]
+  end
   subgraph DOCS[Private design docs]
     M[Proposal and PII architecture]
   end
@@ -20,6 +23,7 @@ graph LR
     K[Netlify Blobs store]
     L[Netlify Forms email]
   end
+  P -->|caregiver pivot| M
   M -->|claims register sets UI copy| A
   A -->|screens became report figures| M
   A -->|design tokens ported| D

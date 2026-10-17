@@ -14,6 +14,7 @@ graph LR
     J[Rule checker]
     K[SQLite ledger]
     L[Verify read back]
+    N[Approve endpoint]
   end
   subgraph S3[Browser]
     M[Pixel dashboard]
@@ -28,10 +29,16 @@ graph LR
   H -->|company plus absences| I
   I -->|plan with changes| J
   J -->|proposed plan and actions| K
-  M -->|approve| K
+  M -->|approve| N
+  N -->|re-read and fingerprint on approve| H
+  N -->|fingerprint matches, run actions| K
   K -->|deterministic event ids| C
   K -->|update job rows| B
   K -->|route messages with metadata key| A
   K -->|templated emails with key tag| D
   K -->|after last write| L
+  C -->|read back| L
+  B -->|read back| L
+  A -->|find posts by key| L
+  D -->|find emails by key| L
   L -->|pass fail checklist| M

@@ -1,5 +1,5 @@
 graph LR
-  subgraph BUILD [Build time on laptop]
+  subgraph BUILD [Build time in Node]
     A[Bake scripts in Node] -->|POST text and voice settings| B[ElevenLabs TTS]
     A -->|POST sound prompts| C[ElevenLabs Sound Gen]
     A -->|POST music prompt| D[ElevenLabs Music]
@@ -10,7 +10,8 @@ graph LR
   end
   subgraph RUNTIME [Browser static Vite SPA]
     H[Zustand stores] -->|scene and progress| I[Player and obstacles]
-    I -->|position prompts| J[R3F scenes and lighter]
+    I -->|camera position| J[R3F scenes and lighter]
+    I -->|active interaction| H
     H -->|subscribe slices| K[Howler audio hooks]
     H -->|phase flags| L[HTML overlays]
     E -->|served as static assets| K

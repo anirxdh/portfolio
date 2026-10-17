@@ -17,13 +17,14 @@ flowchart LR
   A -->|deploy two agents| B
   B -->|key set strict json_schema| J
   J -->|4 lines decision result| B
-  B -->|no key| C
-  C -->|same schema| D
+  B -->|no key createFallbackEngineOutput| C
+  B -->|engine output| A
+  A -->|merge engine output| D
+  D -->|fresh simulateScenario| C
   C -->|on Groq error direct| A
-  B -->|normalized speakers| D
   D -->|only creative fields overlaid| E
   A -->|one line at a time| F
   F -->|emotion adjusted voice_settings| K
   K -->|mp3 blob| G
   G -->|Core AI only| H
-  F -->|missing key or non OK| I
+  F -->|missing key non OK or decode fail| I

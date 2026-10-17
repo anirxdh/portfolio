@@ -1,8 +1,7 @@
 ---
-draft: true
 title: "From a Chatbot for One Elder to RUA, a Caregiver Command Center"
 description: "The 0-to-1 story of RUA across five repos: a 2025 Flask chatbot, a privacy proposal, a pure-HTML mockup, a local-first iOS app, and a waitlist site."
-date: 2026-10-03
+date: 2026-10-17
 slug: rua-product-story
 project: "RUA (product story)"
 tags: [Product Design, Privacy, Next.js, Netlify, React Native, Caregiving]
@@ -14,9 +13,9 @@ summary: "RUA started as a chatbot that talked to an older adult and ended as a 
 
 ## The chatbot that talked to the wrong person
 
-RUA is a caregiver command center that keeps medications, refill runways, records, emergency sheets, and insurance paperwork for several older adults in one place, built by Anirudh Vasudevan for the HHS ACL Caregiver AI Prize Challenge (Track 1). It ships as a local-first iOS app, with a web mockup and a waitlist site beside it. It did not start there. It started as a chat box for the elder.
+RUA is a caregiver command center that keeps medications, refill runways, records, emergency sheets, and insurance paperwork for several older adults in one place, built by Anirudh Vasudevan for the HHS ACL Caregiver AI Prize Challenge (Track 1). It is built as a local-first iOS app, which had not reached TestFlight as of its last commit, with a web mockup and a waitlist site beside it. It did not start there. It started as a chat box for the elder.
 
-The first version was a Flask and React app called Elderly Care Agent, public as `anirxdh/AiCaretaker`, a repo that dates to 2025. An older adult typed into one chat box, a LangChain agent answered, and when a message sounded like chest pain the agent asked whether to call 911. It had two users, John and Mary, hard-coded as buttons in `frontend/src/App.js`.
+The first version was a Flask and React app called Elderly Care Agent, public as `anirxdh/AiCaretaker`, a repo that dates to 2025. An older adult typed or spoke into one chat box, a LangChain agent answered, and when a message sounded like chest pain the agent asked whether to call 911. It had two users, John and Mary, hard-coded as buttons in `frontend/src/App.js`.
 
 What I got wrong was who I was building for. The person who opens a health app every day is not the older adult. It is the daughter who is also watching her mother and an aunt, and who has to track every fill date herself. When the challenge opened with a July 31, 2026 deadline, I went back to the same problem with a different user. This is the product story across five repos; the native app's engineering lives in [the offline-first RUA article](/blog/rua-caregiver-app-offline-first/).
 
@@ -26,28 +25,28 @@ The obvious move was to extend AiCaretaker with accounts and a dashboard. But `b
 
 The second option was the one I wrote up first. In a private workspace I drafted a concept paper and a PII privacy architecture with a rule at the top: if a claim cannot be proven with a diagram, an audit log, or a test, RUA does not make it. "HIPAA-protected" went on the prohibited side of its claims register. That RUA was server-first: a server database with row-level security keyed to the care relationship, and zero-retention AI endpoints. The proposal argued against hourly AI scans, which it calls costly, non-reproducible, and regulatorily unsafe, and for event-driven rules instead.
 
-The deadline and being alone decided everything. Phase 1 asks for a design and credible proof, not a product. So I split the work: an HTML mockup I could screenshot for the report in days, then a native app that proved the deterministic core was real. And I dropped the server. A direct-to-consumer caregiver app is not a HIPAA covered entity, and the honest way to protect someone else's health data on a solo timeline is to never hold it. Row-level security became a SQLCipher database on the phone with the key in the Keychain.
+The deadline decided everything. Phase 1 of the challenge is a design phase, not a product phase. So I split the work: an HTML mockup I could screenshot for the report in days, then a native app that proved the deterministic core was real. And I dropped the server for v1. A direct-to-consumer caregiver app is almost certainly not a HIPAA covered entity (the FTC Health Breach Notification Rule still applies), and the honest way to protect someone else's health data on a short timeline is to never hold it. Row-level security became a SQLCipher database on the phone with the key in the Keychain.
 
 ## What RUA does, from the caregiver's seat
 
-RUA opens to a Today's Digest. The demo family is Maria caring for her dad Robert, her mom Eleanor, and her aunt Rosa, and the digest shows one lead item: Robert's metformin runs out in a few days. Everyone is fictional, and the app says so. Each person has a Patient 360 with an allergy banner that never scrolls away, vitals, medications with runway bars, labs, and documents. Scan a label parses a pill label into fields Maria confirms one by one; today the native app does this from a bundled sample label, with manual entry as the fallback, and the Apple Vision module is spiked but not yet packaged. The ER sheet prints to PDF, and six emergency guides work with no signal. The Handoff Pack, which would give a respite caregiver a read-only, auto-expiring view, exists only in the mockup so far and sits at phase 31 of the native roadmap. Six admin workflows, from claim denial appeals to Medicaid renewal, run as node graphs that pause at a human confirm step before any document is produced.
+RUA opens to a Today's Digest. The demo family is Maria caring for her dad Robert, her mom Eleanor, and her aunt Rosa, and the digest shows one lead item: Robert's metformin runs out in a few days. Everyone is fictional, and the app says so. Each person has a Patient 360 with an allergy banner that stays visible on every tab, vitals, medications with runway bars, labs, and documents. Scan a label parses a pill label into fields Maria confirms one by one; today the native app does this from a bundled sample label, with manual entry as the fallback, and the Apple Vision module is spiked but not yet packaged. The ER sheet prints to PDF, and six emergency guides work with no signal. The Handoff Pack for a respite caregiver exists only in the mockup so far. Six admin workflows, from claim denial appeals to Medicaid renewal, run as node graphs that pause at a human confirm step before any document is produced.
 
 ## Architecture
 
-RUA is three shipped surfaces plus one private set of documents. The mockup in `hearth-app` is built around one `index.html` with a hash router and inline data, plus `guides.html` for the emergency guide book and `variants.html` for the figure variants. The native app in `hearth-native` is a pnpm monorepo where Expo screens read from an encrypted SQLite database and a pure TypeScript core owns every safety-relevant number. The waitlist site in `rua-site` is a Next.js app on Netlify with one API route.
+RUA is three built surfaces plus one private set of documents. The mockup in `hearth-app` is built around one `index.html` with a hash router and inline data, plus `guides.html` for the emergency guide book and `variants.html`, a gallery of the design iterations. The native app in `hearth-native` is a pnpm monorepo where Expo screens read from an encrypted SQLite database and a pure TypeScript core owns every safety-relevant number. The waitlist site in `rua-site` is a Next.js app on Netlify with one API route.
 
-![RUA across five repos: private design docs feed a public HTML mockup, the mockup ports into a local-first native app, and a separate waitlist site stores signups in Netlify Blobs](/blog/diagrams/rua-product-story-architecture.svg)
+![RUA across five repos: a 2025 chatbot pivots into private design docs, the docs feed a public HTML mockup, the mockup ports into a local-first native app, and a separate waitlist site stores signups in Netlify Blobs](/blog/diagrams/rua-product-story-architecture.svg)
 
-Reading left to right: the proposal sets the claims RUA may make, and the mockup's screens became Figures 1 to 9 of the conference report, which is how `variants.html` in `hearth-app` labels them. The mockup then became the spec for the native app: its design tokens became `apps/mobile/src/ds`, and its six `WFDATA` workflow objects became the versioned templates in `packages/workflows`. Nothing flows from the app to a server, because there is no server. The waitlist site is deliberately disconnected from the app and holds only what the signup form sends: an email, two optional answers, and a timestamp (plus the browser's user-agent string, cut to 200 characters).
+Reading left to right: AiCaretaker's single-user chat is what the caregiver pivot replaced, the proposal sets the claims RUA may make, and the mockup's screens became Figures 1 to 9 of the conference report, as a note in the `variants.html` gallery records. I then used the mockup as the spec for the native app. I rebuilt its look as the native design tokens in `apps/mobile/src/ds`, and I rewrote its six `WFDATA` workflows as the six versioned templates in `packages/workflows`. Nothing flows from the app to a server, because in phases 1 to 28 there is no server; the roadmap's phases 29 and 30 add opt-in accounts and sync. The waitlist site is separate from the app and holds only what the signup form sends: an email, two optional answers, and a timestamp (plus the browser's user-agent string, cut to 200 characters).
 
-Here are the real choices, layer by layer.
+Each layer kept the smallest tool that could do its job.
 
 | Layer | Choice | Why |
 |---|---|---|
 | Design docs | Markdown proposal, PII architecture, claims register (private) | Every privacy claim must be provable before it appears in UI copy |
 | Mockup | `index.html` plus `guides.html`, hash router, inline `WFDATA` and `TPDATA` | Screenshots in days; fake data next to the renderer |
 | Native store | SQLCipher SQLite, key in Keychain, Drizzle migrations | Replaces the proposal's server RLS with encryption at rest on device |
-| Native logic | `packages/core` pure TypeScript, no React, no clock | Runway and digest are testable in milliseconds and never guess |
+| Native logic | `packages/core` pure TypeScript, no React, today injected | Runway and digest are pure functions with golden tests and never read the clock |
 | Site framework | Next.js 16 on Netlify, `@netlify/plugin-nextjs` pinned | One API route needs a runtime; pinning stops a static fallback |
 | Signup storage | Netlify Blobs store `rua-waitlist`, strong consistency | Durable, no extra account, survives redeploys |
 | Notifications | Netlify Forms replay plus optional webhook, best effort | Email without an API key; a flaky notifier can never lose a signup |
@@ -73,7 +72,7 @@ def chat():
         return jsonify({"error": str(e)}), 500
 ```
 
-That `user_id` is the seed of RUA. The moment I wanted John's daughter to see both John and Mary, the design flipped: the roster is the home screen, the person is a tab, and the question the app answers is "who, out of everyone I care for, needs me right now?"
+That `user_id` is the seed of RUA. Once one caregiver needs to see both John and Mary, the design flips: the roster is the home screen, the person is a tab, and the question the app answers is "who, out of everyone I care for, needs me right now?"
 
 ### The HTML mockup as the executable spec
 
@@ -90,7 +89,7 @@ function go(v){
 }
 ```
 
-The parts that mattered were the inline data objects. `WFDATA` holds the six admin workflows as typed nodes, with 21 of its 31 inputs flagged `pii: true`. `buildFlow()` draws them over an SVG layer of bezier edges, and `runWf()` steps each node through active and done states every 820 milliseconds. It looks like a workflow engine. It is a slideshow. But writing every workflow down as data, with a review node before the output node, made the real engine in the native app a port instead of a design exercise.
+The parts that mattered were the inline data objects. `WFDATA` holds the six admin workflows as typed nodes, with 21 of its 31 inputs flagged `pii: true`. `buildFlow()` draws them over an SVG layer of bezier edges, and `runWf()` steps each node through active and done states every 820 milliseconds. It looks like a workflow engine. It is a slideshow. But writing every workflow down as data, with a review node before the output node, made the six native templates a rewrite of known workflows instead of a fresh design exercise, each with its human review step already in place.
 
 ### Local-first flips the privacy plan
 
@@ -108,7 +107,7 @@ export function computeRunway(fill: FillInput, today: LocalDate): Runway {
   const daysRemaining = daysBetween(today, runOutDate);
 ```
 
-Fill date plus day supply, compared against a `today` the caller passes in, never read from a clock. The file's header calls it "deliberately boring code with exhaustive tests," and it has golden tests across DST and leap days. Everything the proposal pushed to a server, the app pulled onto the phone: row-level security became SQLCipher, the server audit log became `change_log` and `access_log` tables, zero-retention OCR became an on-device Apple Vision seam. The claims register is also why every emergency guide carries a "Pending clinician review v0.9" stamp instead of the word "clinician-reviewed."
+Fill date plus day supply, compared against a `today` the caller passes in, never read from a clock. It has golden tests across DST and leap days. Everything the proposal pushed to a server, the app pulled onto the phone: row-level security became SQLCipher, the server audit log became `change_log` and `access_log` tables, zero-retention OCR became an on-device Apple Vision seam. The same honesty rule shows up in the guides: every emergency guide carries a "Pending clinician review" line on content version 0.9 instead of the word "clinician-reviewed" that the mockup used.
 
 ### The waitlist that shows its receipt
 
@@ -126,31 +125,31 @@ async function persist(entry: Signup): Promise<Via> {
     const store = getStore({ name: STORE, consistency: "strong" });
     await store.setJSON(`${entry.at}__${encodeURIComponent(entry.email)}`, entry);
     return "blobs";
-  } catch {}
+  } catch { /* not running on Netlify, or blobs unavailable */ }
   // ...
   return "file";
 }
 ```
 
-The elided lines append to a local `.data/waitlist.jsonl` for development. `notify()` then runs two best-effort calls with `Promise.allSettled` and four-second timeouts: an optional JSON webhook, and a URL-encoded replay to `/__forms.html`, a static file that exists so Netlify's build registers a form named `waitlist`. The route's comment spells out the intent: Netlify fires `submission_created` for that form, and a notification hook set up in the Netlify dashboard (not in the repo) sends the email, with no email API and no key in the code. The response reports `via: "blobs"` so a silent fall back to the file path is visible, and a hidden `company` field is a honeypot.
+The elided lines append to a local `.data/waitlist.jsonl` for development. `notify()` then runs two best-effort calls with `Promise.allSettled` and four-second timeouts: an optional JSON webhook, and a URL-encoded replay to `/__forms.html`, a static file that exists so Netlify's build registers a form named `waitlist`. A Netlify Forms email notification, configured outside the repo, sends the email, so there is no email API key in the code. The response reports `via: "blobs"` so a silent fall back to the file path is visible.
 
 ## The hard parts
 
-The mockup lies well, and that was a risk. Its OCR, assistant, and workflow runs are all static. When the native app took over I refused to ship any feature the mockup depicted but the code could not do. That is why the native Companion tab is a keyword matcher with a 911-first rule, not a language model.
+The mockup lies well, and that was a risk. Its OCR, assistant, and workflow runs are all static. The native app does not copy those depictions as if they were real. Its Companion tab is a keyword matcher with a 911-first rule, not a language model.
 
 The project was "Hearth" until July 24, 2026, when I rebranded to RUA, and the public screenshots in `hearth-app/screenshots` still show the old name. The hero number is an estimate, too: `WFDATA` says the claim denial appeal takes "12 min, replaces ~3.5 hrs," and the site animates that ruler. Nothing in any of the repos measures that against a real caregiver's time, so it should be labeled as a design target.
 
-The waitlist copy says RUA is in private TestFlight. The native repo's `TODO.md` is honest that Apple Developer enrollment and the first EAS build were still open when I wrote this. The site got ahead of the app.
+The waitlist copy says RUA is in private TestFlight. The native repo's `TODO.md` is honest that Apple Developer enrollment and the first EAS build were still open in the repo's last commit on July 30. The site got ahead of the app.
 
 ## Results
 
-The submission package, committed on July 30, 2026 for the July 31 deadline, is a written design report with the mockup screens as figures, plus a screenshot package from the native repo: 57 desktop captures and 47 iPhone captures per the README of its `acl-image-submission` folder. No placement or award is recorded in any of the repos.
+The submission package for the July 31 deadline is a written design report with the mockup screens as figures, plus a screenshot package I committed to the native repo on July 30: 57 desktop captures and 47 iPhone captures per the README of its `acl-image-submission` folder. No placement or award is recorded in any of the repos.
 
-What shipped: the public mockup, the public native app with phases 1 to 28 of a 32-phase roadmap complete and 290 unit and component tests plus 14 Playwright specs green in CI per its `TODO.md` and `ARCHITECTURE.md`, and the live waitlist site.
+What exists: the public mockup, the public native app repo with phases 1 to 28 of a 32-phase roadmap code-complete (working on the simulator) and 274 unit and component test cases and 17 Playwright tests across 6 spec files, run in CI on every push to main and every pull request (counts from the repo's own onboarding audit, which also notes a red E2E run does not block a merge), and the live waitlist site.
 
 ## What I would do differently
 
-I would write the workflow definitions as JSON files from day one, so the native `packages/workflows` templates could import them rather than re-key them. I would settle the "Hearth" name in week one. And I would put the measured-versus-estimated distinction into the site copy before launch.
+I would write the workflow definitions as JSON files from day one, so the native `packages/workflows` templates could import them rather than re-key them. I would settle the "Hearth" name in week one.
 
 Next: package the Apple Vision spike into an Expo module, run the airplane-mode release gate on a physical phone, and send the first TestFlight invites.
 
@@ -165,15 +164,15 @@ Next: package the Apple Vision spike into an Expo module, run the airplane-mode 
 
 ### What is RUA and who is it for?
 
-RUA is a caregiver command center built by Anirudh Vasudevan for the HHS ACL Caregiver AI Prize Challenge, Track 1. It is for the family caregiver who looks after two or three older adults at once and needs one place for their medications, records, and paperwork. Nothing in the core product requires the older adult to type or tap.
+RUA is a caregiver command center built by Anirudh Vasudevan for the HHS ACL Caregiver AI Prize Challenge, Track 1. It is for the family caregiver who looks after two or three older adults at once and needs one place for their medications, records, and paperwork.
 
 ### Why does RUA have no server or account?
 
-RUA keeps every record on the phone in a SQLCipher-encrypted SQLite database because the honest way to protect another person's health data as a direct-to-consumer app is to never hold it off-device. The original proposal used a server database with row-level security; the shipped app moves that promise onto the device. Sync is a planned opt-in, never a login wall.
+RUA keeps every record on the phone in a SQLCipher-encrypted SQLite database because the honest way to protect another person's health data as a direct-to-consumer app is to never hold it off-device. The roadmap's phases 29 and 30 add opt-in accounts and sync, so the local-only app keeps working without them.
 
 ### Is the RUA web mockup a working app?
 
-No. The RUA mockup at `anirxdh/hearth-app` is a set of static HTML files, built around one `index.html`, with fake data, no backend, and no build step. Its OCR, assistant, and workflow runs are animated depictions. It exists so the design could be screenshotted for the report and ported into the native app.
+No. The RUA mockup at `anirxdh/hearth-app` is a set of static HTML files, built around one `index.html`, with fake data. Its OCR, assistant, and workflow runs are animated depictions. It exists so the design could be screenshotted for the report and ported into the native app.
 
 ## Links
 

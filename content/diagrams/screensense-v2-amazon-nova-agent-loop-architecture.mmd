@@ -1,11 +1,11 @@
-graph LR
+flowchart LR
   subgraph P[Web page content script]
     A[Shortcut handler]
     B[DOM scraper]
     C[Action executor]
     D[Cursor bubble]
   end
-  subgraph X[Extension background]
+  subgraph X[Service worker and offscreen document]
     E[Offscreen recorder]
     F[Agent loop]
     G[Screenshot capture]
@@ -19,6 +19,7 @@ graph LR
     K[Nova Lite on Bedrock]
     L[AWS Transcribe]
     M[ElevenLabs TTS]
+    N[Groq Whisper]
   end
   A -- hold and release --> F
   F -- start and stop --> E
@@ -28,6 +29,7 @@ graph LR
   B -- JSON snapshot --> F
   F -- WS audio --> H
   H -- ogg opus --> L
+  H -- fallback on error --> N
   F -- POST task and continue --> I
   I -- JPEG plus DOM --> K
   K -- one JSON action --> I
@@ -36,4 +38,5 @@ graph LR
   C -- ok or FAILED --> F
   J -- stage events --> F
   F -- steps and speak --> D
-  D -- proxied via worker --> M
+  D -- elevenlabs-tts --> F
+  F -- TTS request if key stored --> M

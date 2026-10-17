@@ -2,17 +2,20 @@ sequenceDiagram
   participant W as Wizard in browser
   participant P as Composite progress route
   participant C as Composite route
+  participant M as Progress store Map
   participant D as D-ID result URL
   participant F as ffmpeg child process
   W->>P: open event stream for video id
   W->>C: POST presenterUrl layout audioMode captionSize
+  C->>C: optional ElevenLabs music bed
   C->>D: download talking head MP4
-  D-->>C: presenter clip saved to tmp dir
+  D-->>C: MP4 bytes
+  C->>C: write presenter mp4 to tmp dir
   C->>C: read SRT and write caption text files
   C->>F: spawn with filter_complex and progress pipe
   F-->>C: Duration line then out_time lines on stderr
-  C->>P: write percent into progress store Map
-  P-->>W: data event with pct and eta every 1.5s
+  C->>M: set pct for video id
+  P->>M: read pct every 1.5s
+  P-->>W: data event with pct and eta
   F-->>C: progress=end and exit code 0
   C-->>W: compositedUrl for the final MP4
-  W->>W: swap player to composited video

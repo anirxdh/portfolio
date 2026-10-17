@@ -5,7 +5,7 @@ sequenceDiagram
   participant E as ElevenLabs
   participant W as Web Audio
   P->>A: picks Ares Prime and Nova Sage then deploys
-  A->>A: runSimulationEngine merges LLM or local twin
+  A->>A: runSimulation calls engine then mergeEngineOutputWithLocal
   A->>A: debateStage opening and token captured
   A->>V: speakAgentLine Ares Prime line one
   V->>V: applyEmotionVariation counts urgent words
