@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && node scripts/build-blog.mjs && node scripts/build-anibot-kb.mjs",
+    "build": "vite build && node scripts/build-blog.mjs && node scripts/build-anibot-kb.mjs && node scripts/prerender-home.mjs",
     "diagrams": "bash scripts/render-diagrams.sh",
     "lint": "eslint .",
     "preview": "vite preview"
