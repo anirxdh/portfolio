@@ -1,26 +1,38 @@
 #!/usr/bin/env python3
-"""Generate a 1200x630 share image for every article in content/articles/*.md.
+"""Generate a 1200x630 share image for every published article in content/articles/*.md.
 
 Output: public/blog/og/<slug>.png (committed; the Netlify build never runs Python).
 Re-run after adding or renaming articles: `python3 scripts/gen-og.py` (FORCE=1 to redo all).
+
+The look (General Sans, palette, frame, glow, badge, avatar) comes from scripts/gen-brand.py, which
+also draws the site-wide public/assets/og-image.png, so every share card is one visual system.
+An image is rebuilt when its article, this script, gen-brand.py, or the project's logo is newer.
 """
+import importlib.util
 import os
 import re
 import sys
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
-
 ROOT = Path(__file__).resolve().parent.parent
 SRC = ROOT / "content" / "articles"
 OUT = ROOT / "public" / "blog" / "og"
-AVATAR = ROOT / "public" / "assets" / "anirudh-avatar.png"
-W, H = 1200, 630
 FORCE = os.environ.get("FORCE") == "1"
 
-SERIF = "/System/Library/Fonts/Supplemental/Georgia Bold.ttf"
-SANS = "/System/Library/Fonts/Supplemental/Arial.ttf"
-SANS_BOLD = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
+sys.dont_write_bytecode = True  # importing gen-brand.py should not leave scripts/__pycache__ behind
+_spec = importlib.util.spec_from_file_location("brand", Path(__file__).with_name("gen-brand.py"))
+brand = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(brand)
+
+# Articles whose project has a mark in public/assets/logos/ (keyed by frontmatter `project`).
+PROJECT_LOGOS = {
+    "LARK": "lark",
+    "Apartment 4B": "apartment4b",
+    "Living Photos": "livingphotos",
+    "FaceTime from Mars": "facetime",
+    "TalkativePDF": "talkativepdf",
+    "CIVS": "civs",
+}
 
 
 def frontmatter(text):
@@ -37,91 +49,64 @@ def frontmatter(text):
     return data
 
 
-def hex_rgb(h):
-    h = h.lstrip("#")
-    return tuple(int(h[i : i + 2], 16) for i in (0, 2, 4))
-
-
-def wrap(draw, text, font, max_w):
-    words, lines, cur = text.split(), [], ""
-    for w in words:
-        t = (cur + " " + w).strip()
-        if draw.textlength(t, font=font) <= max_w:
-            cur = t
-        else:
-            lines.append(cur)
-            cur = w
-    if cur:
-        lines.append(cur)
-    return lines
+def fit_title(c, title, max_w):
+    """Two lines at 68 to 52 px when the title allows it, else three lines at 60 to 44 px."""
+    for max_lines, sizes in ((2, range(68, 51, -2)), (3, range(60, 43, -2))):
+        for size in sizes:
+            fnt = brand.font("semibold", size)
+            lines = brand.wrap(c, title, fnt, max_w)
+            if len(lines) <= max_lines:
+                return fnt, size, lines
+    return fnt, size, lines
 
 
 def render(data, out):
-    accent = hex_rgb(data.get("accent", "#7C9CFF"))
-    img = Image.new("RGB", (W, H), (1, 1, 3))
-    d = ImageDraw.Draw(img)
+    accent = data.get("accent") or brand.DEFAULT_ACCENT
+    c = brand.Canvas(accent=accent, glow=0.26)
+    c.frame()
+    x, max_w = 80, brand.W - 160
 
-    # soft accent glow, top-right: concentric ellipses fading toward the ground colour
-    for r in range(460, 0, -4):
-        t = (1 - r / 460) ** 2 * 0.28
-        fill = tuple(int(1 + (c - 1) * t) for c in accent)
-        d.ellipse([W - 140 - r, -240 - r, W - 140 + r, -240 + r], fill=fill)
-
-    # border
-    d.rounded_rectangle([28, 28, W - 28, H - 28], radius=26, outline=(28, 28, 33), width=2)
-
-    # eyebrow: badge + project
-    x, y = 72, 78
-    eyebrow_font = ImageFont.truetype(SANS_BOLD, 22)
+    # eyebrow: award badge (accent) + project name, as on the article page header
+    y = 76
+    ex = x
     award = data.get("award")
     if award:
-        t = award.upper()
-        tw = d.textlength(t, font=eyebrow_font)
-        d.rounded_rectangle([x, y - 8, x + tw + 32, y + 30], radius=19, fill=tuple(c // 6 for c in accent), outline=tuple(c // 2 for c in accent))
-        d.text((x + 16, y), t, font=eyebrow_font, fill=accent)
-        x += tw + 50
-    d.text((x, y), data.get("project", "").upper(), font=eyebrow_font, fill=(125, 127, 136))
+        ex = c.badge((x, y), award, brand.font("semibold", 19), c.accent, height=40) + 18
+    c.tracked((ex, y + 11), data.get("project", "").upper(), brand.font("medium", 16), brand.BODY, tracking=0.14)
 
-    # title
-    title = data.get("title", "")
-    size = 68
-    while size > 40:
-        font = ImageFont.truetype(SERIF, size)
-        lines = wrap(d, title, font, W - 144)
-        if len(lines) <= 3:
-            break
-        size -= 4
-    ty = 150
+    # title (heading gradient) + standfirst, centred in the band between the eyebrow and the footer
+    fnt, size, lines = fit_title(c, data.get("title", ""), max_w)
+    lead = round(size * 1.12)
+    df = brand.font("regular", 24)
+    desc = brand.wrap(c, data.get("description", ""), df, max_w)[:2]
+    desc_lead, desc_gap = 35, 56  # standfirst line height; title baseline to first standfirst baseline
+    # visible block: cap top of the first title line down to the last standfirst descender
+    block = c.cap_height(fnt) + lead * (len(lines) - 1) + desc_gap + desc_lead * (len(desc) - 1) + 7
+    fy = brand.H - 124
+    top, bottom = 140, fy - 32
+    baseline = top + max(0, (bottom - top - block) / 2) + c.cap_height(fnt)
     for line in lines:
-        d.text((72, ty), line, font=font, fill=(228, 228, 230))
-        ty += int(size * 1.12)
+        c.gradient_text((x - 2, baseline), line, fnt, anchor="ls")
+        baseline += lead
+    dy = baseline - lead + desc_gap
+    for line in desc:
+        c.text((x, dy), line, df, brand.BODY, anchor="ls")
+        dy += desc_lead
 
-    # description
-    desc_font = ImageFont.truetype(SANS, 26)
-    dl = wrap(d, data.get("description", ""), desc_font, W - 144)[:2]
-    dy = min(ty + 18, H - 210)
-    for line in dl:
-        d.text((72, dy), line, font=desc_font, fill=(175, 176, 182))
-        dy += 36
+    # footer: author on the left, project mark on the right
+    c.avatar((x, fy), 56)
+    c.text((x + 72, fy + 4), "Anirudh Vasudevan", brand.font("semibold", 23), brand.BRIGHT)
+    c.text((x + 72, fy + 33), "anirudhvasudevan.com/blog", brand.font("regular", 19), brand.BODY)
+    logo = PROJECT_LOGOS.get(data.get("project", ""))
+    if logo:
+        c.logo_tile(logo, (brand.W - 80 - 60, fy - 2), 60, radius=14)
 
-    # footer: avatar + name + domain
-    fy = H - 118
-    try:
-        av = Image.open(AVATAR).convert("RGBA").resize((56, 56), Image.LANCZOS)
-        mask = Image.new("L", (56, 56), 0)
-        ImageDraw.Draw(mask).ellipse([0, 0, 55, 55], fill=255)
-        img.paste(av, (72, fy), mask)
-    except Exception:
-        pass
-    name_font = ImageFont.truetype(SANS_BOLD, 26)
-    d.text((144, fy + 2), "Anirudh Vasudevan", font=name_font, fill=(228, 228, 230))
-    d.text((144, fy + 32), "anirudhvasudevan.com/blog", font=ImageFont.truetype(SANS, 22), fill=(125, 127, 136))
-
-    img.save(out, optimize=True)
+    c.save(out)
 
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
+    tooling = max(Path(__file__).stat().st_mtime, Path(brand.__file__).stat().st_mtime)
     n = 0
     for md in sorted(SRC.glob("*.md")):
         data = frontmatter(md.read_text())
@@ -129,7 +114,11 @@ def main():
         if not slug or data.get("draft") == "true":
             continue
         out = OUT / f"{slug}.png"
-        if out.exists() and not FORCE and out.stat().st_mtime > md.stat().st_mtime:
+        newest = max(md.stat().st_mtime, tooling)
+        logo = brand.LOGOS / f"{PROJECT_LOGOS.get(data.get('project', ''), '_')}.svg"
+        if logo.exists():
+            newest = max(newest, logo.stat().st_mtime)
+        if out.exists() and not FORCE and out.stat().st_mtime > newest:
             continue
         render(data, out)
         n += 1
