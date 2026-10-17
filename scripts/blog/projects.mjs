@@ -20,7 +20,7 @@ export const cleanText = (s = '') =>
     .trim();
 
 const baseName = (s = '') =>
-  cleanText(String(s).split(/\s+[—–]\s+/)[0])
+  cleanText(String(s).split(/\s+[—–]\s+|:\s+/)[0])
     .replace(/\s*\([^)]*\)\s*$/, '')
     .trim();
 const parenthetical = (s = '') => (/\(([^)]+)\)\s*$/.exec(String(s)) || [])[1];
