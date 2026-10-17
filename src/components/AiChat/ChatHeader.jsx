@@ -1,11 +1,17 @@
-const ChatHeader = ({ onClose, onMinimize, voiceReplies, onToggleVoice, canSpeak }) => {
+const ChatHeader = ({ onClose, onMinimize, voiceReplies, onToggleVoice, canSpeak, mode = 'live' }) => {
+  const notes = mode === 'notes';
   return (
     <div className="flex items-center justify-between px-4 py-3 bg-black-300 border-b border-black-300 rounded-t-lg">
       <div className="flex items-center gap-2">
-        <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+        <div
+          className={`w-3 h-3 rounded-full ${notes ? 'bg-amber-400' : 'bg-green-500 animate-pulse'}`}
+          aria-hidden="true"
+        ></div>
         <div>
           <h3 className="text-white font-semibold text-sm">Chat with AniBot</h3>
-          <p className="text-xs text-gray-400">AI Assistant • Online</p>
+          <p className="text-xs text-gray-400" aria-live="polite">
+            {notes ? 'Answering from notes' : 'AI Assistant • Online'}
+          </p>
         </div>
       </div>
 
@@ -65,4 +71,3 @@ const ChatHeader = ({ onClose, onMinimize, voiceReplies, onToggleVoice, canSpeak
 };
 
 export default ChatHeader;
-
