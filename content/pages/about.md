@@ -45,7 +45,7 @@ I have also been invited to build at hackathons hosted at Y Combinator in San Fr
 - **An automated YouTube Shorts pipeline** that turns a topic into a published Short (LLM scripting, fal.ai images and video, ElevenLabs voice, Whisper subtitles) and runs four channels on a daily schedule with a review dashboard.
 - **This website**, including the AniBot chat assistant and the static blog engine that renders these pages. See [how AniBot works](/blog/anibot-portfolio-chatbot/).
 
-Every project write-up is on the [Writing](/blog/) page.
+Every project is listed on the [Projects](/projects/) page, and every write-up is on the [Writing](/blog/) page.
 
 ## Patent and research
 
@@ -98,4 +98,5 @@ You can email Anirudh Vasudevan at anirudhvasudevan11@gmail.com, message him on 
 - [ORCID](https://orcid.org/0009-0005-2249-312X)
 - [X](https://x.com/anirxdhv)
 - [YouTube](https://www.youtube.com/@anirudhvasudevan5581)
+- [Resume](/resume/)
 - [Resume (PDF)](/assets/anirudh-vasudevan-resume.pdf)
