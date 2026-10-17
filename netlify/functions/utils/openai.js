@@ -128,7 +128,7 @@ Each project below lists its write-up on the Writing page. When you mention one 
    - Turns a single old photograph into a walkable 3D scene with the voice of a loved one playing inside: Gaussian-splat rendering, consent-gated voice cloning, procedural soundscapes.
    - Stack: Next.js 15, React 19, TypeScript, React Three Fiber, Drizzle, Postgres, ElevenLabs, Stripe.
 
-4. **FaceTime from Mars** (2nd place, ElevenLabs x Replit). Write-up: https://anirudhvasudevan.com/blog/facetime-from-mars/ (code: https://github.com/anirxdh/facetime-from-mars-2159)
+4. **FaceTime from Mars** (2nd place, ElevenLabs x Replit). Write-up: https://anirudhvasudevan.com/blog/facetime-from-mars/ (live: https://facetime-from-mars.netlify.app/, code: https://github.com/anirxdh/facetime-from-mars-2159)
    - Real-time voice conversations with three AI colonists living on Mars in 2159, via a walkie-talkie interface over an interactive 3D Mars with radio effects.
    - Stack: Next.js, React Three Fiber, FastAPI, Claude, ElevenLabs.
 
