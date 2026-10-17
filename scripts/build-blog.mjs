@@ -266,7 +266,7 @@ function makeRenderer(article, toc) {
         fs.readFileSync(file, 'utf8').replace(/<\?xml[^>]*\?>/, ''),
         `d-${name}`,
         n > 1 ? `d-${name}-${n}` : `d-${name}`,
-      ).replace(/<svg /, '<svg role="img" ');
+      ).replace(/(<svg\b[^>]*?)\srole="[^"]*"/, '$1').replace(/(<svg\b[^>]*?)\saria-roledescription="[^"]*"/, '$1').replace(/<svg /, `<svg role="img" aria-label="${esc(text || 'Diagram')}" `);
       return `<figure class="diagram"><div class="diagram__canvas">${svg}</div>${
         text ? `<figcaption>${esc(text)}</figcaption>` : ''
       }</figure>`;
@@ -673,7 +673,7 @@ function indexPage(list) {
   const topTopics = TOPICS.slice(0, 10);
   return shell({
     headOpts: {
-      title: `Writing | ${AUTHOR}`,
+      title: `Writing: How I Built My Projects | ${AUTHOR}`,
       description:
         'Deep dives into the AI products, voice agents, and hackathon builds Anirudh Vasudevan shipped: architecture, decisions, and what actually worked.',
       url,
@@ -746,7 +746,7 @@ function topicPage(t) {
   };
   const others = TOPICS.filter((o) => o.slug !== t.slug);
   return shell({
-    headOpts: { title: `${t.name} articles | ${AUTHOR}`, description, url, extra: [collection, breadcrumbLd(trail)].map(ld).join('\n    ') },
+    headOpts: { title: `${t.name}: Project Write-ups and Lessons | ${AUTHOR}`, description, url, extra: [collection, breadcrumbLd(trail)].map(ld).join('\n    ') },
     nav: 'blog',
     main: `<main id="content" class="index">
       ${crumbs(trail.slice(1))}
@@ -796,7 +796,7 @@ function topicsIndexPage() {
           <p class="card__desc">${esc(projectNames(t.articles).join(', '))}</p>
         </a>`;
   return shell({
-    headOpts: { title: `Writing by topic | ${AUTHOR}`, description, url, extra: [collection, breadcrumbLd(trail)].map(ld).join('\n    ') },
+    headOpts: { title: `Writing by Topic: Project Write-ups by Technology | ${AUTHOR}`, description, url, extra: [collection, breadcrumbLd(trail)].map(ld).join('\n    ') },
     nav: 'blog',
     main: `<main id="content" class="index">
       ${crumbs(trail.slice(1))}
@@ -903,7 +903,7 @@ function resumePage(r, pdfBytes) {
     ${[profileLd, breadcrumbLd(trail)].map(ld).join('\n    ')}`;
 
   return shell({
-    headOpts: { title: `Resume | ${AUTHOR}`, description: r.description, url, ogType: 'profile', extra },
+    headOpts: { title: `Resume: Full-Stack and AI Engineer | ${AUTHOR}`, description: r.description, url, ogType: 'profile', extra },
     nav: 'resume',
     bodyClass: 'index-body resume-body',
     main: `<main id="content" class="index resume">
@@ -1002,7 +1002,7 @@ function projectsPage(page, projects) {
       </section>`
       : '';
   return shell({
-    headOpts: { title: `Projects | ${AUTHOR}`, description: page.description, url, extra: [itemList, breadcrumbLd(trail)].map(ld).join('\n    ') },
+    headOpts: { title: `Projects, Products and Hackathon Builds | ${AUTHOR}`, description: page.description, url, extra: [itemList, breadcrumbLd(trail)].map(ld).join('\n    ') },
     nav: 'projects',
     main: `<main id="content" class="index">
       <header class="index__head">
@@ -1445,11 +1445,17 @@ const llms = [
   ),
   llmsSection(
     'Writing (project deep dives)',
-    articles.map((a) => llmsItem(a.title, `${SITE}/blog/${a.slug}/`, a.description)),
+    [
+      llmsItem('All writing', `${SITE}/blog/`, `${plural(articles.length, 'article')}, newest first`),
+      ...articles.map((a) => llmsItem(a.title, `${SITE}/blog/${a.slug}/`, a.description)),
+    ],
   ),
   llmsSection(
     'Writing by topic',
-    TOPICS.map((t) => llmsItem(t.name, `${SITE}${topicHref(t.slug)}`, plural(t.articles.length, 'article'))),
+    [
+      ...(TOPICS.length ? [llmsItem('All topics', `${SITE}/blog/topics/`)] : []),
+      ...TOPICS.map((t) => llmsItem(t.name, `${SITE}${topicHref(t.slug)}`, plural(t.articles.length, 'article'))),
+    ],
   ),
 ].filter(Boolean);
 fs.writeFileSync(path.join(DIST, 'llms.txt'), `${llms.join('\n\n')}\n`);

@@ -5,7 +5,7 @@
 # its name or one of its `match` aliases, plus any slugs in `articles`; `skip` removes slugs.
 # `hosts` also links articles whose live link is on that domain (vercel.app). `at` names the jobs
 # where he used it (shown as "At Rivo", linked to the resume).
-title: "Tools I Use"
+title: "The Tools and Tech Stack I Use"
 description: "The languages, frameworks, AI and voice tools, data stores, and growth stack Anirudh Vasudevan uses at Rivo and in his projects, linked to each write-up."
 date: 2026-10-17
 slug: uses

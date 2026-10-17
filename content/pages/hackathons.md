@@ -8,7 +8,7 @@
 #   placement is recorded), project, article (slug) or articles [slugs], built (one neutral line,
 #   also used in structured data), note (a first-person aside), live, liveLabel, repo, accent.
 #   live/repo default to the first article's.
-title: "Hackathon Wins and Builds"
+title: "Hackathon Wins, Results and Builds"
 description: "The hackathon record of Anirudh Vasudevan: five wins and placements, 4th overall in ElevenHacks Season 1, and the project behind each result, with links."
 date: 2026-10-17
 slug: hackathons

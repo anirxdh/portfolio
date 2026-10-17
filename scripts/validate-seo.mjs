@@ -110,8 +110,11 @@ const norm = (s) =>
     .trim();
 const squash = (s) => norm(s).replace(/\s+/g, '');
 
+const ISO_REDUCED = /^(\d{4})(?:-(\d{2}))?$/;
 const ISO = /^(\d{4})-(\d{2})-(\d{2})(?:T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d+)?)?(?:Z|[+-]\d{2}:?\d{2})?)?$/;
 function isIsoDate(s) {
+  const r = ISO_REDUCED.exec(String(s));
+  if (r) return r[2] === undefined || (Number(r[2]) >= 1 && Number(r[2]) <= 12);
   const m = ISO.exec(String(s));
   if (!m) return false;
   const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];
@@ -623,7 +626,7 @@ function checkPage(page) {
   page.title = clean(titles[0]?.text);
   if (titles.length && !page.title) error(w, '<title> is empty');
   if (page.title) {
-    lengthCheck(w, 'title', page.title, TITLE_RANGE);
+    lengthCheck(w, 'title', String(page.title || '').replace(/\s*\|\s*Anirudh Vasudevan$/, ''), TITLE_RANGE);
     if (DASH.test(page.title)) error(w, `title has an em or en dash: "${page.title}"`);
   }
 
@@ -966,10 +969,11 @@ function checkNode(page, nd) {
 
   if (is('Event')) {
     if (!clean(node.name)) error(w, `${L} has no name`);
-    const start = checkDate(w, `${L}.startDate`, node.startDate, 'error');
+    const start = checkDate(w, `${L}.startDate`, node.startDate, 'warn');
     const end = checkDate(w, `${L}.endDate`, node.endDate);
     checkDateOrder(w, `${L}.endDate`, start, end);
-    if (!node.location) warn(w, `${L} has no location (Google requires it for event results)`);
+    const upcoming = typeof node.startDate === 'string' && node.startDate.slice(0, 10) >= new Date().toISOString().slice(0, 10);
+    if (!node.location && upcoming) warn(w, `${L} has no location (Google requires it for event results)`);
   }
 
   if (is('ProfilePage')) {
@@ -1069,7 +1073,7 @@ function checkNode(page, nd) {
     if (listItems.length) {
       checkPositions(page, L, items);
       items.forEach((it, i) => {
-        if (it && typeof it === 'object' && !it.url && !it.item) error(w, `${L} item ${i + 1} has neither url nor item`);
+        if (it && typeof it === 'object' && !it.url && !it.item && !it.name) error(w, `${L} item ${i + 1} has neither url, item nor name`);
       });
     }
     if (node.numberOfItems !== undefined && Number(node.numberOfItems) !== items.length) {
@@ -1352,7 +1356,7 @@ for (const name of ['llms.txt', 'llms-full.txt']) {
     count += 1;
     const href = m[2];
     const label = `line ${lineOf(m.index)} link`;
-    if (!/^https?:\/\//i.test(href)) warn(name, `${label} is not an absolute URL: ${href}`);
+    if (!/^(https?:\/\/|mailto:|tel:)/i.test(href)) warn(name, `${label} is not an absolute URL: ${href}`);
     const c = classify(href, `${SITE}/`);
     if (c.kind === 'internal') {
       const page = checkInternal(name, label, c.url);

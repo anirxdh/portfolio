@@ -7,7 +7,7 @@
 #   "Anirudh Vasudevan" for him) or coauthors[] (when the order is not known), book, series,
 #   publisher, year (only when published), pages, doi, url, note, draft (true = not shown)
 # experience[]: title, where, role, when, bullets[], links[]
-title: "Patent and Research"
+title: "Patent and Research Publications"
 description: "The granted patent and research papers of Anirudh Vasudevan: a contactless voting system, an EMNLP 2026 paper on LLM aggregation, and FMCW radar work."
 date: 2026-10-17
 slug: research
