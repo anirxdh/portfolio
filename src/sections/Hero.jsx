@@ -1,5 +1,8 @@
+// Keep LazyCanvas first: importing it sets the self-hosted Draco decoder path before the
+// components below preload their models at module load.
+import LazyCanvas from '../components/LazyCanvas.jsx';
+
 import { Suspense } from 'react';
-import { Canvas } from '@react-three/fiber';
 import { useMediaQuery } from 'react-responsive';
 import { PerspectiveCamera } from '@react-three/drei';
 
@@ -27,12 +30,13 @@ const Hero = () => {
         </p>
         <h1 className="hero_tag text-gray_gradient">
           Turning Ideas into Web Solutions
-          <span className="sr-only"> — Anirudh Vasudevan, Full-Stack &amp; AI Engineer</span>
+          <span className="sr-only"> | Anirudh Vasudevan, Full-Stack &amp; AI Engineer</span>
         </h1>
       </div>
 
       <div className="w-full h-full absolute inset-0">
-        <Canvas className="w-full h-full">
+        {/* Created right after the first paint, and stops rendering once scrolled out of view. */}
+        <LazyCanvas className="w-full h-full">
           <Suspense fallback={<CanvasLoader />}>
             <PerspectiveCamera makeDefault position={[0, 0, 30]} />
 
@@ -49,7 +53,7 @@ const Hero = () => {
             <ambientLight intensity={1} />
             <directionalLight position={[10, 10, 10]} intensity={0.5} />
           </Suspense>
-        </Canvas>
+        </LazyCanvas>
       </div>
 
       <div className="absolute bottom-7 left-0 right-0 w-full z-10 c-space">

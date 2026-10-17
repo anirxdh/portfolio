@@ -1,7 +1,7 @@
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { Suspense, useState, useEffect } from 'react';
-import { Canvas } from '@react-three/fiber';
+import Canvas from '../components/LazyCanvas.jsx'; // R3F Canvas that mounts near the viewport and idles offscreen
 import { Center, OrbitControls } from '@react-three/drei';
 
 import { myProjects } from '../constants/index.js';
