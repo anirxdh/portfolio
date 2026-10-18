@@ -83,6 +83,9 @@ img, svg { max-width: 100%; height: auto; }
 .topbar__nav { display: flex; flex-wrap: wrap; gap: 6px 24px; font-size: 1rem; color: var(--neutral-400); }
 .topbar__nav a { transition: color .2s; }
 .topbar__nav a:hover, .topbar__nav a[aria-current='page'] { color: #fff; }
+/* Hackathons, Research and Uses need about 1020px next to the brand (measured with General Sans,
+   plus room for a wider fallback font). Narrower screens reach them from the footer instead. */
+@media (max-width: 1099px) { .topbar__extra { display: none; } }
 /* Below this width the brand and the nav no longer fit on one row and the header grows to two or
    three rows (about 150px on a 390px phone). A header that tall would cover a fifth of the screen
    and hide anchor targets, so it scrolls away with the page instead of sticking. */
@@ -292,6 +295,36 @@ a.chip:hover { border-color: var(--black-500); color: #fff; }
   text-decoration-color: color-mix(in srgb, var(--accent) 60%, transparent); transition: text-decoration-color .2s;
 }
 .pcard__links a:hover, .rentry__list a:hover, .rentry__links a:hover, .resume__contact a:hover { text-decoration-color: var(--accent); }
+
+/* ---------- hackathons, research, uses ---------- */
+.page-intro { max-width: var(--measure); }
+.index > .page-intro { margin: -8px 0 56px; }
+.page-intro > :last-child { margin-bottom: 0; }
+.badge--muted { color: var(--white-600); background: var(--black-300); }
+.hcard__event { margin: -4px 0 0; font-size: 14.5px; font-weight: 500; line-height: 1.45; color: var(--white-800); }
+.hcard__where { font-weight: 400; color: var(--white-600); }
+.hcard__note { font-size: 14px; }
+.callout {
+  max-width: var(--measure); margin: 0 0 24px; padding: 18px 20px; border-radius: 16px;
+  background: var(--black-200); border: 1px solid var(--black-300); border-left: 3px solid var(--accent);
+}
+.callout p { margin: 0; }
+.callout .card__eyebrow { margin-bottom: 10px; }
+/* /uses/: the header keeps the resume measure, the tool groups use the full width in columns. */
+.uses-page .resume__body { max-width: none; }
+.uses-page .page-intro { max-width: 880px; }
+.uses {
+  list-style: none; margin: 0; padding: 12px 0;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 0 32px;
+}
+.uses__row { display: flex; flex-direction: column; gap: 2px; padding: 10px 0; }
+.uses__name { font-size: 15.5px; font-weight: 600; color: var(--white-800); }
+.uses__where { font-size: 14.5px; line-height: 1.6; }
+.hcard__event a, .uses__where a {
+  color: #fff; text-decoration: underline; text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--accent) 60%, transparent); transition: text-decoration-color .2s;
+}
+.hcard__event a:hover, .uses__where a:hover { text-decoration-color: var(--accent); }
 
 /* ---------- resume ---------- */
 .resume__head, .resume__body { max-width: 880px; }
