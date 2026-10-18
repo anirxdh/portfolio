@@ -1,17 +1,19 @@
-const SuggestedQuestions = ({ onQuestionClick, disabled }) => {
-  const questions = [
-    "What is Anirudh building at Rivo?",
-    "Tell me about the YC Hackathon project (LARK)",
-    "What AI agent & RAG projects has he built?",
-    "What's his tech stack?",
-    "How can I get in touch?",
-  ];
+// Starter questions. Each one also has a direct answer in the offline notes (src/data/anibotLocal.js),
+// so they work even when the live AI is down.
+const QUESTIONS = [
+  'What is Anirudh building at Rivo?',
+  'Which hackathons has he won?',
+  'What is his patent about?',
+  'Tell me about his voice agent work',
+  'What has he written about?',
+];
 
+const SuggestedQuestions = ({ onQuestionClick, disabled }) => {
   return (
     <div className="px-4 py-3 border-t border-black-300">
       <p className="text-xs text-gray-400 mb-2">💡 Suggested questions:</p>
       <div className="flex flex-wrap gap-2">
-        {questions.map((question) => (
+        {QUESTIONS.map((question) => (
           <button
             key={question}
             onClick={() => onQuestionClick(question)}
@@ -27,4 +29,3 @@ const SuggestedQuestions = ({ onQuestionClick, disabled }) => {
 };
 
 export default SuggestedQuestions;
-

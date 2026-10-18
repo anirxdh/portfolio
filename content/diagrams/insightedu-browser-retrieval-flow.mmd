@@ -10,11 +10,12 @@ sequenceDiagram
   R->>S: tfidfSearch query k=24
   S-->>R: scored docs with boosts
   R->>S: tfidfSearch with session dataset prepended
-  S-->>R: extra docs merged, top 12 kept
+  S-->>R: session docs
+  R->>R: append session docs, slice to 12
   R->>R: buildContext tags each doc
   R->>O: POST chat completions stream true
   O-->>R: data lines with content deltas
   R-->>C: onChunk accumulated text
   C-->>U: message updates with blinking cursor
   O-->>R: DONE
-  R-->>C: final answer saved to history
+  R-->>C: promise resolves, cursor stops

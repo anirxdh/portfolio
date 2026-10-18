@@ -1,7 +1,6 @@
 graph LR
   subgraph Client[Browser]
     A[Four step wizard]
-    B[SSE progress bar]
   end
   subgraph Server[Next.js API routes]
     C[Upload route]
@@ -20,8 +19,9 @@ graph LR
     L[DeepSeek V3 on DeepInfra]
     M[ElevenLabs TTS timestamps]
     N[D-ID Talks API]
+    O[ElevenLabs Sound Generation]
   end
-  A -->|mp4 or YouTube URL| C
+  A -->|mp4 mov or webm| C
   C -->|manifest json| J
   A -->|POST in order| D
   A --> E
@@ -38,6 +38,8 @@ graph LR
   A -->|poll every 5s| G
   G -->|talk status| N
   A -->|presenter URL| H
-  H -->|download clip run ffmpeg| J
+  H -->|music mood| O
+  H -->|download talk mp4| N
+  H -->|read original write composited mp4| J
   H -->|out_time percent| I
-  I -->|event stream| B
+  I -->|SSE event stream| A

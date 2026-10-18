@@ -11,6 +11,7 @@ import Writing from './sections/Writing.jsx';
 import Projects from './sections/Projects.jsx';
 import WorkExperience from './sections/Experience.jsx';
 import useScrollReveal from './hooks/useScrollReveal.js';
+import CommandPaletteHost from './components/CommandPalette/CommandPaletteHost.jsx';
 
 // The chat widget (react-markdown + streaming client) is off-screen at load, so keep it out of the first paint.
 const AiChatbot = lazy(() => import('./components/AiChat/AiChatbot.jsx'));
@@ -42,6 +43,8 @@ const App = () => {
       <Suspense fallback={null}>
         <AiChatbot />
       </Suspense>
+      {/* Cmd/Ctrl+K. Only the key listener is in the main bundle; the palette UI is lazy. */}
+      <CommandPaletteHost />
     </>
   );
 };

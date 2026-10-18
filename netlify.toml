@@ -11,6 +11,58 @@
   [headers.values]
     Content-Type = "application/manifest+json"
 
+# ---------- Security headers (every response) ----------
+# No full Content-Security-Policy on purpose: script/img/connect rules would have to allow three.js
+# blob workers and textures, EmailJS, the cdnfonts font files and the unpkg globe textures, and a
+# mistake there breaks the site silently. The CSP below only has directives that never block
+# loading anything: who may frame the site, <base> hijacking, and plugin content.
+# microphone=(self): AniBot voice uses the Web Speech API on this origin. Nothing uses the camera
+# or location. If an embedded third-party widget ever needs the mic, add its origin here.
+# HSTS without includeSubDomains/preload until every subdomain is confirmed to serve HTTPS.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    X-Frame-Options = "SAMEORIGIN"
+    Content-Security-Policy = "frame-ancestors 'self'; base-uri 'self'; object-src 'none'"
+    Permissions-Policy = "camera=(), microphone=(self), geolocation=(), payment=(), usb=()"
+    Strict-Transport-Security = "max-age=31536000"
+    Cross-Origin-Opener-Policy = "same-origin"
+
+# ---------- Caching ----------
+# Vite's build output has a content hash in every file name, so it can be cached forever.
+# Only .js and .css: public/assets (images, the resume PDF, og-image) is also served from /assets/
+# under fixed names and must keep Netlify's default revalidation.
+[[headers]]
+  for = "/assets/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# 3D models, the Draco decoder and textures keep their names when they change, so cache for a day
+# only. When a model changes in a way the code depends on (node or material names), give the file
+# a new name so returning visitors never pair new code with an old cached model.
+[[headers]]
+  for = "/models/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+[[headers]]
+  for = "/textures/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"
+
+# Article diagrams: a stale copy is harmless, so serve it while revalidating in the background.
+[[headers]]
+  for = "/blog/diagrams/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400, stale-while-revalidate=604800"
+
 # Send the old Netlify subdomain (and www) to the canonical domain — one URL for SEO.
 [[redirects]]
   from = "https://anirudhvasudevan.netlify.app/*"
@@ -29,9 +81,6 @@
   to = "/.netlify/functions/:splat"
   status = 200
 
-# SPA fallback: serve index.html for any path that isn't a real file or function
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# No SPA fallback: the app has no client-side routes (only #anchors), so unknown paths get a
+# real 404 (public/404.html) instead of a soft-404 homepage.
 

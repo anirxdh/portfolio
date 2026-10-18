@@ -36,16 +36,20 @@ export const navLinks = [
       external: true,
     },
   ];
-  
+
+  // id: stable key (command palette, logo file name). article: slug of a PUBLISHED deep dive in
+  // content/articles/ (leave it out while the article is still `draft: true`, or the link 404s).
   export const myProjects = [
     {
-      title: 'LARK — Multi-Agent Orchestration MCP',
+      id: 'lark',
+      title: 'LARK: Multi-Agent Orchestration MCP',
+      article: 'lark-multi-agent-mcp',
       desc: '🏆 Top 10 at the Y Combinator AI Hackathon. A hierarchical multi-agent system built on the Model Context Protocol (MCP) that turns ChatGPT and Claude into action platforms.',
       subdesc:
-        'A unified parent MCP orchestrator routes across three specialized child servers (media, messaging, telephony) with dynamic tool selection — making real Twilio calls and group calls, enabling cross-model AI-to-AI messaging, and handling music and YouTube, all from a phone-like widget inside chat. Built with TypeScript, React 19, and Twilio, and deployed via mcp-use.',
+        'A unified parent MCP orchestrator routes across three specialized child servers (media, messaging, telephony) with dynamic tool selection, making real Twilio calls and group calls, enabling cross-model AI-to-AI messaging, and handling music and YouTube, all from a phone-like widget inside chat. Built with TypeScript, React 19, and Twilio, and deployed via mcp-use.',
       href: 'https://github.com/anirxdh/YC-hack',
       textures: ['/textures/project/lark-1.jpg', '/textures/project/lark-2.jpg'],
-      logo: '/assets/project-logo5.png',
+      logo: '/assets/logos/lark.svg',
       logoStyle: {
         backgroundColor: '#1C1A43',
         border: '0.2px solid #252262',
@@ -59,13 +63,14 @@ export const navLinks = [
       ],
     },
     {
-      title: 'Apartment 4B — Horror Mystery Game',
+      id: 'apartment4b',
+      title: 'Apartment 4B: Horror Mystery Game',
       desc: '🥉 3rd place at ElevenHacks (ElevenLabs × Zed). A first-person lo-fi horror mystery game built end-to-end in 36 hours.',
       subdesc:
-        'Explore procedurally generated apartments, collect voice-acted cassette tapes, and solve sequential lock puzzles under a ticking timer to unravel the mystery. Built with React Three Fiber, Three.js, TypeScript, Zustand, and Howler.js, with ElevenLabs for voice and sound — featuring save state, multiple endings, and a PS1-style aesthetic.',
+        'Explore procedurally generated apartments, collect voice-acted cassette tapes, and solve sequential lock puzzles under a ticking timer to unravel the mystery. Built with React Three Fiber, Three.js, TypeScript, Zustand, and Howler.js, with ElevenLabs for voice and sound. It features save state, multiple endings, and a PS1-style aesthetic.',
       href: 'https://apartment-4b.netlify.app',
       textures: ['/textures/project/apartment4b-1.jpg', '/textures/project/apartment4b-2.jpg'],
-      logo: '/assets/project-logo1.png',
+      logo: '/assets/logos/apartment4b.svg',
       logoStyle: {
         backgroundColor: '#2A1816',
         border: '0.2px solid #36201D',
@@ -79,13 +84,15 @@ export const navLinks = [
       ],
     },
     {
-      title: 'Living Photos — Memories in 3D',
+      id: 'livingphotos',
+      title: 'Living Photos: Memories in 3D',
+      article: 'living-photos-gaussian-splats',
       desc: '🏆 Winner at ElevenHacks. Turns a single old photograph into a walkable 3D scene, with the voice of someone you loved playing softly inside.',
       subdesc:
         'Upload a photo and step into it: Gaussian-splat 3D rendering, consent-gated voice cloning, and procedural ambient soundscapes bring memories to life. Built with Next.js 15, React 19, TypeScript, React Three Fiber, Drizzle, Postgres, ElevenLabs, and Stripe.',
       href: 'https://living-photos-rust.vercel.app/',
       textures: ['/textures/project/livingphotos-1.jpg', '/textures/project/livingphotos-2.jpg', '/textures/project/livingphotos-3.jpg'],
-      logo: '/assets/project-logo2.png',
+      logo: '/assets/logos/livingphotos.svg',
       logoStyle: {
         backgroundColor: '#13202F',
         border: '0.2px solid #17293E',
@@ -99,13 +106,15 @@ export const navLinks = [
       ],
     },
     {
+      id: 'facetime',
       title: 'FaceTime from Mars',
+      article: 'facetime-from-mars',
       desc: '🥈 2nd place at the ElevenLabs × Replit hackathon. Real-time voice conversations with AI colonists living on Mars in the year 2159.',
       subdesc:
         'A walkie-talkie interface lets you talk to three distinct AI characters with unique ElevenLabs voices, set against an interactive 3D Mars with radio effects and ambient space audio. Built with Next.js, React Three Fiber, FastAPI, Claude, and ElevenLabs.',
-      href: 'https://facetime-from-mars-2158--anirxdh.replit.app/',
+      href: 'https://github.com/anirxdh/facetime-from-mars-2159',
       textures: ['/textures/project/facetime-1.jpg', '/textures/project/facetime-2.jpg', '/textures/project/facetime-3.jpg'],
-      logo: '/assets/project-logo3.png',
+      logo: '/assets/logos/facetime.svg',
       logoStyle: {
         backgroundColor: '#2E1912',
         border: '0.2px solid #4A2A17',
@@ -119,10 +128,12 @@ export const navLinks = [
       ],
     },
     {
-      title: 'ScreenSense — Voice Browser Agent',
+      id: 'screensense',
+      title: 'ScreenSense: Voice Browser Agent',
+      article: 'screensense-voice-browser-agent',
       desc: '🏆 Best Voice Agent award at the ElevenLabs × Firecrawl hackathon. A Chrome extension that turns voice commands into autonomous browser actions.',
       subdesc:
-        'Hold a key, speak a command, and an AI agent clicks, fills forms, and completes multi-step workflows across sites — e.g. “add the cheapest USB-C cable to my Amazon cart.” Powered by Claude on AWS Bedrock (multimodal vision), ElevenLabs speech, and Firecrawl, on a React + FastAPI stack.',
+        'Hold a key, speak a command, and an AI agent clicks, fills forms, and completes multi-step workflows across sites, for example “add the cheapest USB-C cable to my Amazon cart.” Powered by Claude on AWS Bedrock (multimodal vision), ElevenLabs speech, and Firecrawl, on a React + FastAPI stack.',
       href: 'https://screen-sense-anirudh.netlify.app/',
       textures: ['/textures/project/screensense-1.jpg', '/textures/project/screensense-2.jpg', '/textures/project/screensense-3.jpg'],
       logo: '/assets/logo-screensense.png',
@@ -139,13 +150,15 @@ export const navLinks = [
       ],
     },
     {
-      title: 'TalkativePDF — AI PDF Chat SaaS',
+      id: 'talkativepdf',
+      title: 'TalkativePDF: AI PDF Chat SaaS',
+      article: 'talkativepdf-rag-chat',
       desc: 'A production SaaS that lets you chat with any PDF, using GPT-4, LangChain, and Pinecone for fast, semantic, RAG-based document Q&A.',
       subdesc:
         'Built end-to-end with Next.js, TypeScript, Firebase storage, Clerk auth, and Stripe subscriptions. A RAG architecture with document chunking improved query response time by ~87%, and the app handled 500+ document uploads during internal testing.',
       href: 'https://talkative-pdf.vercel.app/',
       textures: ['/textures/project/talkativepdf-1.jpg', '/textures/project/talkativepdf-2.jpg'],
-      logo: '/assets/project-logo5.png',
+      logo: '/assets/logos/talkativepdf.svg',
       logoStyle: {
         backgroundColor: '#0E1F38',
         border: '0.2px solid #0E2D58',
@@ -159,13 +172,15 @@ export const navLinks = [
       ],
     },
     {
-      title: 'CIVS — Contactless Voting System',
-      desc: 'A contactless voting system — the basis of a granted patent — for secure, hygienic, and accessible elections using speech and hand-gesture input.',
+      id: 'civs',
+      title: 'CIVS: Contactless Voting System',
+      article: 'civs-contactless-voting-patent',
+      desc: 'A contactless voting system, and the basis of a granted patent, for secure, hygienic, and accessible elections using speech and hand-gesture input.',
       subdesc:
         'Built with React, Flask, and REST APIs alongside user-research-driven Figma prototypes, CIVS supports real-time interaction, ballot rectification, and accessibility for physically challenged voters. It became the basis for a granted patent (ID 202341031598).',
       href: 'https://github.com/anirxdh/CIVS',
       textures: ['/textures/project/civs-1.jpg', '/textures/project/civs-2.jpg'],
-      logo: '/assets/project-logo2.png',
+      logo: '/assets/logos/civs.svg',
       logoStyle: {
         backgroundColor: '#13202F',
         border: '0.2px solid #17293E',
@@ -197,8 +212,8 @@ export const navLinks = [
       id: 1,
       name: 'Rivo | San Francisco, CA',
       pos: 'Member of Technical Staff',
-      duration: 'December 2025 – Present',
-      title: "At Rivo (a San Francisco fintech), I build production conversational AI — primarily voice agents — in Python across a cloud-based microservices stack. I implemented full caching (TanStack Query with endpoint-level invalidation) that cut homepage load time by ~87% and improved p95 latency, and ship agentic AI workflows for personalized client messaging and internal automation. I own end-to-end quality and growth: Playwright and Maestro E2E coverage, Jest, and CI/CD hardening, plus a full observability and product-analytics stack — Sentry, Statsig, Mixpanel, GA4, and Microsoft Clarity — for user-behavior tracking and growth funnels. I also maintain the marketing site in Webflow (CMS) and run Meta Ads optimization.",
+      duration: 'December 2025 to Present',
+      title: "At Rivo (a San Francisco fintech), I build production conversational AI, primarily voice agents, in Python across a cloud-based microservices stack. I implemented full caching (TanStack Query with endpoint-level invalidation) that cut homepage load time by ~87% and improved p95 latency, and ship agentic AI workflows for personalized client messaging and internal automation. I own end-to-end quality and growth: Playwright and Maestro E2E coverage, Jest, and CI/CD hardening, plus a full observability and product-analytics stack (Sentry, Statsig, Mixpanel, GA4, and Microsoft Clarity) for user-behavior tracking and growth funnels. I also maintain the marketing site in Webflow (CMS) and run Meta Ads optimization.",
       icon: '/assets/rivo.png',
       animation: 'clapping',
     },
@@ -206,7 +221,7 @@ export const navLinks = [
       id: 2,
       name: 'Nonlinear | San Francisco, CA',
       pos: 'Founding Engineer',
-      duration: 'August 2025 – December 2025',
+      duration: 'August 2025 to December 2025',
       title: "As Founding Engineer, I engineered the Universal Node System for AI workflows with dynamic property handling, mustache variable parsing, and Zustand-powered state caching, cutting configuration time by 45%. I built Agentic RAG pipelines powering context-aware AI agents and a Microsoft Teams bot (published on the Teams Store), reducing retrieval latency by 60% and tripling user engagement. Delivered production features with Next.js 15, React 19, TypeScript, tRPC, Redux Toolkit, Zustand, Drizzle ORM, PostgreSQL, Tailwind CSS, Radix UI, AWS, and integrated OpenAI, Anthropic, and Gemini models.",
       icon: '/assets/Nonlinear.png',
       animation: 'salute',
@@ -215,7 +230,7 @@ export const navLinks = [
       id: 3,
       name: 'University of Minnesota | Twin Cities, MN',
       pos: 'Graduate Research Assistant',
-      duration: 'January 2024 – July 2025',
+      duration: 'January 2024 to July 2025',
       title: "As a Research Assistant at the Institute of Health Informatics, I performed data processing, causal analysis, and predictive modeling in Python to address K-12 educational and health inequities in Minnesota. I collaborated with stakeholders to implement analytical methodologies within a high-security, privacy-compliant framework.",
       icon: '/assets/university.png',
       animation: 'victory',
@@ -229,14 +244,16 @@ export const navLinks = [
     { value: 500, suffix: '+', label: 'LeetCode Solved' },
   ];
 
+  // article: slug of a PUBLISHED deep dive (same rule as myProjects). href stays the card's main link.
   export const hackathons = [
     {
       id: 1,
       result: 'Top 10',
       event: 'Y Combinator AI Hackathon',
-      project: 'LARK — Multi-Agent Orchestration MCP',
+      project: 'LARK: Multi-Agent Orchestration MCP',
       blurb: 'A hierarchical multi-agent system on MCP that turns ChatGPT & Claude into action platforms.',
       href: 'https://github.com/anirxdh/YC-hack',
+      article: 'lark-multi-agent-mcp',
       accent: '#f97316',
     },
     {
@@ -245,7 +262,8 @@ export const navLinks = [
       event: 'ElevenLabs × Replit Hackathon',
       project: 'FaceTime from Mars',
       blurb: 'Real-time voice calls with AI colonists on Mars in 2159, over an interactive 3D world.',
-      href: 'https://facetime-from-mars-2158--anirxdh.replit.app/',
+      href: 'https://github.com/anirxdh/facetime-from-mars-2159',
+      article: 'facetime-from-mars',
       accent: '#e0662f',
     },
     {
@@ -264,15 +282,17 @@ export const navLinks = [
       project: 'Living Photos',
       blurb: 'Turns a single old photo into a walkable 3D scene with the voice of a loved one inside.',
       href: 'https://living-photos-rust.vercel.app/',
+      article: 'living-photos-gaussian-splats',
       accent: '#2f6db5',
     },
     {
       id: 5,
       result: 'Best Voice Agent',
       event: 'ElevenLabs × Firecrawl Hackathon',
-      project: 'ScreenSense — Voice Browser Agent',
+      project: 'ScreenSense: Voice Browser Agent',
       blurb: 'A Chrome extension that turns voice commands into autonomous browser actions.',
       href: 'https://screen-sense-anirudh.netlify.app/',
+      article: 'screensense-voice-browser-agent',
       accent: '#2fb583',
     },
   ];

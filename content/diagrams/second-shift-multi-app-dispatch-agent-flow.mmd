@@ -7,22 +7,20 @@ sequenceDiagram
   participant S as Slack
   participant G as Gmail
   D->>E: POST approve plan
-  E->>H: read Technicians Jobs Travel tabs
-  E->>C: list events on every tech calendar
-  E->>E: fingerprint fresh snapshot and compare to plan
-  alt fingerprint changed
-    E->>L: status stale, nothing written
-    E-->>D: plan is stale, re-plan needed
+  E->>H: re-read Technicians Jobs Travel tabs
+  E->>C: re-list events on every tech calendar
+  alt fresh fingerprint differs from plan
+    E-->>D: plan marked stale, nothing written
   else fingerprint matches
-    E->>L: status executing
-    E->>L: mark cal+ J102 pending
+    Note over E,L: every write is marked pending, then done, under a stable key
     E->>C: insert event with deterministic id
-    C-->>E: event created or 409 already exists
-    E->>L: mark cal+ J102 done
+    E->>C: delete old bookings
     E->>H: update job row
-    E->>S: find_by_key then post route with metadata
-    E->>G: find_by_key then send with SS tag and header
+    E->>S: find_by_key then post routes and dispatch summary
+    E->>G: find_by_key then send with key tag
     E->>C: read all calendars back
-    E->>E: check_schedule on real placements
-    E-->>D: 36 of 36 checks passed
+    E->>H: read Jobs tab back
+    E->>S: find_by_key for each post
+    E->>G: find_by_key for each email
+    E-->>D: pass fail checklist after check_schedule
   end

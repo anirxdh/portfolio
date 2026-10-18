@@ -6,8 +6,7 @@ sequenceDiagram
   participant NV as Nova Lite
   U->>CS: release backtick after speaking
   CS->>SW: shortcut-release
-  SW->>SW: stop recorder and wait for audio blob
-  SW->>SW: capture screenshot
+  SW->>SW: stop recorder and capture screenshot
   SW->>BE: WS transcribe stream with audio
   BE-->>SW: transcript text
   SW->>CS: scrape-dom
@@ -19,9 +18,11 @@ sequenceDiagram
   loop until done or 25 iterations
     SW->>CS: execute-action
     CS-->>SW: ok summary or FAILED error
-    SW->>CS: wait-for-dom-stable then scrape-dom
+    SW->>CS: wait-for-dom-stable
+    SW->>SW: capture screenshot
+    SW->>CS: scrape-dom until content
     CS-->>SW: fresh snapshot
-    SW->>BE: POST task continue with history
+    SW->>BE: POST task continue with history and screenshot
     BE->>NV: converse with continue prompt
     NV-->>BE: next action or done
     BE-->>SW: steps or done

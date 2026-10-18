@@ -11,9 +11,11 @@ sequenceDiagram
   R->>R: lowercase, length check, honeypot check
   R->>B: setJSON key at plus email
   B-->>R: stored via blobs
-  R->>N: POST form-name waitlist to __forms.html
-  R->>W: POST JSON with 4 second timeout
-  N-->>R: 200 ok
+  par notify with allSettled
+    R->>N: POST form-name waitlist to __forms.html
+  and
+    R->>W: optional POST JSON 4 second timeout
+  end
   N->>N: submission_created emails owner
   R-->>F: ok true via blobs
   F-->>V: You are on the list

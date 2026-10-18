@@ -16,5 +16,6 @@ sequenceDiagram
   PR->>FF: retime clips, concat, scale 1080x1920, encode
   PR->>OA: whisper-1 word timestamps from final audio
   PR->>FF: burn resynced ASS karaoke captions, mix music
-  PR->>R2: upload mp4, thumbnail, checkpointed db
+  PR->>R2: upload mp4 and thumbnail
   PR->>PR: email operator with production id
+  PR->>R2: upload checkpointed db

@@ -1,4 +1,4 @@
-graph LR
+flowchart LR
   subgraph B[Browser SPA]
     A[Clerk sign-in gate]
     C[Six JSON datasets]
@@ -14,17 +14,20 @@ graph LR
     K[OpenAI gpt-4o-mini]
   end
   subgraph N[Node scripts only]
+    M[Ingest and chat scripts]
     L[Pinecone index]
   end
   A -- hosted sign-in --> J
   A -- signed in --> D
   C -- build-time import --> D
-  C -- 142 sentence docs --> E
-  E -- v4 version stamp --> F
+  C -- JSON rows --> E
+  E -- 142 sentence docs, v4 stamp --> F
   F -- load on query --> G
   I -- question --> H
   H -- query k times 2 --> G
   G -- scored docs --> H
   H -- prompt with records --> K
-  K -- SSE token stream --> I
-  C -. text-embedding-3-small .-> L
+  K -- SSE token stream --> H
+  H -- onChunk accumulated text --> I
+  C -. rebuilt in Node .-> M
+  M -. text-embedding-3-small .-> L

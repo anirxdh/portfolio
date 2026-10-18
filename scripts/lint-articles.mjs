@@ -1,4 +1,5 @@
-// Deterministic checks for content/articles/*.md: frontmatter, length, style rules, diagram refs.
+// Deterministic checks for content/articles/*.md (frontmatter, length, style rules, diagram refs)
+// and content/pages/*.md (frontmatter, style rules). Both get a privacy check for phone numbers.
 // Usage: node scripts/lint-articles.mjs   (exit 1 on any error)
 import fs from 'node:fs';
 import path from 'node:path';
@@ -6,9 +7,12 @@ import matter from 'gray-matter';
 
 const ROOT = process.cwd();
 const SRC = path.join(ROOT, 'content', 'articles');
+const PAGES = path.join(ROOT, 'content', 'pages');
 const DIAGRAMS = path.join(ROOT, 'content', 'diagrams');
 const BANNED =
   /\b(delve|crucial|robust|comprehensive|nuanced|multifaceted|furthermore|moreover|additionally|pivotal|landscape|tapestry|underscore|foster|showcase|intricate|vibrant|seamless|leverage|harness|journey|testament|game-changer)\b/gi;
+// US-style phone numbers: (952) 245 7395, 952-245-7395, 952.245.7395. The site never publishes one.
+const PHONE = /(?:\(\d{3}\)\s?|\b\d{3}[\s.-])\d{3}[\s.-]\d{4}\b/;
 
 let errors = 0;
 let warnings = 0;
@@ -21,8 +25,40 @@ const warn = (f, m) => {
   console.log(`warn  ${f}: ${m}`);
 };
 
-const files = fs.readdirSync(SRC).filter((f) => f.endsWith('.md'));
+const files = fs.existsSync(SRC) ? fs.readdirSync(SRC).filter((f) => f.endsWith('.md')).sort() : [];
 const slugs = new Set();
+
+// Raw HTML links (<a href="/blog/x/">) bypass the build's draft-link guard, so a link to a draft or
+// missing article would ship and 404. Markdown links are unlinked by the build and only warned here.
+const SITE = 'https://anirudhvasudevan.com';
+const PUBLISHED = new Set();
+for (const f of files) {
+  try {
+    const { data } = matter(fs.readFileSync(path.join(SRC, f), 'utf8'));
+    if (data.slug && !data.draft) PUBLISHED.add(String(data.slug).toLowerCase());
+  } catch {
+    // reported below
+  }
+}
+const deadBlogLink = (href, base) => {
+  let u;
+  try {
+    u = new URL(href, base);
+  } catch {
+    return false;
+  }
+  if (!/^(www\.)?anirudhvasudevan\.com$/.test(u.host)) return false;
+  const m = /^\/blog\/([^/.]+)\/?$/i.exec(u.pathname);
+  return Boolean(m && m[1].toLowerCase() !== 'topics' && !PUBLISHED.has(m[1].toLowerCase()));
+};
+const checkLinks = (file, content, base) => {
+  for (const m of content.matchAll(/<a\s[^>]*href\s*=\s*["']([^"']+)["']/gi)) {
+    if (deadBlogLink(m[1], base)) err(file, `raw HTML link to an unpublished article: ${m[1]}`);
+  }
+  for (const m of content.matchAll(/\]\(\s*<?([^)\s>]+)>?(?:\s+"[^"]*")?\s*\)/g)) {
+    if (deadBlogLink(m[1], base)) warn(file, `link to an unpublished article (the build drops the link): ${m[1]}`);
+  }
+};
 for (const file of files) {
   const raw = fs.readFileSync(path.join(SRC, file), 'utf8');
   let parsed;
@@ -82,8 +118,43 @@ for (const file of files) {
   const otherImgs = [...content.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)].map((m) => m[1]).filter((s) => !s.startsWith('/blog/diagrams/'));
   if (otherImgs.length) warn(file, `non-diagram images: ${otherImgs.join(', ')}`);
 
+  checkLinks(file, content, `${SITE}/blog/${slug}/`);
+
   // secrets / PII smell test
   if (/sk-[A-Za-z0-9]{20,}|xi-api-key|AKIA[0-9A-Z]{16}|pk_live_|sk_live_/.test(raw)) err(file, 'possible secret in article');
+  if (PHONE.test(prose)) err(file, `looks like a phone number: "${prose.match(PHONE)[0]}"`);
 }
-console.log(`\n${files.length} articles, ${errors} errors, ${warnings} warnings`);
+
+// ---------- content/pages/*.md (about, resume, projects) ----------
+const pages = fs.existsSync(PAGES) ? fs.readdirSync(PAGES).filter((f) => f.endsWith('.md')).sort() : [];
+for (const name of pages) {
+  const file = `pages/${name}`;
+  const raw = fs.readFileSync(path.join(PAGES, name), 'utf8');
+  let parsed;
+  try {
+    parsed = matter(raw);
+  } catch (e) {
+    err(file, `frontmatter does not parse: ${e.message}`);
+    continue;
+  }
+  const { data, content } = parsed;
+  for (const k of ['title', 'description', 'date', 'slug']) {
+    if (!data[k]) err(file, `missing frontmatter "${k}"`);
+  }
+  if (data.description && (data.description.length < 100 || data.description.length > 170))
+    warn(file, `description length ${data.description.length}`);
+  // Frontmatter carries real copy here (resume entries, project blurbs), so check it like prose.
+  const text = `${JSON.stringify(data)}\n${content.replace(/```[\s\S]*?```/g, '')}`;
+  const dashes = (text.match(/[—–]/g) || []).length;
+  if (dashes) err(file, `${dashes} em/en dash(es)`);
+  const banned = [...text.matchAll(BANNED)].map((m) => m[0].toLowerCase());
+  if (banned.length) warn(file, `banned words: ${[...new Set(banned)].join(', ')}`);
+  if (PHONE.test(raw)) err(file, `looks like a phone number: "${raw.match(PHONE)[0]}"`);
+  if (/sk-[A-Za-z0-9]{20,}|xi-api-key|AKIA[0-9A-Z]{16}|pk_live_|sk_live_/.test(raw)) err(file, 'possible secret in page');
+  checkLinks(file, content, `${SITE}/${name.replace(/\.md$/, '')}/`);
+  if (data.updated !== undefined && !/^\d{4}-\d{2}-\d{2}/.test(data.updated instanceof Date ? data.updated.toISOString() : String(data.updated)))
+    err(file, `"updated" is not a YYYY-MM-DD date`);
+}
+
+console.log(`\n${files.length} articles, ${pages.length} pages, ${errors} errors, ${warnings} warnings`);
 process.exit(errors ? 1 : 0);
