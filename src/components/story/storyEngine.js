@@ -5,7 +5,8 @@
 // the closest one. Wins and the patent are the bright stars.
 // Act 2, the universe: as the hero scrolls away the same stars travel down and settle into orbits
 // around a small dotted orb (AniBot's motif). The homepage projects light up as they leave the sky
-// and carry their names down, then become planets with real DOM labels; every other write-up joins
+// and carry their names down where there is room for them (a name fades out near any text, the
+// edges and the other names), then become planets with real DOM labels; every other write-up joins
 // an outer belt. While the universe stays pinned the system tilts from a star chart into depth,
 // and the picked planet's card opens in a slot under it, joined by a thin line. Native scroll
 // only: progress is read from the section's rect.
@@ -123,6 +124,7 @@ export function createStoryEngine() {
   /* ---------- Bodies ---------- */
   let stars = [];
   let planetStar = []; // planet index -> star
+  let travelOrder = []; // the planets' stars, the first to leave the sky first
   const seedRand = rng(20261021);
   function setData(list) {
     const rand = rng(20261021);
@@ -163,6 +165,10 @@ export function createStoryEngine() {
       py: 0,
       prr: 0,
       lab: null,
+      la: 0, // travelling name: shown alpha, speed (px/s) and last position
+      lv: 0,
+      lpx: NaN,
+      lpy: 0,
     }));
     planetStar = [];
     // Planets: wins and the patent on the inner orbits, the others further out.
@@ -189,6 +195,7 @@ export function createStoryEngine() {
       s.phase = seedRand() * TAU;
       s.period = 230 + seedRand() * 90;
     });
+    travelOrder = planetStar.filter(Boolean).sort((a, b) => a.delay - b.delay || a.i - b.i);
     layoutDirty = true;
     wake();
   }
@@ -213,6 +220,33 @@ export function createStoryEngine() {
   let floatSize = { w: 320, h: 150 };
   let cardSize = { w: 260, h: 110 };
   let copyBoxes = []; // the hero's text and buttons, hero-local: the demo card keeps clear of them
+  // What the travelling names keep clear of, measured on layout only (never per frame): the boxes
+  // and the line boxes of the hero's copy (hero-local) and of the universe's heading, list and
+  // links (stage-local), and the bottom of the site's fixed nav.
+  let heroText = [];
+  let uniText = [];
+  let navBottom = 0;
+  let frameDt = 1 / 60;
+  let pageV = 0; // how fast the page moves, px/s (see update())
+  let lastRegionTop = 0;
+  const labelW = new Map(); // name -> drawn width, cleared on layout (fonts)
+  const labelBox = []; // this frame's name boxes, in the order the stars left
+  const HERO_TEXT = '.hero-eyebrow, .hero-name, .hero-role, .hero-line, .hero-ctas > *, .hero-type, .hero-proof';
+  const UNI_TEXT = '.u-eyebrow, .u-title, .u-intro, .u-list, .u-more';
+  const textBoxes = (root, sel, ox, oy) => {
+    const out = [];
+    const range = document.createRange();
+    const push = (r) => {
+      if (r.width > 1 && r.height > 1) out.push({ x: r.left - ox, y: r.top - oy, r: r.right - ox, b: r.bottom - oy });
+    };
+    for (const el of root.querySelectorAll(sel)) {
+      push(el.getBoundingClientRect());
+      // The letters themselves can reach past the box (the name's tight line height).
+      range.selectNodeContents(el);
+      for (const r of range.getClientRects()) push(r);
+    }
+    return out;
+  };
   let dock = 0; // pinned universe: room kept under the system for the picked planet's card
   let clipOrbit = false; // the orbit box clips (phones, tablets): labels must stay inside it
   const sphere = [];
@@ -385,8 +419,12 @@ export function createStoryEngine() {
         const r = el.getBoundingClientRect();
         return { x: r.left - hr.left - 8, y: r.top - hr.top - 8, w: r.width + 16, h: r.height + 16 };
       });
+      heroText = textBoxes(H.hero, HERO_TEXT, hr.left, hr.top);
       demoStar = -1;
     }
+    const nav = document.querySelector('header');
+    navBottom = nav && getComputedStyle(nav).position === 'fixed' ? Math.max(0, nav.getBoundingClientRect().bottom) : 0;
+    labelW.clear();
     if (U) {
       const orr = U.orbit.getBoundingClientRect();
       const sr = U.stage.getBoundingClientRect();
@@ -400,6 +438,7 @@ export function createStoryEngine() {
       const margin = narrowU ? 34 : 86;
       Rmax = Math.max(60, Math.min(orr.width / 2 - margin, ((orr.height - dock) / 2 - 30) / 0.88));
       uniDustOK = buildDust(uniDust, sr.width, sr.height, 311, narrowU ? 2600 : 3600);
+      uniText = textBoxes(U.stage, UNI_TEXT, sr.left, sr.top);
       labelSize = U.labels.map((el) => (el ? { w: el.offsetWidth, h: el.offsetHeight } : { w: 0, h: 0 }));
     }
   }
@@ -599,6 +638,11 @@ export function createStoryEngine() {
     orbitGeometry();
     regionTop = H ? heroTop : uniRect ? uniRect.top : 0;
     regionBottom = uniRect ? uniRect.bottom : H ? heroTop + heroSize.h : 0;
+    // How fast the page is moving (px/s, held at its peak and let go slowly): the travelling names
+    // look ahead by it, so they fade before they reach text instead of popping off.
+    frameDt = dt;
+    pageV = Math.max(Math.abs(regionTop - lastRegionTop) / Math.max(dt, 1 / 240), pageV * Math.exp(-dt * 8));
+    lastRegionTop = regionTop;
 
     // Orbits slow down while a planet is picked, so it is easy to read.
     speedK += ((uActive >= 0 ? 0.12 : 1) - speedK) * e5;
@@ -857,40 +901,121 @@ export function createStoryEngine() {
   }
 
   // The project stars on their way down: an accent rim and their name, so a visitor can follow
-  // one from the sky to its planet. The planets' own DOM labels take over as they arrive.
+  // one from the sky to its planet. A name shows only where it has room: it fades out as it nears
+  // any text (the hero's copy, the universe's heading and list, the nav), a screen edge or the
+  // name of a star that left the sky before it, and it is fully gone before the planets' own DOM
+  // labels start to fade in, so a name is never on screen twice. A moving name looks ahead by its
+  // speed, so it has faded by the time it would reach text; a held scroll position always settles
+  // on the same picture.
   const LABEL_FONT = '500 12px "General Sans", "Segoe UI", Helvetica, Arial, sans-serif';
+  const LABEL_END = 0.76; // canvas names gone (the DOM labels start at 0.8)
+  const ROOM_TEXT = 16; // px of clear space a name needs around it to show at full strength
+  const ROOM_NAME = 12;
+  const LOOK_AHEAD = 0.1; // s
+  const FADE_IN = 6; // alpha per second
+  const FADE_OUT = 12; // fast enough to finish inside the look-ahead
+  // Distance between two boxes (0 when they touch or overlap).
+  const apart = (x0, y0, x1, y1, bx0, by0, bx1, by1) => {
+    const dx = Math.max(0, bx0 - x1, x0 - bx1);
+    const dy = Math.max(0, by0 - y1, y0 - by1);
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+  function nameRoom(x0, y0, x1, y1) {
+    let room = Math.min(x0 - 8, W - 8 - x1, y0 - navBottom, VH - y1);
+    if (H) {
+      for (const b of heroText) {
+        if (room <= 0) return 0;
+        room = Math.min(room, apart(x0, y0, x1, y1, b.x + heroLeft, b.y + heroTop, b.r + heroLeft, b.b + heroTop));
+      }
+    }
+    if (U && stageRect) {
+      const sx = stageRect.left;
+      const sy = stageRect.top;
+      for (const b of uniText) {
+        if (room <= 0) return 0;
+        room = Math.min(room, apart(x0, y0, x1, y1, b.x + sx, b.y + sy, b.r + sx, b.b + sy));
+      }
+    }
+    return Math.max(0, room);
+  }
   function drawTravellers() {
     const go = smooth((pT - 0.02) / 0.08);
-    if (go <= 0.01) return;
-    const labIn = smooth((pT - 0.8) / 0.18);
-    ctx.font = LABEL_FONT;
-    ctx.textBaseline = 'middle';
-    ctx.lineJoin = 'round';
     for (const s of planetStar) {
       if (!s || !s.placed) continue;
       const e = s.pe || 0;
-      const r = lerp(s.rr, s.prr, e);
       const rim = go * (1 - smooth((e - 0.82) / 0.18));
       if (rim > 0.01) {
         ctx.globalAlpha = 0.8 * rim;
         ctx.strokeStyle = ACCENT;
         ctx.lineWidth = 1.1;
         ctx.beginPath();
-        ctx.arc(s.px, s.py, r + 4.5, 0, TAU);
+        ctx.arc(s.px, s.py, lerp(s.rr, s.prr, e) + 4.5, 0, TAU);
         ctx.stroke();
       }
-      // Names show once a star has left its place in the sky, not while it still sits there.
-      const la = go * smooth(e / 0.18) * (1 - labIn);
-      if (la > 0.01 && s.py > -20 && s.py < VH + 20) {
-        const x = s.px + r + 9;
-        ctx.globalAlpha = 0.85 * la;
-        ctx.strokeStyle = '#010103';
-        ctx.lineWidth = 4;
-        ctx.strokeText(s.name, x, s.py);
-        ctx.globalAlpha = la;
-        ctx.fillStyle = STRONG;
-        ctx.fillText(s.name, x, s.py);
+    }
+    // Names show once a star has left its place in the sky, not while it still sits there.
+    const fade = go * (1 - smooth((pT - (LABEL_END - 0.14)) / 0.14)) * (1 - dim);
+    ctx.font = LABEL_FONT;
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    let n = 0;
+    const dt = Math.max(frameDt, 1 / 240);
+    for (const s of travelOrder) {
+      const e = s.pe || 0;
+      const base = s.placed ? fade * smooth(e / 0.18) : 0;
+      if (base <= 0.001) {
+        s.la = 0;
+        s.lv = 0;
+        s.lpx = NaN;
+        continue;
       }
+      let w = labelW.get(s.name);
+      if (w === undefined) {
+        w = ctx.measureText(s.name).width;
+        labelW.set(s.name, w);
+      }
+      // The star's speed, held at its peak and let go slowly, like the page's.
+      const v = Number.isNaN(s.lpx) ? 0 : Math.hypot(s.px - s.lpx, s.py - s.lpy) / dt;
+      s.lv = Math.max(v, s.lv * Math.exp(-dt * 8));
+      s.lpx = s.px;
+      s.lpy = s.py;
+      const ahead = Math.min(400, (s.lv + pageV) * LOOK_AHEAD);
+      const x = s.px + lerp(s.rr, s.prr, e) + 9;
+      // The drawn box, with the dark outline around the letters.
+      const x0 = x - 2;
+      const x1 = x + w + 2;
+      const y0 = s.py - 9;
+      const y1 = s.py + 9;
+      const room = nameRoom(x0, y0, x1, y1);
+      // Where it may fade to (with the look-ahead), and a hard limit: never over text at all.
+      let want = base * smooth((room - ahead) / ROOM_TEXT);
+      let cap = base * clamp(room / 4, 0, 1);
+      // A name that left earlier keeps its place even while it is hidden, so two names can never
+      // be on screen over each other (a later one fades as it nears it).
+      for (let k = 0; k < n && cap > 0.001; k++) {
+        const o = labelBox[k];
+        const d = apart(x0, y0, x1, y1, o[0], o[1], o[2], o[3]);
+        want *= smooth((d - ahead - o[4]) / ROOM_NAME);
+        cap *= clamp(d / 4, 0, 1);
+      }
+      const box = labelBox[n] || (labelBox[n] = [0, 0, 0, 0, 0]);
+      box[0] = x0;
+      box[1] = y0;
+      box[2] = x1;
+      box[3] = y1;
+      box[4] = ahead;
+      n++;
+      const la = s.la;
+      const a = Math.min(cap, want > la ? Math.min(want, la + FADE_IN * dt) : Math.max(want, la - FADE_OUT * dt));
+      s.la = a;
+      if (a <= 0.01) continue;
+      ctx.globalAlpha = 0.85 * a;
+      ctx.strokeStyle = '#010103';
+      ctx.lineWidth = 4;
+      ctx.strokeText(s.name, x, s.py);
+      ctx.globalAlpha = a;
+      ctx.fillStyle = STRONG;
+      ctx.fillText(s.name, x, s.py);
     }
   }
 
@@ -1421,6 +1546,12 @@ export function createStoryEngine() {
       if (u) {
         u.stage.addEventListener('pointerdown', uniDown);
         cleanupUni.push(() => u.stage.removeEventListener('pointerdown', uniDown));
+        // Its text can move without the window resizing (the list grows when write-ups arrive),
+        // and the travelling names steer by the cached boxes.
+        if (ro) {
+          ro.observe(u.stage);
+          cleanupUni.push(() => ro.unobserve(u.stage));
+        }
         const labelEnter = (e) => {
           const el = e.target.closest && e.target.closest('.u-label');
           if (el && e.pointerType === 'mouse') uHover = Number(el.dataset.i);

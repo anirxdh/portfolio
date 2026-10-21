@@ -10,7 +10,7 @@
 // The call ends with the End button, Escape, a click outside the hero, or leaving the page, and
 // the name rebuilds. prefers-reduced-motion, no canvas, or an error: a still orb, same call.
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { Arrow } from '../components/Arrow.jsx';
 import { openAniBot } from '../data/anibotEvents.js';
@@ -30,6 +30,9 @@ const STATUS = {
   ended: 'Ready',
 };
 const ASK_ABOUT = 'Ask about a project, a hackathon or his work at Rivo.';
+// The caption starts at its CSS size (a headline) and steps down to fit the space the name and
+// the role line leave; below this it scrolls, line by line, to keep the word being spoken in view.
+const CAPTION_MIN = 16;
 const NO_VOICE = 'Voice input is not available in this browser, so type your question.';
 
 const hasRecognition = () => typeof window !== 'undefined' && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
@@ -78,6 +81,10 @@ const Hero = () => {
   const callRef = useRef(null);
   const callOnRef = useRef(false);
   const focusFormRef = useRef(false);
+  const panelRef = useRef(null);
+  const capRef = useRef(null);
+  const capLines = useRef(null); // set while a caption is too long to fit: { lh, base, lines }
+  const capTop = useRef(0); // how far that caption is scrolled
 
   const [fx, setFx] = useState(() => wantsMotion() && canDraw());
   const fxRefState = useRef(fx);
@@ -344,6 +351,68 @@ const Hero = () => {
     orbRef.current?.setArmed(on && !callOnRef.current);
   };
 
+  /* ---------- The caption: as large as the space allows ---------- */
+  // The call panel covers exactly the space of the name and the role line (it never changes the
+  // hero's height, so the buttons stay where they are). The caption takes the top of it, the
+  // prompt and the controls sit at the bottom, just above the buttons. The caption is measured
+  // when its line or the controls change, never per frame; per word only while a line is too
+  // long to fit even at the smallest size.
+  const keepWordInView = useCallback(() => {
+    const el = capRef.current;
+    if (!el) return;
+    let top = 0;
+    const L = capLines.current;
+    if (L) {
+      const on = el.querySelectorAll('.cw.on');
+      const w = on[on.length - 1];
+      const first = el.querySelector('.cw');
+      if (w && first) {
+        const line = Math.round((w.offsetTop - first.offsetTop) / L.lh);
+        if (line >= L.lines) top = L.base + (line - L.lines + 1) * L.lh;
+      }
+    }
+    if (top === capTop.current) return;
+    capTop.current = top;
+    el.scrollTop = top;
+    el.dataset.scrolled = top > 0 ? 'true' : 'false';
+  }, []);
+
+  const fitCaption = useCallback(() => {
+    const el = capRef.current;
+    if (!el) return;
+    el.style.fontSize = '';
+    el.style.maxHeight = '';
+    capLines.current = null;
+    capTop.current = -1;
+    const fits = () => el.scrollHeight <= el.clientHeight + 1;
+    if (!fits()) {
+      const max = parseFloat(getComputedStyle(el).fontSize) || CAPTION_MIN;
+      let lo = Math.min(max, CAPTION_MIN);
+      let hi = max;
+      for (let k = 0; k < 7 && hi - lo > 0.5; k++) {
+        const mid = (lo + hi) / 2;
+        el.style.fontSize = `${mid}px`;
+        if (fits()) lo = mid;
+        else hi = mid;
+      }
+      el.style.fontSize = `${Math.floor(lo)}px`;
+      // Still too long at the smallest size: show whole lines only, and scroll line by line.
+      const first = el.querySelector('.cw');
+      if (!fits() && first) {
+        const cs = getComputedStyle(el);
+        const lh = parseFloat(cs.lineHeight);
+        const pad = parseFloat(cs.paddingBottom) || 0;
+        if (lh > 0) {
+          const base = Math.max(0, first.offsetTop - (lh - first.offsetHeight) / 2);
+          const lines = Math.max(1, Math.floor((el.clientHeight - pad - base) / lh));
+          el.style.maxHeight = `${Math.floor(base + lines * lh + pad)}px`;
+          capLines.current = { lh, base, lines };
+        }
+      }
+    }
+    keepWordInView();
+  }, [keepWordInView]);
+
   const status = STATUS[vstate] || 'Ready';
   const listening = vstate === 'listening';
   // What the caption shows: the line being spoken or heard. Between turns, AniBot's last line
@@ -352,6 +421,22 @@ const Hero = () => {
   const current = caption?.who === 'bot' || heardWords ? caption : null;
   const shown = current || (lastBot ? { ...lastBot, shown: lastBot.words.length, past: true } : null);
   const prompt = !heardWords && (listening ? `Listening. ${ASK_ABOUT}` : vstate === 'waiting' && !hint ? `Your turn. ${ASK_ABOUT}` : '');
+  const capText = shown ? `${shown.who}:${shown.words.join(' ')}` : '';
+  useLayoutEffect(() => {
+    if (callOn) fitCaption();
+  }, [callOn, capText, prompt, more, showForm, hint, fitCaption]);
+  useLayoutEffect(() => {
+    if (callOn) keepWordInView();
+  }, [callOn, shown?.shown, keepWordInView]);
+  // A new size of the space (rotation, a resized window) fits the caption again.
+  useEffect(() => {
+    const panel = panelRef.current;
+    if (!callOn || !panel || !('ResizeObserver' in window)) return undefined;
+    const ro = new ResizeObserver(() => fitCaption());
+    ro.observe(panel);
+    return () => ro.disconnect();
+  }, [callOn, fitCaption]);
+
   const classes = [
     'hero',
     callOn ? 'is-call' : '',
@@ -395,12 +480,8 @@ const Hero = () => {
             <OrbSlot slotRef={stageSlotRef} where="stage" status={status} />
 
             {callOn && (
-              <div className="call-panel">
-                <p
-                  className={`call-caption${(shown?.words?.length || 0) > 22 ? ' is-long' : ''}${shown?.past ? ' is-past' : ''}`}
-                  aria-hidden="true"
-                  data-who={shown?.who || 'none'}
-                >
+              <div ref={panelRef} className="call-panel">
+                <p ref={capRef} className={`call-caption${shown?.past ? ' is-past' : ''}`} aria-hidden="true" data-who={shown?.who || 'none'}>
                   {shown?.who === 'you' && <span className="cap-label">You</span>}
                   {shown?.words?.map((w, i) => (
                     <span key={`${i}-${w}`} className={`cw${i < shown.shown ? ' on' : ''}${!shown.past && i === shown.shown - 1 && shown.who === 'bot' ? ' now' : ''}`}>
@@ -408,51 +489,53 @@ const Hero = () => {
                     </span>
                   ))}
                 </p>
-                {prompt && <p className="call-prompt">{prompt}</p>}
-                {more && (
-                  <button type="button" className="call-more" onClick={continueInChat}>
-                    Continue in chat
-                    <Arrow size={14} />
-                  </button>
-                )}
-                {showForm ? (
-                  <form className="call-form" onSubmit={sendTyped}>
-                    <label className="sr-only" htmlFor="call-input">
-                      Ask AniBot a question
-                    </label>
-                    <input
-                      id="call-input"
-                      ref={inputRef}
-                      className="call-input"
-                      type="text"
-                      value={draft}
-                      onChange={(e) => setDraft(e.target.value)}
-                      placeholder="Ask AniBot anything"
-                      autoComplete="off"
-                      enterKeyHint="send"
-                      aria-describedby={hint ? 'call-hint' : undefined}
-                    />
-                    {canListen && callRef.current?.canListen !== false && (
-                      <button type="button" className="call-icon" onClick={switchToMic} aria-label="Speak instead">
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" focusable="false">
-                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
-                        </svg>
-                      </button>
-                    )}
-                    <button type="submit" className="call-send" disabled={!draft.trim()} aria-label="Send question">
-                      <Arrow />
+                <div className="call-foot">
+                  {prompt && <p className="call-prompt">{prompt}</p>}
+                  {more && (
+                    <button type="button" className="call-more" onClick={continueInChat}>
+                      Continue in chat
+                      <Arrow size={14} />
                     </button>
-                    {hint && (
-                      <p className="call-hint" id="call-hint">
-                        {hint}
-                      </p>
-                    )}
-                  </form>
-                ) : (
-                  <button type="button" className="call-switch" onClick={typeInstead}>
-                    Type instead
-                  </button>
-                )}
+                  )}
+                  {showForm ? (
+                    <form className="call-form" onSubmit={sendTyped}>
+                      <label className="sr-only" htmlFor="call-input">
+                        Ask AniBot a question
+                      </label>
+                      <input
+                        id="call-input"
+                        ref={inputRef}
+                        className="call-input"
+                        type="text"
+                        value={draft}
+                        onChange={(e) => setDraft(e.target.value)}
+                        placeholder="Ask AniBot anything"
+                        autoComplete="off"
+                        enterKeyHint="send"
+                        aria-describedby={hint ? 'call-hint' : undefined}
+                      />
+                      {canListen && callRef.current?.canListen !== false && (
+                        <button type="button" className="call-icon" onClick={switchToMic} aria-label="Speak instead">
+                          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" focusable="false">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+                          </svg>
+                        </button>
+                      )}
+                      <button type="submit" className="call-send" disabled={!draft.trim()} aria-label="Send question">
+                        <Arrow />
+                      </button>
+                      {hint && (
+                        <p className="call-hint" id="call-hint">
+                          {hint}
+                        </p>
+                      )}
+                    </form>
+                  ) : (
+                    <button type="button" className="call-switch" onClick={typeInstead}>
+                      Type instead
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>

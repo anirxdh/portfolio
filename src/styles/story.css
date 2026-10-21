@@ -578,16 +578,20 @@ html.sky-on .hero-sky::before {
   }
 }
 
-/* ---------- The call: caption and text field where the name was ---------- */
-/* The panel shares the stage's grid cell with the name and the role line (both hidden during the
-   call), so a long caption or a hint grows the stage instead of running under the buttons. */
+/* ---------- The call: caption and controls where the name was ---------- */
+/* The panel covers exactly the space of the name and the role line (both hidden during the call)
+   and never changes the hero's height, so End call is where Talk to AniBot was. The caption is a
+   headline at the top of that space (Hero.jsx steps its size down until it fits); the prompt and
+   the controls sit at the bottom, just above the buttons. If the controls alone are taller than
+   the space (a phone on its side, in text mode), they grow upward over the caption, never down
+   over the buttons. */
 .call-panel {
-  grid-column: 1;
-  grid-row: 1 / 3;
-  position: relative;
+  position: absolute;
+  inset: 0;
   z-index: 4;
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
   align-items: flex-start;
   min-width: 0;
   padding-top: 18px;
@@ -603,20 +607,29 @@ html.sky-on .hero-sky::before {
   }
 }
 .call-caption {
-  margin: 0;
-  max-width: 24em;
-  min-height: 1.3em;
-  font-size: clamp(21px, 2.3vw, 32px);
-  line-height: 1.3;
+  position: relative;
+  flex: 0 1 auto;
+  min-height: 0;
+  max-width: 100%;
+  margin: 0 0 auto;
+  /* Room for the letters that reach below the last line, so a caption that fits is not clipped
+     (Hero.jsx compares scrollHeight with the box). */
+  padding-bottom: 0.12em;
+  overflow: hidden;
+  font-size: clamp(28px, 2.2vw + 14px, 46px);
+  line-height: 1.16;
   font-weight: 500;
-  letter-spacing: -0.012em;
+  letter-spacing: -0.022em;
   color: var(--strong);
-  text-wrap: pretty;
+  text-wrap: balance;
+  scroll-behavior: smooth;
   transition: opacity 0.3s ease;
 }
-.call-caption.is-long {
-  font-size: clamp(18px, 1.75vw, 25px);
-  max-width: 30em;
+/* A line too long for the space even at the smallest size scrolls with the voice; the lines
+   above the one being spoken fade out at the top edge. */
+.call-caption[data-scrolled='true'] {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 0.9em);
+  mask-image: linear-gradient(to bottom, transparent 0, #000 0.9em);
 }
 .call-caption[data-who='you'] {
   color: var(--body);
@@ -624,6 +637,17 @@ html.sky-on .hero-sky::before {
 /* AniBot's last line, kept on screen between turns. */
 .call-caption.is-past {
   opacity: 0.45;
+}
+.call-foot {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding-top: 12px;
+}
+.call-foot > :first-child {
+  margin-top: 0;
 }
 .cw {
   opacity: 0.22;
@@ -978,9 +1002,8 @@ html.sky-on .hero-sky::before {
     margin-right: 40%;
     padding-top: 4px;
   }
-  .call-caption,
-  .call-caption.is-long {
-    font-size: 18px;
+  .call-caption {
+    font-size: 22px;
   }
   .call-prompt {
     margin-top: 6px;
@@ -1004,6 +1027,9 @@ html.sky-on .hero-sky::before {
   .call-panel {
     animation: none;
     opacity: 1;
+  }
+  .call-caption {
+    scroll-behavior: auto;
   }
   .story-canvas,
   .hero-sky::before,
