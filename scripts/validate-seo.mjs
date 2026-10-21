@@ -24,7 +24,10 @@
 //   llms.txt          llmstxt.org shape, every link exists, every indexable page listed
 //   feeds, manifest   RSS/Atom feeds parse and link to real pages; manifest icons exist
 //   site-wide         duplicate titles, descriptions and canonicals; pages nothing links to
+//   CSP               every inline <script> that runs has its sha256 hash in netlify.toml's
+//                     Content-Security-Policy headers, so the policy does not block (or report) it
 
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { SITE, PERSON_ID, person } from './blog/person.mjs';
@@ -1429,6 +1432,28 @@ for (const name of ['llms.txt', 'llms-full.txt']) {
     if (m.start_url) {
       const c = classify(m.start_url, `${SITE}/`);
       if (c.kind === 'internal') checkInternal(W, 'start_url', c.url, { fragments: false });
+    }
+  }
+}
+
+// ---------- CSP: inline script hashes ----------
+// netlify.toml allows inline scripts by hash only. When an inline script changes (for example the
+// article script in scripts/blog/enhance.mjs), its hash changes, and the header must change with it.
+{
+  const toml = path.join(ROOT, 'netlify.toml');
+  if (isFile(toml)) {
+    const src = fs.readFileSync(toml, 'utf8');
+    // Only when a policy there restricts scripts at all.
+    if (/^\s*script-src\b|Content-Security-Policy[^\n]*script-src/m.test(src)) {
+      const allowed = new Set(src.match(/'sha256-[A-Za-z0-9+/=]+'/g)?.map((h) => h.slice(1, -1)) || []);
+      const JS_TYPES = /^(|module|text\/javascript|application\/javascript)$/i;
+      for (const page of PAGES) {
+        for (const e of page.els) {
+          if (e.tag !== 'script' || e.inSvg || e.attrs.has('src') || !JS_TYPES.test(e.attrs.get('type') || '')) continue;
+          const hash = `sha256-${crypto.createHash('sha256').update(e.text ?? '').digest('base64')}`;
+          if (!allowed.has(hash)) error(page.rel, `inline <script> on line ${e.line} has hash '${hash}', which netlify.toml's script-src does not list`);
+        }
+      }
     }
   }
 }

@@ -7,6 +7,17 @@
 @font-face { font-family: 'General Sans'; font-style: normal; font-weight: 600; font-display: swap; src: local('General Sans'), url('https://fonts.cdnfonts.com/s/85793/GeneralSans-Semibold.woff') format('woff'); }
 @font-face { font-family: 'General Sans'; font-style: normal; font-weight: 700; font-display: swap; src: local('General Sans'), url('https://fonts.cdnfonts.com/s/85793/GeneralSans-Bold.woff') format('woff'); }
 
+/* Fallback faces scaled to General Sans's widths. Until the web font arrives, text is drawn in
+   Helvetica or Arial; scaled like this it wraps onto the same lines, so nothing below it moves
+   when General Sans swaps in (layout shift). The percentages compare average glyph widths per
+   weight. Capitals get their own family: Helvetica's are about 6% wider than General Sans's. */
+@font-face { font-family: 'General Sans Fallback'; font-weight: 400; src: local('Helvetica'), local('Arial'), local('ArialMT'); size-adjust: 101%; }
+@font-face { font-family: 'General Sans Fallback'; font-weight: 500; src: local('Helvetica'), local('Arial'), local('ArialMT'); size-adjust: 103.7%; }
+@font-face { font-family: 'General Sans Fallback'; font-weight: 600; src: local('Helvetica Bold'), local('Helvetica-Bold'), local('Arial Bold'), local('Arial-BoldMT'); size-adjust: 99%; }
+@font-face { font-family: 'General Sans Fallback'; font-weight: 700; src: local('Helvetica Bold'), local('Helvetica-Bold'), local('Arial Bold'), local('Arial-BoldMT'); size-adjust: 101.7%; }
+@font-face { font-family: 'General Sans Caps Fallback'; font-weight: 400 500; src: local('Helvetica'), local('Arial'), local('ArialMT'); size-adjust: 94.3%; }
+@font-face { font-family: 'General Sans Caps Fallback'; font-weight: 600 700; src: local('Helvetica Bold'), local('Helvetica-Bold'), local('Arial Bold'), local('Arial-BoldMT'); size-adjust: 98.4%; }
+
 :root {
   --black-100: #010103;
   --black-200: #0e0e10;
@@ -18,7 +29,8 @@
   --white-600: #afb0b6;
   --neutral-400: #a3a3a3;
   --accent: #7c9cff;
-  --sans: 'General Sans', 'Segoe UI', Helvetica, Arial, sans-serif;
+  --sans: 'General Sans', 'General Sans Fallback', 'Segoe UI', Helvetica, Arial, sans-serif;
+  --sans-caps: 'General Sans', 'General Sans Caps Fallback', 'Segoe UI', Helvetica, Arial, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --measure: 70ch;
   --gutter: clamp(20px, 5vw, 40px);
@@ -99,6 +111,8 @@ img, svg { max-width: 100%; height: auto; }
 }
 
 /* ---------- shared type ---------- */
+/* Small uppercase labels use the capitals-sized fallback (see the @font-face rules at the top). */
+.eyebrow, .card__eyebrow, .tldr strong, .toc__title, .series__title, .series__here, .pager__dir { font-family: var(--sans-caps); }
 .eyebrow {
   display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
   margin: 0 0 16px; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--white-600);
