@@ -1,0 +1,14 @@
+sequenceDiagram
+  participant W as Service worker
+  participant C as Content script
+  participant B as FastAPI backend
+  participant N as Nova Lite
+  W->>C: wait for DOM to settle
+  C-->>W: snapshot with CSS selectors
+  W->>B: POST task continue with history
+  B->>N: screenshot, trimmed DOM, history
+  N-->>B: one action with a copied selector
+  B-->>W: action JSON
+  W->>C: execute if verb is allowlisted
+  C-->>W: result or FAILED text
+  W->>W: append to history, stop on done or 25 steps

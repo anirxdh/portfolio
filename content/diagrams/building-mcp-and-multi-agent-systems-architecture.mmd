@@ -1,0 +1,31 @@
+graph TD
+  A[User message]
+  subgraph Agent
+    B[Model fills schema]
+    C[Deterministic guard]
+    D[Planner or tool pick]
+    E[Executor allowlist]
+  end
+  subgraph Tools
+    F[MCP gateway]
+    G[Backend MCP servers]
+  end
+  H[External apps and pages]
+  subgraph Proof
+    I[Independent checker]
+    J[Write ledger]
+    K[Read back]
+  end
+  A -->|text is data| B
+  B -->|strict JSON| C
+  C -.->|unsure, ask a question| A
+  C -->|pass| D
+  D -->|namespaced tool call| F
+  F -->|forward over session| G
+  D -->|proposed plan| I
+  I -->|plan is legal| J
+  J -->|keyed writes| E
+  E -->|one action| H
+  H -->|fresh observation| D
+  H -->|real state| K
+  K -->|check again| I
