@@ -1,5 +1,5 @@
 ---
-title: "About Anirudh Vasudevan: Bio, Hackathons, Patent and Research"
+title: "Anirudh Vasudevan: Bio, Hackathons, Patent and Research"
 description: "The story of Anirudh Vasudevan, a full-stack and AI engineer in San Francisco: Rivo, Nonlinear, five hackathon wins, a granted patent, research and education."
 date: 2026-10-17
 slug: about
@@ -46,6 +46,8 @@ I have also been invited to build at hackathons hosted at Y Combinator in San Fr
 - **This website**, including the AniBot chat assistant and the static blog engine that renders these pages. See [how AniBot works](/blog/anibot-portfolio-chatbot/).
 
 Every project is listed on the [Projects](/projects/) page, and every write-up is on the [Writing](/blog/) page.
+
+More: my full [hackathon record](/hackathons/), the [patent and papers](/research/), and the [tools I use](/uses/).
 
 ## Patent and research
 

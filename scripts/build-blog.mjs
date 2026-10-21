@@ -6,7 +6,11 @@
 //   /about/                content/pages/about.md
 //   /resume/               content/pages/resume.md (web version of the resume PDF)
 //   /projects/             src/constants/index.js + articles + content/pages/projects.md
-// It also rewrites dist/sitemap.xml and writes the RSS feed, llms.txt and /blog/index.json.
+//   /research/             content/pages/research.md (patent and papers, ScholarlyArticle data)
+//   /hackathons/           content/pages/hackathons.md + articles (Event data per hackathon)
+//   /uses/                 content/pages/uses.md + the stack tables of the articles
+// It also rewrites dist/sitemap.xml (with image entries) and writes the RSS feed, llms.txt,
+// llms-full.txt (the full text of the profile pages and every article) and /blog/index.json.
 //
 // Article frontmatter (all required unless noted):
 //   title, description (<=160 chars), date (YYYY-MM-DD), slug, project, tags[]
@@ -25,6 +29,9 @@ import { articleTags, buildTopics, tagSlug } from './blog/topics.mjs';
 import { seriesFor } from './blog/series.mjs';
 import { loadProjects } from './blog/projects.mjs';
 import { ARTICLE_SCRIPT, ARTICLE_SCRIPT_HASH } from './blog/enhance.mjs';
+import { loadHackathons } from './blog/hackathons.mjs';
+import { loadUses } from './blog/uses.mjs';
+import { markdownToText, inlineToText } from './blog/plaintext.mjs';
 
 const ROOT = process.cwd();
 const SRC = path.join(ROOT, 'content', 'articles');
@@ -259,7 +266,7 @@ function makeRenderer(article, toc) {
         fs.readFileSync(file, 'utf8').replace(/<\?xml[^>]*\?>/, ''),
         `d-${name}`,
         n > 1 ? `d-${name}-${n}` : `d-${name}`,
-      ).replace(/<svg /, '<svg role="img" ');
+      ).replace(/(<svg\b[^>]*?)\srole="[^"]*"/, '$1').replace(/(<svg\b[^>]*?)\saria-roledescription="[^"]*"/, '$1').replace(/<svg /, `<svg role="img" aria-label="${esc(text || 'Diagram')}" `);
       return `<figure class="diagram"><div class="diagram__canvas">${svg}</div>${
         text ? `<figcaption>${esc(text)}</figcaption>` : ''
       }</figure>`;
@@ -359,7 +366,7 @@ const head = ({ title, description, url, ogImage = DEFAULT_OG, ogType = 'website
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
     <link rel="alternate" type="application/rss+xml" title="${AUTHOR} | Writing" href="${SITE}/blog/feed.xml" />
-    <meta property="og:type" content="${ogType}" />
+    <meta property="og:type" content="${ogType}" />${ogType === 'profile' ? '\n    <meta property="profile:first_name" content="Anirudh" />\n    <meta property="profile:last_name" content="Vasudevan" />\n    <meta property="profile:username" content="anirxdh" />' : ''}
     <meta property="og:url" content="${url}" />
     <meta property="og:title" content="${esc(title)}" />
     <meta property="og:description" content="${esc(description)}" />
@@ -377,6 +384,8 @@ const head = ({ title, description, url, ogImage = DEFAULT_OG, ogType = 'website
     ${extra}
   </head>`;
 
+// The three .topbar__extra links only show where the whole nav still fits on one row (see blog.css);
+// on narrower screens they are left to the footer, so the header never grows a second row.
 const siteNav = (current) => {
   const cur = (k) => (current === k ? ' aria-current="page"' : '');
   return `
@@ -387,7 +396,10 @@ const siteNav = (current) => {
           <a href="/">Home</a>
           <a href="/about/"${cur('about')}>About</a>
           <a href="/projects/"${cur('projects')}>Projects</a>
+          <a class="topbar__extra" href="/hackathons/"${cur('hackathons')}>Hackathons</a>
+          <a class="topbar__extra" href="/research/"${cur('research')}>Research</a>
           <a href="/blog/"${cur('blog')}>Writing</a>
+          <a class="topbar__extra" href="/uses/"${cur('uses')}>Uses</a>
           <a href="/resume/"${cur('resume')}>Resume</a>
           <a href="/#contact">Contact</a>
         </nav>
@@ -403,6 +415,9 @@ const siteFooter = () => `
         <a href="/projects/">Projects</a>
         <a href="/blog/">Writing</a>
         <a href="/resume/">Resume</a>
+        <a href="/hackathons/">Hackathons</a>
+        <a href="/research/">Research</a>
+        <a href="/uses/">Uses</a>
         <a href="https://github.com/anirxdh" target="_blank" rel="noopener noreferrer">GitHub</a>
         <a href="https://www.linkedin.com/in/anirudhvasudev/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
         <a href="/blog/feed.xml">RSS</a>
@@ -458,7 +473,7 @@ const authorBox = () => `
         <img src="/assets/anirudh-avatar.png" alt="Anirudh Vasudevan" width="56" height="56" loading="lazy" />
         <div>
           <p class="author__name"><a href="/about/">Anirudh Vasudevan</a></p>
-          <p class="author__bio">Full-stack and AI engineer in San Francisco. Member of Technical Staff at Rivo, building production voice AI agents. 5x hackathon winner, granted patent, EMNLP author.</p>
+          <p class="author__bio">Full-stack and AI engineer in San Francisco. Member of Technical Staff at Rivo, building production voice AI agents. <a href="/hackathons/">5x hackathon winner</a>, <a href="/research/">granted patent, EMNLP author</a>.</p>
         </div>
       </aside>`;
 
@@ -599,6 +614,8 @@ function profilePage(page, { html, toc, faqs }) {
     description: page.description,
     dateModified: page.modified,
     mainEntity: person({ mainEntityOfPage: url }),
+    // The other pages about him, so a crawler that lands here finds the whole record.
+    relatedLink: ['/resume/', '/projects/', '/hackathons/', '/research/', '/uses/', '/blog/'].map((p) => SITE + p),
   };
   const breadcrumbs = breadcrumbLd([
     { name: 'Home', href: '/' },
@@ -656,7 +673,7 @@ function indexPage(list) {
   const topTopics = TOPICS.slice(0, 10);
   return shell({
     headOpts: {
-      title: `Writing | ${AUTHOR}`,
+      title: `Writing: How I Built My Projects | ${AUTHOR}`,
       description:
         'Deep dives into the AI products, voice agents, and hackathon builds Anirudh Vasudevan shipped: architecture, decisions, and what actually worked.',
       url,
@@ -729,7 +746,7 @@ function topicPage(t) {
   };
   const others = TOPICS.filter((o) => o.slug !== t.slug);
   return shell({
-    headOpts: { title: `${t.name} articles | ${AUTHOR}`, description, url, extra: [collection, breadcrumbLd(trail)].map(ld).join('\n    ') },
+    headOpts: { title: `${t.name}: Project Write-ups and Lessons | ${AUTHOR}`, description, url, extra: [collection, breadcrumbLd(trail)].map(ld).join('\n    ') },
     nav: 'blog',
     main: `<main id="content" class="index">
       ${crumbs(trail.slice(1))}
@@ -779,7 +796,7 @@ function topicsIndexPage() {
           <p class="card__desc">${esc(projectNames(t.articles).join(', '))}</p>
         </a>`;
   return shell({
-    headOpts: { title: `Writing by topic | ${AUTHOR}`, description, url, extra: [collection, breadcrumbLd(trail)].map(ld).join('\n    ') },
+    headOpts: { title: `Writing by Topic: Project Write-ups by Technology | ${AUTHOR}`, description, url, extra: [collection, breadcrumbLd(trail)].map(ld).join('\n    ') },
     nav: 'blog',
     main: `<main id="content" class="index">
       ${crumbs(trail.slice(1))}
@@ -793,17 +810,16 @@ function topicsIndexPage() {
   });
 }
 
-// ---------- resume ----------
-function resumePage(r, pdfBytes) {
-  const url = `${SITE}/resume/`;
-  const pdf = r.pdf || RESUME_PDF;
-  const inline = (md) => inlineMd(md, r);
+// ---------- resume-style blocks (/resume/, /research/) ----------
+// Titled entries (title, place, role, dates, bullets, links) grouped in one card per section.
+function rentryKit(src) {
+  const inline = (md) => inlineMd(md, src);
   const link = (href, label) =>
-    isDraftLink(href, pageBase(r)) ? '' : `<a href="${esc(href)}"${extAttrs(href)}>${esc(label)}${isExternal(href) ? ' ↗' : ''}</a>`;
-  const entry = ({ title, href, where, role, note, when, bullets = [], links = [] }) => {
+    isDraftLink(href, pageBase(src)) ? '' : `<a href="${esc(href)}"${extAttrs(href)}>${esc(label)}${isExternal(href) ? ' ↗' : ''}</a>`;
+  const entry = ({ id, title, href, where, role, note, when, bullets = [], links = [] }) => {
     const linkRow = links.map((l) => link(l.url, l.label)).filter(Boolean);
     return `
-          <article class="rentry">
+          <article class="rentry"${id ? ` id="${esc(id)}"` : ''}>
             <div class="rentry__head">
               <h3 class="rentry__title">${href ? `<a href="${esc(href)}"${extAttrs(href)}>${esc(title)}</a>` : esc(title)}</h3>
               ${where ? `<p class="rentry__where">${esc(where)}</p>` : ''}
@@ -823,6 +839,14 @@ function resumePage(r, pdfBytes) {
         </div>
       </section>`
       : '';
+  return { inline, link, entry, section };
+}
+
+// ---------- resume ----------
+function resumePage(r, pdfBytes) {
+  const url = `${SITE}/resume/`;
+  const pdf = r.pdf || RESUME_PDF;
+  const { inline, link, entry, section } = rentryKit(r);
 
   const education = (r.education || [])
     .map((e) => entry({ title: e.school, where: e.location, role: e.degree, note: e.gpa ? `GPA ${e.gpa}` : '', when: e.dates }))
@@ -879,7 +903,7 @@ function resumePage(r, pdfBytes) {
     ${[profileLd, breadcrumbLd(trail)].map(ld).join('\n    ')}`;
 
   return shell({
-    headOpts: { title: `Resume | ${AUTHOR}`, description: r.description, url, ogType: 'profile', extra },
+    headOpts: { title: `Resume: Full-Stack and AI Engineer | ${AUTHOR}`, description: r.description, url, ogType: 'profile', extra },
     nav: 'resume',
     bodyClass: 'index-body resume-body',
     main: `<main id="content" class="index resume">
@@ -978,7 +1002,7 @@ function projectsPage(page, projects) {
       </section>`
       : '';
   return shell({
-    headOpts: { title: `Projects | ${AUTHOR}`, description: page.description, url, extra: [itemList, breadcrumbLd(trail)].map(ld).join('\n    ') },
+    headOpts: { title: `Projects, Products and Hackathon Builds | ${AUTHOR}`, description: page.description, url, extra: [itemList, breadcrumbLd(trail)].map(ld).join('\n    ') },
     nav: 'projects',
     main: `<main id="content" class="index">
       <header class="index__head">
@@ -986,6 +1010,329 @@ function projectsPage(page, projects) {
         <h1>${esc(page.headline || 'Projects')}</h1>
         ${intro ? `<p class="standfirst">${intro}</p>` : ''}
       </header>${block('hackathon-wins', 'Hackathon wins', wins)}${block('more-projects', wins.length ? 'More projects' : 'Projects', rest)}
+    </main>`,
+  });
+}
+
+// ---------- shared bits for /research/, /hackathons/, /uses/ ----------
+// Where a job named in `at:` is described ("At Rivo" links there).
+const AT_LINKS = {
+  Rivo: '/resume/#experience',
+  Nonlinear: '/resume/#experience',
+  'University of Minnesota': '/research/#research-experience',
+};
+const atLink = (name) => (AT_LINKS[name] ? `<a href="${AT_LINKS[name]}">${esc(name)}</a>` : esc(name));
+const articleUrl = (a) => `${SITE}/blog/${a.slug}/`;
+const blogPostingRef = (a) => ({ '@type': 'BlogPosting', headline: a.title, url: articleUrl(a) });
+// Intro copy from a page's Markdown body (rendered with the article renderer, so draft links drop).
+const pageIntro = (page) => (page.content.trim() ? renderMarkdown(page).html : '');
+// "400-412" -> "400 to 412" (house style reads ranges with "to").
+const pageRange = (p) => String(p).replace(/^(\d+)\s*-\s*(\d+)$/, '$1 to $2');
+
+// ---------- research ----------
+const paperAuthors = (p) => (p.authors?.length ? p.authors : [AUTHOR, ...(p.coauthors || [])]);
+const personNode = (name) => (name === AUTHOR ? { '@id': PERSON_ID } : { '@type': 'Person', name });
+const visiblePapers = (r) => (r.papers || []).filter((x) => !x.draft);
+
+function researchLd(r, url) {
+  const p = r.patent;
+  const civs = p?.article && BY_SLUG.get(p.article);
+  const patent = p && {
+    '@type': 'CreativeWork',
+    '@id': `${url}#${p.id || 'patent'}`,
+    name: p.name,
+    ...(p.filedAs ? { alternateName: p.filedAs } : {}),
+    description: [
+      `${p.status}.`,
+      p.filedAs ? `Filed as "${p.filedAs}", ${p.numberLabel || 'application'} ${p.number}, ${p.when}.` : '',
+      p.assignee ? `Assigned to ${p.assignee}.` : '',
+      p.summary || '',
+    ]
+      .filter(Boolean)
+      .join(' '),
+    ...(p.number
+      ? { identifier: { '@type': 'PropertyValue', propertyID: `${p.numberLabel || 'Patent application'} number`, value: String(p.number) } }
+      : {}),
+    creator: { '@id': PERSON_ID },
+    ...(p.assignee ? { sourceOrganization: { '@type': 'CollegeOrUniversity', name: p.assignee } } : {}),
+    url: `${url}#${p.id || 'patent'}`,
+    ...(civs ? { subjectOf: blogPostingRef(civs) } : {}),
+  };
+  const papers = visiblePapers(r).map((x) => {
+    const doiUrl = x.doi ? `https://doi.org/${x.doi}` : x.url;
+    const description = [x.venue, x.coauthors?.length ? `With ${andList(x.coauthors)}` : ''].filter(Boolean).join('. ');
+    return {
+      '@type': 'ScholarlyArticle',
+      '@id': `${url}#${x.id}`,
+      headline: x.title,
+      name: x.title,
+      author: paperAuthors(x).map(personNode),
+      ...(x.year ? { datePublished: String(x.year) } : {}),
+      ...(description ? { description: `${description}.` } : {}),
+      ...(x.book
+        ? { isPartOf: { '@type': 'Book', name: x.book, ...(x.series ? { isPartOf: { '@type': 'BookSeries', name: x.series } } : {}) } }
+        : x.series
+          ? { isPartOf: { '@type': 'CreativeWorkSeries', name: x.series } }
+          : {}),
+      ...(x.publisher ? { publisher: { '@type': 'Organization', name: x.publisher } } : {}),
+      ...(x.pages ? { pagination: String(x.pages) } : {}),
+      ...(x.doi ? { identifier: { '@type': 'PropertyValue', propertyID: 'DOI', value: x.doi }, sameAs: doiUrl } : {}),
+      url: doiUrl || `${url}#${x.id}`,
+    };
+  });
+  return [patent, ...papers].filter(Boolean);
+}
+
+// Plain text of one paper's byline and source, shared by the page and llms-full.txt.
+const paperByline = (x) => (x.authors?.length ? `By ${andList(x.authors)}.` : x.coauthors?.length ? `With ${andList(x.coauthors)}.` : '');
+const paperSource = (x) =>
+  x.book ? `In *${x.book}*${x.series ? ` (${x.series})` : ''}${x.pages ? `, pages ${pageRange(x.pages)}` : ''}.` : '';
+const patentLines = (p) =>
+  [
+    p.filedAs ? `Filed as *${p.filedAs}*, ${p.numberLabel || 'application'} ${p.number}, ${p.when}.` : '',
+    p.assignee ? `Assigned to ${p.assignee}.` : '',
+    p.summary || '',
+  ].filter(Boolean);
+
+function researchPage(r) {
+  const url = `${SITE}/research/`;
+  const { entry, section, link } = rentryKit(r);
+  const p = r.patent;
+  const papers = visiblePapers(r);
+  const patentBlock = p
+    ? entry({ id: p.id || 'patent', title: p.name, role: p.status, when: p.when, bullets: patentLines(p), links: p.links || [] })
+    : '';
+  const paperBlocks = papers
+    .map((x) => {
+      const doiUrl = x.doi ? `https://doi.org/${x.doi}` : x.url;
+      return entry({
+        id: x.id,
+        title: x.title,
+        href: doiUrl,
+        role: x.venue,
+        when: x.when ? String(x.when) : '',
+        bullets: [paperByline(x), paperSource(x), x.note].filter(Boolean),
+        links: x.doi ? [{ url: doiUrl, label: `DOI ${x.doi}` }] : [],
+      });
+    })
+    .join('');
+  const experience = (r.experience || [])
+    .map((x) => entry({ title: x.title, href: x.url, where: x.where, role: x.role, when: x.when, bullets: x.bullets || [], links: x.links || [] }))
+    .join('');
+  const profiles = (r.profiles || []).map((l) => link(l.url, l.label)).filter(Boolean);
+  const intro = pageIntro(r);
+  const works = researchLd(r, url);
+  const trail = [
+    { name: 'Home', href: '/' },
+    { name: 'Research', href: '/research/' },
+  ];
+  const pageLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `Patent and research by ${AUTHOR}`,
+    url,
+    description: r.description,
+    dateModified: r.modified,
+    about: { '@id': PERSON_ID },
+    author: { '@id': PERSON_ID },
+    mainEntity: {
+      '@type': 'ItemList',
+      numberOfItems: works.length,
+      itemListElement: works.map((w, i) => ({ '@type': 'ListItem', position: i + 1, item: w })),
+    },
+  };
+  const counts = [p ? plural(1, 'patent') : '', papers.length ? plural(papers.length, 'paper') : ''].filter(Boolean);
+  return shell({
+    headOpts: { title: `${r.title} | ${AUTHOR}`, description: r.description, url, extra: [pageLd, breadcrumbLd(trail)].map(ld).join('\n    ') },
+    nav: 'research',
+    bodyClass: 'index-body resume-body',
+    main: `<main id="content" class="index resume">
+      <header class="index__head resume__head">
+        <p class="eyebrow"><span>Research</span>${counts.map((c) => `<span class="dot">·</span><span>${c}</span>`).join('')}</p>
+        <h1>${esc(r.headline || r.title)}</h1>
+        ${r.standfirst ? `<p class="standfirst">${esc(r.standfirst)}</p>` : ''}
+        ${profiles.length ? `<p class="resume__contact">${profiles.join('')}</p>` : ''}
+      </header>
+      <div class="resume__body">
+        ${intro ? `<div class="prose page-intro">${intro}</div>` : ''}${section('patent-title', 'Patent', patentBlock)}${section(
+          'papers',
+          'Papers',
+          paperBlocks,
+        )}${section('research-experience', 'Research experience', experience)}
+      </div>
+    </main>`,
+  });
+}
+
+// ---------- hackathons ----------
+const writeupLabel = (e, a) => (e.articles.length > 1 ? `Write-up (${String(a.project).match(/\(([^)]+)\)\s*$/)?.[1] || a.title})` : 'Write-up');
+const hackLinks = (e) => {
+  const links = e.articles.map((a) => `<a href="/blog/${a.slug}/">${esc(writeupLabel(e, a))}</a>`);
+  if (e.live) links.push(`<a href="${esc(e.live)}"${extAttrs(e.live)}>${esc(e.liveLabel || 'Live demo')}${isExternal(e.live) ? ' ↗' : ''}</a>`);
+  if (e.repo) links.push(`<a href="${esc(e.repo)}"${extAttrs(e.repo)}>Source ↗</a>`);
+  return links;
+};
+const eventWhere = (e) => [e.place, e.online ? 'Online' : ''].filter(Boolean).join(', ');
+
+function hackathonCard(e) {
+  const lead = e.articles[0];
+  const titleHref = lead ? `/blog/${lead.slug}/` : e.live || e.repo;
+  const eventName = e.eventUrl ? `<a href="${esc(e.eventUrl)}"${extAttrs(e.eventUrl)}>${esc(e.event)}</a>` : esc(e.event);
+  const where = eventWhere(e);
+  const links = hackLinks(e);
+  return `
+        <article class="card pcard hcard" id="${esc(e.key)}" style="--accent:${e.accent || DEFAULT_ACCENT}">
+          <p class="card__eyebrow"><span class="badge${e.entry ? ' badge--muted' : ''}">${esc(e.result)}</span><time datetime="${e.date}">${esc(e.when)}</time></p>
+          <h3 class="card__title">${titleHref ? `<a href="${esc(titleHref)}"${extAttrs(titleHref)}>${esc(e.project)}</a>` : esc(e.project)}</h3>
+          <p class="hcard__event">${eventName}${where ? `<span class="hcard__where">, ${esc(where)}</span>` : ''}</p>
+          <p class="card__desc">${esc(e.built)}</p>
+          ${e.note ? `<p class="card__desc hcard__note">${esc(e.note)}</p>` : ''}
+          ${links.length ? `<p class="pcard__links">${links.join('')}</p>` : ''}
+        </article>`;
+}
+
+function hackathonEventLd(e, url) {
+  const lead = e.articles[0];
+  const sameAs = [e.live, e.repo].filter((u) => u && isExternal(u));
+  return {
+    '@type': 'Event',
+    '@id': `${url}#${e.key}`,
+    name: e.event,
+    startDate: e.date,
+    ...(e.end ? { endDate: e.end } : {}),
+    eventStatus: 'https://schema.org/EventScheduled',
+    ...(e.online
+      ? { eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode', location: { '@type': 'VirtualLocation', name: 'Online' } }
+      : e.place
+        ? { eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode', location: { '@type': 'Place', name: e.place } }
+        : {}),
+    ...(e.eventUrl ? { url: e.eventUrl } : {}),
+    description: e.entry
+      ? `${AUTHOR} entered ${e.project}. ${e.built} No placement is recorded.`
+      : `Result: ${e.result}. ${AUTHOR} built ${e.project}. ${e.built}`,
+    attendee: { '@id': PERSON_ID },
+    workFeatured: {
+      '@type': 'CreativeWork',
+      name: e.project,
+      url: lead ? articleUrl(lead) : e.live || `${url}#${e.key}`,
+      description: e.built,
+      creator: { '@id': PERSON_ID },
+      ...(e.entry ? {} : { award: e.award || `${e.result}, ${e.event}` }),
+      ...(sameAs.length ? { sameAs } : {}),
+      ...(e.articles.length ? { subjectOf: e.articles.map(blogPostingRef) } : {}),
+    },
+  };
+}
+
+function hackathonsPage(page, sections) {
+  const url = `${SITE}/hackathons/`;
+  const all = sections.flatMap((s) => s.events);
+  const wins = all.filter((e) => !e.entry);
+  const seasons = sections.filter((s) => s.season);
+  const intro = pageIntro(page);
+  const trail = [
+    { name: 'Home', href: '/' },
+    { name: 'Hackathons', href: '/hackathons/' },
+  ];
+  const items = [];
+  for (const s of sections) {
+    if (s.season) {
+      items.push({
+        '@type': 'Event',
+        '@id': `${url}#${s.id}`,
+        name: s.season.name,
+        eventStatus: 'https://schema.org/EventScheduled',
+        description: `Result: ${s.season.result}. ${s.season.summary || s.season.text}`,
+        attendee: { '@id': PERSON_ID },
+      });
+    }
+    for (const e of s.events) items.push(hackathonEventLd(e, url));
+  }
+  const listLd = {
+    '@context': 'https://schema.org',
+    '@type': 'ItemList',
+    name: `Hackathons ${AUTHOR} has competed in`,
+    url,
+    description: page.description,
+    numberOfItems: items.length,
+    itemListElement: items.map((item, i) => ({ '@type': 'ListItem', position: i + 1, item })),
+  };
+  const block = (s) => `
+      <section class="psec" aria-labelledby="${esc(s.id)}-title"${s.season ? ` id="${esc(s.id)}"` : ''}>
+        <h2 id="${esc(s.id)}-title" class="section-title">${esc(s.title)} <span class="section-title__count">${s.events.length}</span></h2>
+        ${
+          s.season
+            ? `<div class="callout"><p class="card__eyebrow"><span class="badge">${esc(s.season.result)}</span><span>${esc(s.season.name)}</span></p><p>${esc(s.season.text)}</p></div>`
+            : ''
+        }
+        <div class="cards">${s.events.map(hackathonCard).join('')}</div>
+      </section>`;
+  return shell({
+    headOpts: { title: `${page.title} | ${AUTHOR}`, description: page.description, url, extra: [listLd, breadcrumbLd(trail)].map(ld).join('\n    ') },
+    nav: 'hackathons',
+    main: `<main id="content" class="index">
+      <header class="index__head">
+        <p class="eyebrow"><span>Hackathons</span><span class="dot">·</span><span>${wins.length} wins and placements</span>${seasons
+          .map((s) => `<span class="dot">·</span><span>${esc(s.season.result)}, ${esc(s.season.name)}</span>`)
+          .join('')}</p>
+        <h1>${esc(page.headline || page.title)}</h1>
+        ${page.standfirst ? `<p class="standfirst">${esc(page.standfirst)}</p>` : ''}
+      </header>
+      ${intro ? `<div class="prose page-intro">${intro}</div>` : ''}${sections.map(block).join('')}
+    </main>`,
+  });
+}
+
+// ---------- uses ----------
+function usesRow(t) {
+  const parts = [];
+  if (t.at.length) parts.push(`At ${andList(t.at.map(atLink))}.`);
+  if (t.articles.length) parts.push(`Used in ${andList(t.articles.map(({ article, label }) => `<a href="/blog/${article.slug}/">${esc(label)}</a>`))}.`);
+  if (t.note) parts.push(esc(t.note));
+  return `
+            <li class="uses__row"><span class="uses__name">${esc(t.name)}</span>${parts.length ? `<span class="uses__where">${parts.join(' ')}</span>` : ''}</li>`;
+}
+
+function usesPage(page, groups) {
+  const url = `${SITE}/uses/`;
+  const { section } = rentryKit(page);
+  const tools = groups.flatMap((g) => g.tools);
+  const intro = pageIntro(page);
+  const trail = [
+    { name: 'Home', href: '/' },
+    { name: 'Uses', href: '/uses/' },
+  ];
+  const pageLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: `Tools ${AUTHOR} uses`,
+    url,
+    description: page.description,
+    dateModified: page.modified,
+    about: { '@id': PERSON_ID },
+    author: { '@id': PERSON_ID },
+    mainEntity: {
+      '@type': 'ItemList',
+      name: `Tools ${AUTHOR} uses`,
+      numberOfItems: tools.length,
+      itemListElement: tools.map((t, i) => ({ '@type': 'ListItem', position: i + 1, name: t.name })),
+    },
+  };
+  return shell({
+    headOpts: { title: `${page.title} | ${AUTHOR}`, description: page.description, url, extra: [pageLd, breadcrumbLd(trail)].map(ld).join('\n    ') },
+    nav: 'uses',
+    bodyClass: 'index-body resume-body',
+    main: `<main id="content" class="index resume uses-page">
+      <header class="index__head resume__head">
+        <p class="eyebrow"><span>Uses</span><span class="dot">·</span><span>${plural(tools.length, 'tool')}</span><span class="dot">·</span><span>Updated ${fmtMonth(page.modified)}</span></p>
+        <h1>${esc(page.headline || page.title)}</h1>
+        ${page.standfirst ? `<p class="standfirst">${esc(page.standfirst)}</p>` : ''}
+      </header>
+      <div class="resume__body">
+        ${intro ? `<div class="prose page-intro">${intro}</div>` : ''}${groups
+          .map((g) => section(g.id, esc(g.name), `\n          <ul class="uses">${g.tools.map(usesRow).join('')}\n          </ul>`))
+          .join('')}
+      </div>
     </main>`,
   });
 }
@@ -1045,20 +1392,48 @@ if (projectsSrc) {
   generated['/projects/'] = writePage('projects', projectsPage(projectsSrc, projects));
 }
 
+// Research: the patent and the papers, each with structured data that points back to the Person.
+const research = loadPage('research');
+if (research) generated['/research/'] = writePage('research', researchPage(research));
+
+// Hackathons: every event with its date, result and project, cross-checked with the homepage list.
+const hackathonsSrc = loadPage('hackathons');
+let hackathonSections = [];
+if (hackathonsSrc) {
+  hackathonSections = await loadHackathons({ root: ROOT, page: hackathonsSrc, bySlug: BY_SLUG, warn });
+  generated['/hackathons/'] = writePage('hackathons', hackathonsPage(hackathonsSrc, hackathonSections));
+}
+const hackathonArticles = hackathonSections.flatMap((s) => s.events.flatMap((e) => e.articles));
+
+// Uses: tool groups, each tool linked to the write-ups whose stack used it.
+const usesSrc = loadPage('uses');
+let usesGroups = [];
+if (usesSrc) {
+  usesGroups = loadUses({ page: usesSrc, articles, bySlug: BY_SLUG, warn });
+  generated['/uses/'] = writePage('uses', usesPage(usesSrc, usesGroups));
+}
+
 // llms.txt: a plain-text map of the site for LLM crawlers (https://llmstxt.org).
 // Sections with nothing in them are left out; titles and descriptions are markdown-escaped.
 const llmsItem = (name, url, note) => `- [${mdText(name)}](${url})${note ? `: ${mdText(note)}` : ''}`;
 const llmsSection = (title, lines) => (lines.length ? `## ${title}\n${lines.join('\n')}` : '');
+const LLMS_SUMMARY =
+  'Anirudh Vasudevan is a full-stack and AI engineer in San Francisco. He is a Member of Technical Staff at Rivo (voice AI agents, React Native apps, analytics and growth), was previously the founding engineer at Nonlinear, holds an MS in Computer Science from the University of Minnesota, is a 5x hackathon winner (Y Combinator AI Hackathon top 10, ElevenLabs hackathon wins), holds a granted patent for a contactless voting system, and co-wrote an EMNLP paper.';
 const llms = [
   '# Anirudh Vasudevan',
-  '> Anirudh Vasudevan is a full-stack and AI engineer in San Francisco. He is a Member of Technical Staff at Rivo (voice AI agents, React Native apps, analytics and growth), was previously the founding engineer at Nonlinear, holds an MS in Computer Science from the University of Minnesota, is a 5x hackathon winner (Y Combinator AI Hackathon top 10, ElevenLabs hackathon wins), holds a granted patent for a contactless voting system, and co-wrote an EMNLP paper.',
+  `> ${LLMS_SUMMARY}`,
+  `The full text of the profile pages and every article is in one file: ${SITE}/llms-full.txt`,
   llmsSection(
     'Profile',
     [
       aboutPage && llmsItem('About Anirudh Vasudevan', `${SITE}/about/`, 'biography, current work, hackathons, patent, research, education, contact'),
       resume && llmsItem('Resume', `${SITE}/resume/`, 'education, skills, experience, projects, patent, and publications as a web page'),
       llmsItem('Resume (PDF)', `${SITE}${RESUME_PDF}`),
+      hackathonsSrc && llmsItem('Hackathons', `${SITE}/hackathons/`, 'the hackathon record: each event with its date, result, project, and links'),
+      research && llmsItem('Research', `${SITE}/research/`, 'the granted patent and the papers, with coauthors, venues, and DOI links'),
+      usesSrc && llmsItem('Tools I use', `${SITE}/uses/`, 'languages, frameworks, AI and voice tools, data, testing, growth, and infrastructure, linked to the write-ups'),
       projectsSrc && llmsItem('Projects', `${SITE}/projects/`, 'every project with its award, tech stack, and links to the live site, source, and write-up'),
+      llmsItem('Full text (llms-full.txt)', `${SITE}/llms-full.txt`, 'about, resume, research, hackathons, tools, and every article as plain text in one file'),
       llmsItem('Portfolio home', `${SITE}/`, 'projects, experience, hackathons, AniBot chat assistant'),
       llmsItem('LinkedIn', 'https://www.linkedin.com/in/anirudhvasudev/'),
       llmsItem('GitHub', 'https://github.com/anirxdh'),
@@ -1070,14 +1445,198 @@ const llms = [
   ),
   llmsSection(
     'Writing (project deep dives)',
-    articles.map((a) => llmsItem(a.title, `${SITE}/blog/${a.slug}/`, a.description)),
+    [
+      llmsItem('All writing', `${SITE}/blog/`, `${plural(articles.length, 'article')}, newest first`),
+      ...articles.map((a) => llmsItem(a.title, `${SITE}/blog/${a.slug}/`, a.description)),
+    ],
   ),
   llmsSection(
     'Writing by topic',
-    TOPICS.map((t) => llmsItem(t.name, `${SITE}${topicHref(t.slug)}`, plural(t.articles.length, 'article'))),
+    [
+      ...(TOPICS.length ? [llmsItem('All topics', `${SITE}/blog/topics/`)] : []),
+      ...TOPICS.map((t) => llmsItem(t.name, `${SITE}${topicHref(t.slug)}`, plural(t.articles.length, 'article'))),
+    ],
   ),
 ].filter(Boolean);
 fs.writeFileSync(path.join(DIST, 'llms.txt'), `${llms.join('\n\n')}\n`);
+
+// llms-full.txt: the full text of the profile pages and every published article in one file, so an
+// LLM can read the whole site in one fetch. Markdown-ish plain text: no code blocks, no HTML, every
+// link absolute, links to unpublished articles reduced to their text. No phone number anywhere.
+const textLinks = (src) => {
+  const base = pageBase(src);
+  return (href) => {
+    if (!href || isDraftLink(href, base)) return null;
+    try {
+      return new URL(href, base).href;
+    } catch {
+      return href;
+    }
+  };
+};
+const mdToText = (src, md) => markdownToText(md, { link: textLinks(src) });
+const lineText = (src, md) => inlineToText(md, { link: textLinks(src) });
+const doc = (title, url, meta, body) =>
+  [`# ${title}`, `URL: ${url}`, ...meta.filter(Boolean), '', body].join('\n').replace(/\n{3,}/g, '\n\n').trim();
+const linkList = (src, links = []) =>
+  links
+    .map((l) => {
+      const href = textLinks(src)(l.url);
+      return href ? `${l.label}: ${href}` : '';
+    })
+    .filter(Boolean);
+
+function resumeText(r) {
+  const out = [];
+  if (r.headline) out.push(r.headline);
+  if (r.email) out.push(`Email: ${r.email}`);
+  const links = linkList(r, r.links);
+  if (links.length) out.push(links.join('\n'));
+  if ((r.education || []).length) {
+    out.push(
+      `## Education\n${r.education
+        .map((e) => `- ${e.degree}, ${e.fullName || e.school}${e.location ? ` (${e.location})` : ''}, ${e.dates}${e.gpa ? `, GPA ${e.gpa}` : ''}`)
+        .join('\n')}`,
+    );
+  }
+  if ((r.skills || []).length) out.push(`## Skills\n${r.skills.map((g) => `- ${g.group}: ${(g.items || []).join(', ')}`).join('\n')}`);
+  if ((r.experience || []).length) {
+    out.push(
+      `## Professional experience\n${r.experience
+        .map((x) => `### ${x.role}, ${x.org}${x.location ? ` (${x.location})` : ''}, ${x.dates}\n${(x.bullets || []).map((b) => `- ${lineText(r, b)}`).join('\n')}`)
+        .join('\n\n')}`,
+    );
+  }
+  if ((r.projects || []).length) {
+    out.push(
+      `## Project experience\n${r.projects
+        .map((p) => [`### ${p.name}${p.subtitle ? `: ${p.subtitle}` : ''}`, ...(p.bullets || []).map((b) => `- ${lineText(r, b)}`), ...linkList(r, p.links)].join('\n'))
+        .join('\n\n')}`,
+    );
+  }
+  if ((r.achievements || []).length) out.push(`## Patents, publications, and achievements\n${r.achievements.map((m) => `- ${lineText(r, m)}`).join('\n')}`);
+  return out.join('\n\n');
+}
+
+function researchText(r) {
+  const out = [];
+  if (r.content.trim()) out.push(mdToText(r, r.content));
+  const p = r.patent;
+  if (p) {
+    out.push(
+      [`## Patent`, `### ${p.name} (${p.status}, ${p.when})`, ...patentLines(p).map((l) => `- ${lineText(r, l)}`), ...linkList(r, p.links)].join('\n'),
+    );
+  }
+  const papers = visiblePapers(r);
+  if (papers.length) {
+    out.push(
+      `## Papers\n${papers
+        .map((x) =>
+          [
+            `### ${x.title}`,
+            `- Venue: ${x.venue}`,
+            paperByline(x) && `- ${paperByline(x)}`,
+            paperSource(x) && `- ${lineText(r, paperSource(x))}`,
+            x.doi && `- DOI: https://doi.org/${x.doi}`,
+          ]
+            .filter(Boolean)
+            .join('\n'),
+        )
+        .join('\n\n')}`,
+    );
+  }
+  if ((r.experience || []).length) {
+    out.push(
+      `## Research experience\n${r.experience
+        .map((x) => [`### ${x.title}${x.role ? ` (${x.role})` : ''}${x.when ? `, ${x.when}` : ''}`, ...(x.bullets || []).map((b) => `- ${lineText(r, b)}`)].join('\n'))
+        .join('\n\n')}`,
+    );
+  }
+  const profiles = linkList(r, r.profiles);
+  if (profiles.length) out.push(`## Profiles\n${profiles.map((l) => `- ${l}`).join('\n')}`);
+  return out.join('\n\n');
+}
+
+function hackathonsText(page, sections) {
+  const out = [];
+  if (page.content.trim()) out.push(mdToText(page, page.content));
+  for (const s of sections) {
+    const lines = [`## ${s.title}`];
+    if (s.season) lines.push(`${s.season.name}: ${s.season.result}. ${s.season.text}`);
+    for (const e of s.events) {
+      const where = eventWhere(e);
+      lines.push(
+        [
+          `### ${e.project}: ${e.result}, ${e.event}`,
+          `- When: ${e.when}${where ? ` (${where})` : ''}`,
+          `- What it is: ${e.built}`,
+          e.note && `- Note: ${e.note}`,
+          ...e.articles.map((a) => `- ${writeupLabel(e, a)}: ${articleUrl(a)}`),
+          e.live && `- ${e.liveLabel || 'Live demo'}: ${e.live}`,
+          e.repo && `- Source: ${e.repo}`,
+          e.eventUrl && `- Event page: ${e.eventUrl}`,
+        ]
+          .filter(Boolean)
+          .join('\n'),
+      );
+    }
+    out.push(lines.join('\n\n'));
+  }
+  return out.join('\n\n');
+}
+
+function usesText(page, groups) {
+  const out = [];
+  if (page.content.trim()) out.push(mdToText(page, page.content));
+  for (const g of groups) {
+    out.push(
+      `## ${g.name}\n${g.tools
+        .map((t) => {
+          const bits = [t.at.length ? `at ${andList(t.at)}` : '', t.articles.length ? `used in ${andList(t.articles.map((x) => x.label))}` : '', t.note || '']
+            .filter(Boolean)
+            .join('; ');
+          return `- ${t.name}${bits ? `: ${bits}` : ''}`;
+        })
+        .join('\n')}`,
+    );
+  }
+  return out.join('\n\n');
+}
+
+const fullDocs = [
+  [
+    '# Anirudh Vasudevan: the full text of anirudhvasudevan.com',
+    `> ${LLMS_SUMMARY}`,
+    `This file holds the plain text of the profile pages and every published article on ${SITE}, so the whole site can be read in one request. Code samples and diagrams are left out; each article's page has them. A shorter map of the site is at ${SITE}/llms.txt. Generated ${TODAY}.`,
+  ].join('\n\n'),
+  aboutPage && doc(aboutPage.title, `${SITE}/about/`, [`Description: ${aboutPage.description}`], mdToText(aboutPage, aboutPage.content)),
+  resume && doc(`Resume of ${resume.name || AUTHOR}`, `${SITE}/resume/`, [`PDF: ${SITE}${resume.pdf || RESUME_PDF}`], resumeText(resume)),
+  research && doc(`${research.title}: ${AUTHOR}`, `${SITE}/research/`, [`Description: ${research.description}`], researchText(research)),
+  hackathonsSrc &&
+    doc(`${hackathonsSrc.title}: ${AUTHOR}`, `${SITE}/hackathons/`, [`Description: ${hackathonsSrc.description}`], hackathonsText(hackathonsSrc, hackathonSections)),
+  usesSrc && doc(`${usesSrc.title}: ${AUTHOR}`, `${SITE}/uses/`, [`Description: ${usesSrc.description}`], usesText(usesSrc, usesGroups)),
+  ...articles.map((a) =>
+    doc(
+      a.title,
+      `${SITE}/blog/${a.slug}/`,
+      [
+        `Author: ${AUTHOR}`,
+        `Project: ${a.project}`,
+        `Published: ${a.date}${a.updated ? ` (updated ${a.updated})` : ''}`,
+        a.award && `Result: ${a.award}`,
+        a.live && `Live: ${a.live}`,
+        a.repo && `Source: ${a.repo}`,
+        `Tags: ${articleTags(a)
+          .map((t) => t.name)
+          .join(', ')}`,
+        a.summary && `Summary: ${a.summary}`,
+      ],
+      mdToText(a, a.content),
+    ),
+  ),
+].filter(Boolean);
+const llmsFull = `${fullDocs.join('\n\n---\n\n')}\n`;
+fs.writeFileSync(path.join(DIST, 'llms-full.txt'), llmsFull);
 
 // Machine-readable index for the homepage "Writing" section.
 fs.writeFileSync(
@@ -1127,24 +1686,53 @@ fs.writeFileSync(path.join(OUT, 'feed.xml'), rss);
 // Sitemap: homepage, profile pages, blog index, topics, and every article.
 // lastmod tracks real content changes: article dates (updated/date frontmatter), and for the other
 // pages the newest of their frontmatter `updated`/`date` and the git history of their sources.
+// Image entries (sitemap image extension): each page's share image, the avatar on /about/, and each
+// article's share image. Only PNG, JPEG and WebP files that exist in dist/ are listed (the diagrams
+// are inline SVG, which image sitemaps do not take).
 const latest = updatedOf(articles) || TODAY;
+const OG_PATH = '/assets/og-image.png';
+const AVATAR_PATH = '/assets/anirudh-avatar.png';
+const sitemapImage = (src) => {
+  if (!src) return null;
+  const rel = String(src).startsWith(SITE) ? String(src).slice(SITE.length) : String(src);
+  if (!rel.startsWith('/') || !/\.(png|jpe?g|webp)$/i.test(rel)) return null;
+  return fs.existsSync(path.join(DIST, rel.slice(1))) ? `${SITE}${rel}` : null;
+};
+const images = (...srcs) => [...new Set(srcs.map(sitemapImage).filter(Boolean))];
 const urls = [
   // The homepage is the React app: index.html plus src/.
-  { loc: `${SITE}/`, lastmod: gitDay('index.html', 'src') },
-  ...(aboutPage ? [{ loc: `${SITE}/about/`, lastmod: aboutPage.modified }] : []),
+  { loc: `${SITE}/`, lastmod: gitDay('index.html', 'src'), images: images(OG_PATH) },
+  ...(aboutPage ? [{ loc: `${SITE}/about/`, lastmod: aboutPage.modified, images: images(AVATAR_PATH, OG_PATH) }] : []),
   // /projects/ is built from projects.md, the homepage project list and the articles.
-  ...(projectsSrc ? [{ loc: `${SITE}/projects/`, lastmod: maxDay(projectsSrc.modified, gitDay('src/constants'), updatedOf(articles)) }] : []),
-  ...(resume ? [{ loc: `${SITE}/resume/`, lastmod: resume.modified }] : []),
+  ...(projectsSrc
+    ? [{ loc: `${SITE}/projects/`, lastmod: maxDay(projectsSrc.modified, gitDay('src/constants'), updatedOf(articles)), images: images(OG_PATH) }]
+    : []),
+  ...(resume ? [{ loc: `${SITE}/resume/`, lastmod: resume.modified, images: images(OG_PATH) }] : []),
+  // /hackathons/ also shows each write-up's title and links, so it moves with those articles.
+  ...(hackathonsSrc
+    ? [{ loc: `${SITE}/hackathons/`, lastmod: maxDay(hackathonsSrc.modified, updatedOf(hackathonArticles)), images: images(OG_PATH) }]
+    : []),
+  ...(research ? [{ loc: `${SITE}/research/`, lastmod: research.modified, images: images(OG_PATH) }] : []),
+  // /uses/ links every article whose stack uses a tool, so any article can change it.
+  ...(usesSrc ? [{ loc: `${SITE}/uses/`, lastmod: maxDay(usesSrc.modified, latest), images: images(OG_PATH) }] : []),
   { loc: `${SITE}/blog/`, lastmod: maxDay(latest, gitDay('scripts/build-blog.mjs', 'scripts/blog')) },
   ...(TOPICS.length ? [{ loc: `${SITE}/blog/topics/`, lastmod: maxDay(latest, gitDay('scripts/build-blog.mjs', 'scripts/blog')) }] : []),
   ...TOPICS.map((t) => ({ loc: SITE + topicHref(t.slug), lastmod: updatedOf(t.articles) })),
-  ...articles.map((a) => ({ loc: `${SITE}/blog/${a.slug}/`, lastmod: a.updated || a.date })),
+  ...articles.map((a) => ({ loc: `${SITE}/blog/${a.slug}/`, lastmod: a.updated || a.date, images: images(a.cover) })),
 ];
+const sitemapUrl = (u) =>
+  [
+    '  <url>',
+    `    <loc>${esc(u.loc)}</loc>`,
+    `    <lastmod>${u.lastmod}</lastmod>`,
+    ...(u.images || []).map((img) => `    <image:image>\n      <image:loc>${esc(img)}</image:loc>\n    </image:image>`),
+    '  </url>',
+  ].join('\n');
 fs.writeFileSync(
   path.join(DIST, 'sitemap.xml'),
   `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map((u) => `  <url>\n    <loc>${u.loc}</loc>\n    <lastmod>${u.lastmod}</lastmod>\n  </url>`).join('\n')}
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+${urls.map(sitemapUrl).join('\n')}
 </urlset>
 `,
 );
@@ -1182,6 +1770,10 @@ for (const [route, html] of Object.entries(generated)) {
 console.log(
   `[blog] ${articles.length} article(s), ${TOPICS.length} topic page(s)${resume ? ', /resume/' : ''}${
     projectsSrc ? `, /projects/ (${projects.length} projects)` : ''
-  } → dist/, sitemap.xml (${urls.length} urls), feed.xml, llms.txt`,
+  }${research ? ', /research/' : ''}${hackathonsSrc ? `, /hackathons/ (${hackathonSections.reduce((n, x) => n + x.events.length, 0)} events)` : ''}${
+    usesSrc ? `, /uses/ (${usesGroups.reduce((n, g) => n + g.tools.length, 0)} tools)` : ''
+  } → dist/, sitemap.xml (${urls.length} urls, ${urls.reduce((n, u) => n + (u.images || []).length, 0)} images), feed.xml, llms.txt, llms-full.txt (${Math.round(
+    Buffer.byteLength(llmsFull) / 1024,
+  )} KB)`,
 );
 console.log(`[blog] article inline script CSP hash: '${ARTICLE_SCRIPT_HASH}'`);

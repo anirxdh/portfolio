@@ -112,7 +112,7 @@ export const navLinks = [
       desc: '🥈 2nd place at the ElevenLabs × Replit hackathon. Real-time voice conversations with AI colonists living on Mars in the year 2159.',
       subdesc:
         'A walkie-talkie interface lets you talk to three distinct AI characters with unique ElevenLabs voices, set against an interactive 3D Mars with radio effects and ambient space audio. Built with Next.js, React Three Fiber, FastAPI, Claude, and ElevenLabs.',
-      href: 'https://github.com/anirxdh/facetime-from-mars-2159',
+      href: 'https://facetime-from-mars.netlify.app/',
       textures: ['/textures/project/facetime-1.jpg', '/textures/project/facetime-2.jpg', '/textures/project/facetime-3.jpg'],
       logo: '/assets/logos/facetime.svg',
       logoStyle: {
@@ -262,7 +262,7 @@ export const navLinks = [
       event: 'ElevenLabs × Replit Hackathon',
       project: 'FaceTime from Mars',
       blurb: 'Real-time voice calls with AI colonists on Mars in 2159, over an interactive 3D world.',
-      href: 'https://github.com/anirxdh/facetime-from-mars-2159',
+      href: 'https://facetime-from-mars.netlify.app/',
       article: 'facetime-from-mars',
       accent: '#e0662f',
     },
