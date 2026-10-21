@@ -1,0 +1,31 @@
+graph TD
+  subgraph Build
+    A[Constraint as idea]
+    B[Demo-sized scope]
+    C[Keyless prototype]
+    D[Sponsor tech wired in]
+  end
+  subgraph Proof
+    E[Live URL]
+    F[Public repo]
+    G[Honest write-up]
+  end
+  subgraph Distribution
+    H[Demo video hook]
+    I[GIFs]
+    J[Circle of builders]
+  end
+  K[Judges]
+  L[Popular vote]
+  A --> B
+  B -->|only what the demo shows| C
+  C -->|mocks swapped for real calls| D
+  D --> E
+  D --> F
+  E -->|first five seconds| H
+  E --> I
+  H --> J
+  I --> J
+  E --> K
+  J --> L
+  F --> G

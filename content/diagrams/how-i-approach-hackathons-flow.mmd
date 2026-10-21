@@ -1,0 +1,18 @@
+graph TD
+  subgraph S1 [Find the idea]
+    direction LR
+    A[Read the brief] -->|look for a limit| B[Constraint becomes the story]
+    B -->|three minute demo rule| C[Scope list]
+  end
+  subgraph S2 [Build so it cannot fail]
+    direction LR
+    D[Happy path on mocks] -->|sponsor APIs do real work| E[Real calls]
+    E -->|pre-generate and fall back| F[Demo cannot fail]
+  end
+  subgraph S3 [Make it seen]
+    direction LR
+    G[Demo video and GIFs] -->|share with builders| H[Submit]
+    H --> I[Judges and popular vote]
+  end
+  S1 -->|mocks first| S2
+  S2 -->|hook in five seconds| S3

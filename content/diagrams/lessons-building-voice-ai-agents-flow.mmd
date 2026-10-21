@@ -1,0 +1,17 @@
+sequenceDiagram
+  participant U as User
+  participant M as Mic loop
+  participant R as Router
+  participant L as LLM
+  participant T as TTS
+  participant P as Player
+  U->>M: speaks
+  M->>R: final transcript only
+  R->>L: no regex match
+  L-->>T: short reply streams in
+  T-->>P: audio
+  P->>U: reply plays, mic stays open
+  U->>M: talks over the reply
+  M->>P: stop playback
+  M->>R: new sentence becomes next request
+  P-->>M: ended event reopens mic

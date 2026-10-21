@@ -262,6 +262,8 @@ a.series__item:hover, .series__item[aria-current] { background: var(--black-300)
 .index { position: relative; z-index: 1; max-width: 80rem; margin: 0 auto; padding: 48px var(--gutter) 80px; }
 .index__head { max-width: 760px; margin-bottom: 40px; }
 .featured { margin-bottom: 20px; }
+.guides { margin-bottom: 56px; }
+.guides__lead { margin: -10px 0 20px; color: var(--white-600); font-size: 15px; line-height: 1.55; }
 .cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 20px; }
 .card {
   display: flex; flex-direction: column; gap: 12px; padding: 24px; border-radius: 16px;

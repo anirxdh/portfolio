@@ -1,0 +1,26 @@
+graph TD
+  subgraph Logic [Pure logic and data]
+    A[World data table]
+    B[Pure simulation]
+    C[Shared collider list]
+  end
+  subgraph Render [Render layer]
+    D[R3F or Three.js scene]
+    E[Patched materials]
+    F[Camera rig]
+  end
+  subgraph Budget [Browser budgets]
+    G[Pixel ratio cap]
+    H[One shadow light]
+    I[Capped time step]
+  end
+  J[Static host]
+  A -->|boxes and gated triggers| C
+  C -->|resolved position| F
+  B -->|state flags| D
+  E -->|same uniforms for mesh and shadow| D
+  F --> D
+  G --> D
+  H --> D
+  I -->|fixed steps| B
+  D -->|static bundle| J

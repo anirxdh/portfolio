@@ -1,0 +1,29 @@
+graph TD
+  subgraph Browser
+    A[Mic after first tap]
+    B[Browser STT captions]
+    C[Web Audio playback]
+  end
+  subgraph Server
+    D[Hosted STT]
+    E[Router before LLM]
+    F[Short reply model]
+    G[Reply cleaner]
+    H[TTS voice]
+  end
+  subgraph Fallbacks
+    I[Browser speech voice]
+    J[Canned line]
+  end
+  A -->|live words, never trusted| B
+  A -->|audio for the decision| D
+  D -->|transcript| E
+  E -->|regex match skips the model| H
+  E -->|no match| F
+  F -->|token cap| G
+  G -->|no questions or stage directions| H
+  H -->|mp3| C
+  C -->|ended event reopens mic| A
+  H -.->|key missing or error| I
+  F -.->|model down| J
+  J -.-> H
