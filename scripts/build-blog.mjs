@@ -123,6 +123,9 @@ const articles = (fs.existsSync(SRC) ? fs.readdirSync(SRC) : [])
     if (data.description.length > 170) {
       warn(`${file}: description is ${data.description.length} chars (aim for <=160)`);
     }
+    if (data.kind !== undefined && data.kind !== 'guide') {
+      throw new Error(`[blog] ${file}: "kind" must be "guide" or left out (got ${JSON.stringify(data.kind)})`);
+    }
     if (data.draft) return null;
     const words = content.split(/\s+/).filter(Boolean).length;
     // Per-article share image, generated locally by scripts/gen-og.py and committed.
@@ -153,7 +156,15 @@ for (const a of articles) {
   slugs.add(a.slug);
 }
 
-const TOPICS = buildTopics(articles);
+// Guides (`kind: guide`) pull the lessons out of several project write-ups. They are articles
+// everywhere on the blog, but they are not projects, so /projects/ and /uses/ only see the
+// project write-ups, and topic pages and llms.txt list guides first as the place to start.
+const isGuide = (a) => a.kind === 'guide';
+const GUIDES = articles.filter(isGuide);
+const PROJECT_ARTICLES = articles.filter((a) => !isGuide(a));
+const guidesFirst = (list) => [...list.filter(isGuide), ...list.filter((a) => !isGuide(a))];
+
+const TOPICS = buildTopics(articles).map((t) => ({ ...t, articles: guidesFirst(t.articles) }));
 const TOPIC_SLUGS = new Set(TOPICS.map((t) => t.slug));
 const topicHref = (slug) => `/blog/topics/${slug}/`;
 const updatedOf = (list) => list.reduce((max, a) => ((a.updated || a.date) > max ? a.updated || a.date : max), '');
@@ -477,9 +488,10 @@ const authorBox = () => `
         </div>
       </aside>`;
 
+const guideBadge = (a) => (isGuide(a) ? '<span class="badge">Guide</span>' : '');
 const articleCard = (a) => `
         <a class="card" href="/blog/${a.slug}/" style="--accent:${a.accent}">
-          <p class="card__eyebrow">${a.award ? `<span class="badge">${esc(a.award)}</span>` : ''}<span>${esc(a.project)}</span></p>
+          <p class="card__eyebrow">${guideBadge(a)}${a.award ? `<span class="badge">${esc(a.award)}</span>` : ''}<span>${esc(a.project)}</span></p>
           <h3 class="card__title">${esc(a.title)}</h3>
           <p class="card__desc">${esc(a.description)}</p>
           <p class="card__meta"><time datetime="${a.date}">${fmtDate(a.date)}</time> · ${a.readingMinutes} min read</p>
@@ -560,7 +572,7 @@ function articlePage(a, { html, toc, faqs }, { related, prev, next, series }) {
     main: `<main id="content" class="article">
       <header class="article__head">
         <p class="eyebrow">
-          ${a.award ? `<span class="badge">${esc(a.award)}</span>` : ''}
+          ${guideBadge(a)}${a.award ? `<span class="badge">${esc(a.award)}</span>` : ''}
           <span>${esc(a.project)}</span>
           <span class="dot">·</span>
           <time datetime="${a.date}">${fmtDate(a.date)}</time>
@@ -669,7 +681,9 @@ function indexPage(list) {
       datePublished: a.date,
     })),
   };
-  const [featured, ...rest] = list;
+  // Guides get their own row above the project write-ups, so the newest write-up stays featured.
+  const guides = list.filter(isGuide);
+  const [featured, ...rest] = list.filter((a) => !isGuide(a));
   const topTopics = TOPICS.slice(0, 10);
   return shell({
     headOpts: {
@@ -692,6 +706,16 @@ function indexPage(list) {
           : ''
       }
       ${
+        guides.length
+          ? `<section class="guides" aria-labelledby="guides-title">
+        <h2 id="guides-title" class="section-title">Guides <span class="section-title__count">${guides.length}</span></h2>
+        <p class="guides__lead">What I learned across many builds, with links to each write-up.</p>
+        <div class="cards">${guides.map(articleCard).join('')}</div>
+      </section>
+      <h2 class="section-title">Project write-ups</h2>`
+          : ''
+      }
+      ${
         featured
           ? `<section class="featured" aria-label="Latest article">${articleCard(featured).replace('class="card"', 'class="card card--featured"')}</section>`
           : ''
@@ -702,11 +726,19 @@ function indexPage(list) {
 }
 
 // ---------- topics ----------
-const projectNames = (list) => [...new Set(list.map((a) => String(a.project).replace(/\s*\([^)]*\)\s*$/, '')))];
+const projectNames = (list) => [
+  ...new Set(list.filter((a) => !isGuide(a)).map((a) => String(a.project).replace(/\s*\([^)]*\)\s*$/, ''))),
+];
+// "5 project write-ups and 1 guide", or just one of the two.
+const writeupCount = (list) => {
+  const guides = list.filter(isGuide).length;
+  const parts = [list.length - guides ? plural(list.length - guides, 'project write-up') : '', guides ? plural(guides, 'guide') : ''];
+  return parts.filter(Boolean).join(' and ');
+};
 
 function topicDescription(t) {
   const names = projectNames(t.articles);
-  const lead = `${plural(t.articles.length, 'project write-up')} by ${AUTHOR} tagged ${t.name}`;
+  const lead = `${writeupCount(t.articles)} by ${AUTHOR} tagged ${t.name}`;
   for (let n = Math.min(4, names.length); n >= 1; n -= 1) {
     const text = `${lead}, ${n === names.length ? 'covering' : 'including'} ${andList(names.slice(0, n))}.`;
     if (text.length <= 160) return text;
@@ -753,7 +785,10 @@ function topicPage(t) {
       <header class="index__head">
         <p class="eyebrow"><span>Topic</span><span class="dot">·</span><span>${plural(t.articles.length, 'article')}</span></p>
         <h1>${esc(t.name)}</h1>
-        <p class="standfirst">Every project write-up tagged ${esc(t.name)}.</p>
+        <p class="standfirst">Every project write-up tagged ${esc(t.name)}${
+          { 0: '', 1: ', with the guide that pulls their lessons together first' }[t.articles.filter(isGuide).length] ??
+          ', with the guides that pull their lessons together first'
+        }.</p>
       </header>
       <section class="cards" aria-label="Articles tagged ${esc(t.name)}">${t.articles.map(articleCard).join('')}</section>
       ${
@@ -1388,7 +1423,7 @@ if (resume) {
 const projectsSrc = loadPage('projects');
 let projects = [];
 if (projectsSrc) {
-  projects = await loadProjects({ root: ROOT, articles, overrides: projectsSrc.projects || [], warn });
+  projects = await loadProjects({ root: ROOT, articles: PROJECT_ARTICLES, overrides: projectsSrc.projects || [], warn });
   generated['/projects/'] = writePage('projects', projectsPage(projectsSrc, projects));
 }
 
@@ -1409,7 +1444,7 @@ const hackathonArticles = hackathonSections.flatMap((s) => s.events.flatMap((e) 
 const usesSrc = loadPage('uses');
 let usesGroups = [];
 if (usesSrc) {
-  usesGroups = loadUses({ page: usesSrc, articles, bySlug: BY_SLUG, warn });
+  usesGroups = loadUses({ page: usesSrc, articles: PROJECT_ARTICLES, bySlug: BY_SLUG, warn });
   generated['/uses/'] = writePage('uses', usesPage(usesSrc, usesGroups));
 }
 
@@ -1444,10 +1479,14 @@ const llms = [
     projects.map((p) => llmsItem(p.name, `${SITE}/projects/#${p.key}`, [p.award, p.blurb].filter(Boolean).join('. '))),
   ),
   llmsSection(
+    'Guides (lessons across many projects)',
+    GUIDES.map((a) => llmsItem(a.title, `${SITE}/blog/${a.slug}/`, a.description)),
+  ),
+  llmsSection(
     'Writing (project deep dives)',
     [
       llmsItem('All writing', `${SITE}/blog/`, `${plural(articles.length, 'article')}, newest first`),
-      ...articles.map((a) => llmsItem(a.title, `${SITE}/blog/${a.slug}/`, a.description)),
+      ...PROJECT_ARTICLES.map((a) => llmsItem(a.title, `${SITE}/blog/${a.slug}/`, a.description)),
     ],
   ),
   llmsSection(
@@ -1621,7 +1660,7 @@ const fullDocs = [
       `${SITE}/blog/${a.slug}/`,
       [
         `Author: ${AUTHOR}`,
-        `Project: ${a.project}`,
+        isGuide(a) ? `Type: guide (${a.project}), drawing on several project write-ups` : `Project: ${a.project}`,
         `Published: ${a.date}${a.updated ? ` (updated ${a.updated})` : ''}`,
         a.award && `Result: ${a.award}`,
         a.live && `Live: ${a.live}`,
