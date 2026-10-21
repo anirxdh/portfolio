@@ -1,0 +1,46 @@
+# Builds the site and runs the article and SEO checks on every pull request and on every push to main.
+# Nothing here needs Python or a browser: diagrams (scripts/render-diagrams.sh) and share images
+# (scripts/gen-og.py) are rendered locally and committed, and the build only reads them.
+# Errors fail the job. Warnings are printed but do not.
+name: Checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# A newer push to the same branch or pull request cancels the run that is still going.
+concurrency:
+  group: checks-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      # Full history: scripts/build-blog.mjs reads `git log` for each page's sitemap <lastmod>.
+      # A shallow clone would date every page to the newest commit.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Lint articles
+        run: node scripts/lint-articles.mjs
+
+      - name: Validate SEO
+        run: node scripts/validate-seo.mjs
