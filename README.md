@@ -31,6 +31,18 @@ Blog tooling: `npm run diagrams` (render changed diagrams), `python3 scripts/gen
 
 The chat function needs `OPENAI_API_KEY` set in Netlify. The contact form uses EmailJS (`VITE_APP_EMAILJS_*`).
 
+## Checks
+
+GitHub Actions runs `.github/workflows/checks.yml` on every pull request and on every push to `main`. It installs with `npm ci` on Node 20, then runs:
+
+1. `npm run build`
+2. `node scripts/lint-articles.mjs`
+3. `node scripts/validate-seo.mjs`
+
+Any error fails the run. Warnings are printed but do not. Run the same three commands locally before you push.
+
+CI does not need Python or a browser. Diagrams and share images are rendered on your machine and committed, and the build only reads them. So after you add an article or change a diagram in `content/diagrams/`, run `npm run diagrams` and `python3 scripts/gen-og.py`, then commit the files they write. The checkout keeps full git history because the sitemap dates each page from its last commit.
+
 ## Deploy
 
 Pushes to `main` deploy on Netlify. The custom domain is served over HTTPS only, and the old `anirudhvasudevan.netlify.app` address 301-redirects here.
