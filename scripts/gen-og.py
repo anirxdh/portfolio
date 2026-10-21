@@ -172,7 +172,7 @@ def page_specs():
             "eyebrow": "Projects",
             "title": "Things I have built.",
             "line": "Hackathon wins, products, and experiments, each with its result, the stack, and links to the code and write-up.",
-            "logos": ["lark", "livingphotos", "apartment4b", "facetime", "talkativepdf", "civs"],
+            "pills": ["LARK", "Living Photos", "Apartment 4B", "FaceTime from Mars", "ScreenSense", "RUA"],
             "sources": [PAGES_SRC / "projects.md", ROOT / "src" / "constants" / "index.js"],
         },
         {
@@ -259,7 +259,7 @@ def render_page(spec, out):
     lead = round(size * 1.08)
     df = brand.font("regular", 26)
     desc = brand.wrap(c, spec["line"], df, max_w - 40)[:2]
-    chip_h = 68 if spec.get("logos") else 46
+    chip_h = 46
     gap = round(28 + size * 0.44)  # heading baseline to the first standfirst baseline
 
     # centre heading, standfirst and chips between the eyebrow and the footer
@@ -275,16 +275,11 @@ def render_page(spec, out):
         c.text((x, dy), line, df, brand.BODY, anchor="ls")
         dy += 38
 
-    # chips: logo tiles, result badges, plain pills, or topic pills with counts
+    # chips: result badges, plain pills, or topic pills with counts
     cy = dy - 38 + 44
     pf = brand.font("medium", 21)
     accent = c.accent
-    if spec.get("logos"):
-        tx = x
-        for key in spec["logos"]:
-            if c.logo_tile(key, (tx, cy), 68, radius=16):
-                tx += 68 + 16
-    elif spec.get("badges"):
+    if spec.get("badges"):
         bf = brand.font("semibold", 20)
         gold = brand.hex_rgb("#F5B942")
 
