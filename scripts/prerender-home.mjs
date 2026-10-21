@@ -24,7 +24,9 @@
 //   - only class names the React sections already use, so the copy is styled for the moment
 //     before React mounts (checked against the built CSS; a missing class is a warning)
 //   - no h1 (the static intro has the only one)
-//   - no ids, so links like /#contact keep landing on React's sections, not on this copy
+//   - no ids, so links like /#contact keep landing on React's sections, not on this copy. The one
+//     exception is the universe (id="universe"): the hero's "See my work" button links to it, and
+//     before React mounts this copy is the only place it can land.
 //   - no images, so it downloads nothing
 // Running it twice is safe: the previous copy is replaced.
 //
@@ -185,7 +187,7 @@ function universeSection() {
       links.length ? `<div class="flex items-center gap-x-6 gap-y-3 flex-wrap mt-auto pt-1">${links.join('')}</div>` : ''
     }</article>`;
   });
-  return `<section class="c-space my-20" aria-label="${esc(tidy(title))}"><h2 class="head-text">${t(title)}</h2>${
+  return `<section class="c-space my-20" id="universe" aria-labelledby="universe-title"><h2 class="head-text" id="universe-title">${t(title)}</h2>${
     intro ? `<p class="text-white-600 mt-3 max-w-2xl">${t(intro)}</p>` : ''
   }<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mt-10">${cards.join('')}</div></section>`;
 }
@@ -375,8 +377,13 @@ const tail = footer();
 const injected = `${sections}\n${tail}`;
 
 // Guards on what this script adds.
+const ALLOWED_IDS = new Set(['universe', 'universe-title']);
 if (/<h1[\s>]/i.test(injected)) throw new Error('[prerender] the prerendered copy must not contain an h1');
-if (/\sid\s*=/i.test(injected)) throw new Error('[prerender] the prerendered copy must not contain ids');
+{
+  const ids = [...injected.matchAll(/\sid\s*=\s*"([^"]*)"/gi)].map((m) => m[1]);
+  const bad = ids.filter((id) => !ALLOWED_IDS.has(id));
+  if (bad.length || ids.length !== new Set(ids).size) throw new Error(`[prerender] the prerendered copy must not contain ids (found: ${ids.join(', ')})`);
+}
 {
   const text = injected.replace(/<[^>]+>/g, ' ');
   const dash = text.match(/[^\s]{0,20}[—–][^\s]{0,20}/);
@@ -462,6 +469,30 @@ if (h1s !== 1) warn(`dist/index.html has ${h1s} h1 elements before React mounts 
   }
   const h1 = /<h1\b[^>]*>([\s\S]*?)<\/h1>/i.exec(intro);
   if (!h1 || introText(h1[1]) !== 'Anirudh Vasudevan') warn('the static intro h1 should read "Anirudh Vasudevan"');
+}
+
+// The universe's projects as an ItemList, so the list is machine-readable too.
+{
+  const SITE = 'https://anirudhvasudevan.com';
+  const items = PLANETS.map((p, i) => {
+    const url = p.article ? `${SITE}/blog/${p.article}/` : p.href;
+    return {
+      '@type': 'ListItem',
+      position: i + 1,
+      item: {
+        '@type': 'CreativeWork',
+        name: p.name,
+        ...(url ? { url } : {}),
+        ...(p.line ? { description: p.line } : {}),
+        ...(p.result ? { award: p.result } : {}),
+        creator: { '@id': `${SITE}/#person` },
+      },
+    };
+  });
+  const ld = { '@context': 'https://schema.org', '@type': 'ItemList', name: 'Projects by Anirudh Vasudevan', itemListElement: items };
+  const block = `<script type="application/ld+json" id="projects-ld">${JSON.stringify(ld).replace(/</g, '\\u003c')}</script>`;
+  html = html.replace(/\s*<script type="application\/ld\+json" id="projects-ld">[\s\S]*?<\/script>/, '');
+  html = html.replace('</head>', `    ${block}\n  </head>`);
 }
 
 fs.writeFileSync(HOME, html);

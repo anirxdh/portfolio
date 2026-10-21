@@ -10,7 +10,7 @@ const QUESTIONS = [
 
 const SuggestedQuestions = ({ onQuestionClick, disabled }) => {
   return (
-    <div className="px-4 sm:px-5 pt-1 pb-3">
+    <div className="pt-1">
       <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-white-600/80 mb-2.5">Try asking</p>
       <div className="flex flex-wrap gap-2">
         {QUESTIONS.map((question) => (

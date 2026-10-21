@@ -5,13 +5,16 @@
 //   - the sky and the universe below it: src/components/story (one fixed Canvas 2D layer)
 //   - the name-to-orb particles: src/components/hero/nameOrb.js
 //   - the voice call: src/components/hero/voiceCall.js (browser speech, the same /api/chat)
-// "Talk to AniBot" turns the name into the orb and starts a real voice conversation. It ends with
-// the End button, Escape, a click outside the hero, or leaving the page, and the name rebuilds.
-// prefers-reduced-motion, no canvas, or an error: a still CSS orb and the same conversation.
+// "Talk to AniBot" turns the name into the orb and starts a real voice conversation. On wide
+// screens the orb forms beside the words it is saying; on phones it forms in the sky above them.
+// The call ends with the End button, Escape, a click outside the hero, or leaving the page, and
+// the name rebuilds. prefers-reduced-motion, no canvas, or an error: a still orb, same call.
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { Arrow } from '../components/Arrow.jsx';
 import { openAniBot } from '../data/anibotEvents.js';
+import { primeVoices, unlockSpeech } from '../data/speechUnlock.js';
 import { registerHero, setSkyDim } from '../components/story/story.js';
 
 const loadOrb = () => import('../components/hero/nameOrb.js');
@@ -26,6 +29,8 @@ const STATUS = {
   waiting: 'Your turn',
   ended: 'Ready',
 };
+const ASK_ABOUT = 'Ask about a project, a hackathon or his work at Rivo.';
+const NO_VOICE = 'Voice input is not available in this browser, so type your question.';
 
 const hasRecognition = () => typeof window !== 'undefined' && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
 const wantsMotion = () => {
@@ -39,33 +44,31 @@ const canDraw = () => {
     return false;
   }
 };
+// A mouse and a hardware keyboard: moving focus into the text field on its own is welcome.
+// On a touch screen it would open the keyboard over the orb, so only a tap on "Type instead" does.
+const finePointer = () => typeof window !== 'undefined' && !!window.matchMedia?.('(hover: hover) and (pointer: fine)').matches;
 
-// iOS Safari only lets a page speak after speak() ran inside a tap, so this runs in the click.
-let speechUnlocked = false;
-const unlockSpeech = () => {
-  const synth = typeof window !== 'undefined' && window.speechSynthesis;
-  if (!synth || speechUnlocked || typeof SpeechSynthesisUtterance === 'undefined') return;
-  speechUnlocked = true;
-  try {
-    const u = new SpeechSynthesisUtterance(' ');
-    u.volume = 0;
-    synth.speak(u);
-  } catch {
-    /* captions still work */
-  }
-};
+// The orb forms in whichever slot is shown: beside the words on wide screens, in the sky on phones.
+const visibleSlot = (a, b) => (a && a.getClientRects().length ? a : b);
 
-const Arrow = () => (
-  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false">
-    <path d="M3 8h9.5M8.5 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
+const OrbSlot = ({ slotRef, where, status }) => (
+  <div ref={slotRef} className={`orb-slot is-${where}`} aria-hidden="true">
+    <div className="orb-css" />
+    <p className="call-status">
+      <span className="call-dot" />
+      <span className="call-name">AniBot</span>
+      <span className="call-sep" />
+      <span>{status}</span>
+    </p>
+  </div>
 );
 
 const Hero = () => {
   const heroRef = useRef(null);
   const nameRef = useRef(null);
   const fxRef = useRef(null);
-  const slotRef = useRef(null);
+  const skySlotRef = useRef(null);
+  const stageSlotRef = useRef(null);
   const skyRef = useRef(null);
   const cardRef = useRef(null);
   const talkRef = useRef(null);
@@ -74,6 +77,7 @@ const Hero = () => {
   const orbPromise = useRef(null);
   const callRef = useRef(null);
   const callOnRef = useRef(false);
+  const focusFormRef = useRef(false);
 
   const [fx, setFx] = useState(() => wantsMotion() && canDraw());
   const fxRefState = useRef(fx);
@@ -83,10 +87,15 @@ const Hero = () => {
   const [nameOut, setNameOut] = useState(false);
   const [phase, setPhase] = useState('rest');
   const [caption, setCaption] = useState(null);
+  const [lastBot, setLastBot] = useState(null);
   const [textMode, setTextMode] = useState(false);
   const [hint, setHint] = useState('');
   const [draft, setDraft] = useState('');
+  const draftRef = useRef(draft);
+  draftRef.current = draft;
   const [live, setLive] = useState('');
+  const [said, setSaid] = useState('');
+  const [more, setMore] = useState('');
   const [card, setCard] = useState(null);
   const [canListen, setCanListen] = useState(false);
 
@@ -111,7 +120,7 @@ const Hero = () => {
             hero: heroRef.current,
             nameEl: nameRef.current,
             canvas: fxRef.current,
-            slot: slotRef.current,
+            slot: { getBoundingClientRect: () => visibleSlot(stageSlotRef.current, skySlotRef.current).getBoundingClientRect() },
             levels: () => callRef.current?.levels() || null,
             onPhase: setPhase,
             onNameOut: setNameOut,
@@ -138,6 +147,7 @@ const Hero = () => {
     const go = () => {
       ensureOrb();
       loadCall().catch(() => {});
+      primeVoices();
     };
     const schedule = () => {
       if ('requestIdleCallback' in window) idle = window.requestIdleCallback(go, { timeout: 4000 });
@@ -165,7 +175,8 @@ const Hero = () => {
   );
 
   /* ---------- The call ---------- */
-  const endCall = useCallback(() => {
+  // `instant`: the hero is out of sight (scrolled away, tab hidden), so the name is simply back.
+  const endCall = useCallback(({ instant = false } = {}) => {
     if (!callOnRef.current) return;
     callOnRef.current = false;
     callRef.current?.end();
@@ -173,11 +184,13 @@ const Hero = () => {
     setCallOn(false);
     setVState('ended');
     setCaption(null);
+    setLastBot(null);
     setTextMode(false);
     setHint('');
     setDraft('');
+    setMore('');
     setSkyDim(0);
-    if (orbRef.current) orbRef.current.end();
+    if (orbRef.current) orbRef.current.end({ instant });
     else setNameOut(false);
   }, []);
 
@@ -185,13 +198,16 @@ const Hero = () => {
     if (callOnRef.current) return;
     unlockSpeech();
     callOnRef.current = true;
+    focusFormRef.current = false;
     setCallOn(true);
     setVState('starting');
     setCaption(null);
+    setLastBot(null);
+    setMore('');
     setLive('');
     const voice = hasRecognition();
     setTextMode(!voice);
-    setHint(voice ? '' : 'Type your question and AniBot will answer out loud.');
+    setHint(voice ? '' : NO_VOICE);
     setSkyDim(1);
     if (!fxRefState.current) setNameOut(true);
     let mod;
@@ -203,22 +219,30 @@ const Hero = () => {
     }
     if (!callOnRef.current) return;
     if (!mod) {
-      setCaption({ who: 'bot', words: 'Voice is not available right now. Try the chat instead.'.split(' '), shown: 99 });
+      const words = 'Voice is not available right now. Try the chat instead.'.split(' ');
+      setCaption({ who: 'bot', words, shown: words.length });
       return;
     }
     if (orb) orb.start();
     else setNameOut(true);
     const call = mod.createVoiceCall({
       onState: (s) => {
-        if (callOnRef.current) setVState(s);
+        if (!callOnRef.current) return;
+        setVState(s);
+        if (s === 'thinking' || s === 'listening') setMore('');
       },
       onCaption: (c) => {
-        if (callOnRef.current) setCaption(c);
+        if (!callOnRef.current) return;
+        setCaption(c);
+        if (c?.who === 'bot') setLastBot(c);
       },
       onLine: setLive,
       onNeedText: (message) => {
         setTextMode(true);
         setHint(message);
+      },
+      onCut: (question) => {
+        if (callOnRef.current) setMore(question);
       },
     });
     callRef.current = call;
@@ -227,34 +251,40 @@ const Hero = () => {
 
   const onTalk = () => (callOnRef.current ? endCall() : startCall());
 
-  // Escape, a click outside the hero, a hidden tab or a hero scrolled away ends the call.
+  // Escape, a click outside the hero, a hidden tab or a hero scrolled away ends the call. A touch
+  // that starts a scroll is not a click, so scrolling on a phone does not end it by itself.
   useEffect(() => {
     if (!callOn) return undefined;
     const onKey = (e) => {
       if (e.key !== 'Escape' || e.defaultPrevented) return;
       if (document.querySelector('[aria-modal="true"]')) return;
+      // The first Escape in the text field clears what was typed; the next one ends the call.
+      if (e.target === inputRef.current && draftRef.current) {
+        setDraft('');
+        return;
+      }
       endCall();
       talkRef.current?.focus();
     };
-    const onDown = (e) => {
+    const onClick = (e) => {
       if (heroRef.current && !heroRef.current.contains(e.target)) endCall();
     };
     const onHide = () => {
-      if (document.hidden) endCall();
+      if (document.hidden) endCall({ instant: true });
     };
     let io = null;
     if ('IntersectionObserver' in window && heroRef.current) {
       io = new IntersectionObserver(([entry]) => {
-        if (!entry.isIntersecting) endCall();
+        if (!entry.isIntersecting) endCall({ instant: true });
       });
       io.observe(heroRef.current);
     }
     document.addEventListener('keydown', onKey);
-    document.addEventListener('pointerdown', onDown, true);
+    document.addEventListener('click', onClick, true);
     document.addEventListener('visibilitychange', onHide);
     return () => {
       document.removeEventListener('keydown', onKey);
-      document.removeEventListener('pointerdown', onDown, true);
+      document.removeEventListener('click', onClick, true);
       document.removeEventListener('visibilitychange', onHide);
       io?.disconnect();
     };
@@ -262,21 +292,38 @@ const Hero = () => {
 
   const showForm = callOn && (textMode || vstate === 'waiting');
   useEffect(() => {
-    if (showForm && textMode) inputRef.current?.focus({ preventScroll: true });
+    if (!showForm || !textMode) return;
+    if (focusFormRef.current || finePointer()) inputRef.current?.focus({ preventScroll: true });
+    focusFormRef.current = false;
   }, [showForm, textMode]);
+
+  // Short spoken-state cues for screen readers (the orb and its status pill are decorative).
+  useEffect(() => {
+    let next = '';
+    if (!callOn) next = said ? 'Call ended.' : '';
+    else if (vstate === 'starting') next = 'Call started.';
+    else if (vstate === 'listening') next = 'AniBot is listening.';
+    else if (vstate === 'thinking') next = 'AniBot is thinking.';
+    else if (vstate === 'waiting') next = hint || 'Your turn. Type your question.';
+    if (next && next !== said) setSaid(next);
+    // `said` is only read to skip repeats.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [callOn, vstate, hint]);
 
   const sendTyped = (e) => {
     e.preventDefault();
     const text = draft.trim();
     if (!text || !callRef.current) return;
     setDraft('');
-    callRef.current.ask(text);
+    setHint('');
+    callRef.current.ask(text, { typed: true });
   };
 
   const typeInstead = () => {
     callRef.current?.typeInstead();
+    focusFormRef.current = true;
     setTextMode(true);
-    setHint('Type your question and AniBot will answer out loud.');
+    setHint('');
   };
 
   const switchToMic = () => {
@@ -286,6 +333,12 @@ const Hero = () => {
     callRef.current.listen();
   };
 
+  const continueInChat = () => {
+    const question = more;
+    endCall();
+    openAniBot(question);
+  };
+
   const arm = (on) => {
     if (on) ensureOrb();
     orbRef.current?.setArmed(on && !callOnRef.current);
@@ -293,6 +346,12 @@ const Hero = () => {
 
   const status = STATUS[vstate] || 'Ready';
   const listening = vstate === 'listening';
+  // What the caption shows: the line being spoken or heard. Between turns, AniBot's last line
+  // stays, dimmed, so the hero is never an empty band.
+  const heardWords = caption?.who === 'you' && caption.words?.length > 0;
+  const current = caption?.who === 'bot' || heardWords ? caption : null;
+  const shown = current || (lastBot ? { ...lastBot, shown: lastBot.words.length, past: true } : null);
+  const prompt = !heardWords && (listening ? `Listening. ${ASK_ABOUT}` : vstate === 'waiting' && !hint ? `Your turn. ${ASK_ABOUT}` : '');
   const classes = [
     'hero',
     callOn ? 'is-call' : '',
@@ -309,15 +368,7 @@ const Hero = () => {
 
       <div className="hero-wrap">
         <div ref={skyRef} className="hero-sky" aria-hidden="true">
-          <div ref={slotRef} className="orb-slot">
-            <div className="orb-css" />
-            <p className="call-status">
-              <span className="call-dot" />
-              <span className="call-name">AniBot</span>
-              <span className="call-sep" />
-              <span>{status}</span>
-            </p>
-          </div>
+          <OrbSlot slotRef={skySlotRef} where="sky" status={status} />
         </div>
 
         <div className="hero-copy">
@@ -341,23 +392,29 @@ const Hero = () => {
               <p className="hero-role">Member of Technical Staff at Rivo, building voice AI agents.</p>
               <p className="hero-line">Each star here is a project I built and wrote up, and AniBot can tell you about any of them.</p>
             </div>
+            <OrbSlot slotRef={stageSlotRef} where="stage" status={status} />
 
             {callOn && (
               <div className="call-panel">
                 <p
-                  className={`call-caption${(caption?.words?.length || 0) > 22 ? ' is-long' : ''}`}
+                  className={`call-caption${(shown?.words?.length || 0) > 22 ? ' is-long' : ''}${shown?.past ? ' is-past' : ''}`}
                   aria-hidden="true"
-                  data-who={caption?.who || 'none'}
+                  data-who={shown?.who || 'none'}
                 >
-                  {caption?.who === 'you' && <span className="cap-label">You</span>}
-                  {caption?.words?.length
-                    ? caption.words.map((w, i) => (
-                        <span key={`${i}-${w}`} className={`cw${i < caption.shown ? ' on' : ''}${i === caption.shown - 1 && caption.who === 'bot' ? ' now' : ''}`}>
-                          {w}{' '}
-                        </span>
-                      ))
-                    : listening && <span className="cap-hint">Listening. Ask about a project, a hackathon or his work at Rivo.</span>}
+                  {shown?.who === 'you' && <span className="cap-label">You</span>}
+                  {shown?.words?.map((w, i) => (
+                    <span key={`${i}-${w}`} className={`cw${i < shown.shown ? ' on' : ''}${!shown.past && i === shown.shown - 1 && shown.who === 'bot' ? ' now' : ''}`}>
+                      {w}{' '}
+                    </span>
+                  ))}
                 </p>
+                {prompt && <p className="call-prompt">{prompt}</p>}
+                {more && (
+                  <button type="button" className="call-more" onClick={continueInChat}>
+                    Continue in chat
+                    <Arrow size={14} />
+                  </button>
+                )}
                 {showForm ? (
                   <form className="call-form" onSubmit={sendTyped}>
                     <label className="sr-only" htmlFor="call-input">
@@ -373,6 +430,7 @@ const Hero = () => {
                       placeholder="Ask AniBot anything"
                       autoComplete="off"
                       enterKeyHint="send"
+                      aria-describedby={hint ? 'call-hint' : undefined}
                     />
                     {canListen && callRef.current?.canListen !== false && (
                       <button type="button" className="call-icon" onClick={switchToMic} aria-label="Speak instead">
@@ -384,7 +442,11 @@ const Hero = () => {
                     <button type="submit" className="call-send" disabled={!draft.trim()} aria-label="Send question">
                       <Arrow />
                     </button>
-                    {hint && <p className="call-hint">{hint}</p>}
+                    {hint && (
+                      <p className="call-hint" id="call-hint">
+                        {hint}
+                      </p>
+                    )}
                   </form>
                 ) : (
                   <button type="button" className="call-switch" onClick={typeInstead}>
@@ -469,13 +531,16 @@ const Hero = () => {
               >
                 {card.linkLabel}
                 <span className="sr-only">: {card.name}</span>
-                <span aria-hidden="true"> →</span>
+                <Arrow size={14} />
               </a>
             )}
           </>
         )}
       </div>
 
+      <p className="sr-only" role="status">
+        {said}
+      </p>
       <p className="sr-only" aria-live="polite">
         {live}
       </p>

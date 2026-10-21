@@ -1,7 +1,8 @@
 // The always-there way into AniBot: a small dark orb in the corner, on brand with the hero's orb.
-const FloatingChatButton = ({ onClick }) => {
+const FloatingChatButton = ({ onClick, buttonRef }) => {
   return (
     <button
+      ref={buttonRef}
       type="button"
       onClick={onClick}
       className="anibot-fab group fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50"

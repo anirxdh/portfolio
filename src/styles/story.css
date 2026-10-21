@@ -63,6 +63,7 @@
   background: radial-gradient(72% 52% at 50% 0%, rgba(28, 28, 33, 0.4) 0%, rgba(14, 14, 16, 0.14) 48%, rgba(1, 1, 3, 0) 76%);
 }
 .hero-fx {
+  /* nameOrb.js gives it a size and moves it with a transform, then shows it. */
   position: absolute;
   left: 0;
   top: 0;
@@ -70,6 +71,7 @@
   height: 1px;
   z-index: 3;
   pointer-events: none;
+  visibility: hidden;
 }
 .hero-wrap {
   position: relative;
@@ -88,45 +90,73 @@
   min-height: clamp(130px, 26vh, 380px);
   max-height: min(46vh, 520px);
 }
-html[data-story='off'] .hero-sky {
+/* First paint: a still chart of the same idea, so the band is never empty. It fades out as the
+   canvas sky (storyEngine.js, html.sky-on) fades in, and stays when there is no canvas. */
+.hero-sky::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 400'%3E%3Cpath d='M150 160 230 110 360 140M150 160 205 252M230 110 300 195M560 100 640 165 760 200M640 165 610 240M560 100 700 85M930 180 1010 120 1080 210M930 180 990 270M1250 140 1320 220 1210 250' fill='none' stroke='%23D5D8EA' stroke-opacity='.11'/%3E%3Cg fill='%23E4E4E6'%3E%3Ccircle cx='150' cy='160' r='2.4'/%3E%3Ccircle cx='230' cy='110' r='1.6'/%3E%3Ccircle cx='300' cy='195' r='1.7'/%3E%3Ccircle cx='205' cy='252' r='1.3'/%3E%3Ccircle cx='360' cy='140' r='1.4'/%3E%3Ccircle cx='560' cy='100' r='2.4'/%3E%3Ccircle cx='640' cy='165' r='1.7'/%3E%3Ccircle cx='700' cy='85' r='1.4'/%3E%3Ccircle cx='610' cy='240' r='1.3'/%3E%3Ccircle cx='760' cy='200' r='1.6'/%3E%3Ccircle cx='930' cy='180' r='1.9'/%3E%3Ccircle cx='1010' cy='120' r='1.5'/%3E%3Ccircle cx='1080' cy='210' r='1.4'/%3E%3Ccircle cx='990' cy='270' r='1.3'/%3E%3Ccircle cx='1250' cy='140' r='2.4'/%3E%3Ccircle cx='1320' cy='220' r='1.6'/%3E%3Ccircle cx='1210' cy='250' r='1.3'/%3E%3C/g%3E%3C/svg%3E")
     center / cover no-repeat;
   opacity: 0.85;
+  transition: opacity 1.6s ease 0.2s;
+}
+html.sky-on .hero-sky::before {
+  opacity: 0;
+}
+.hero.is-call .hero-sky::before {
+  opacity: 0.3;
 }
 
-/* Where the orb forms. The engine reads this box; the still CSS orb lives in it too. */
+/* Where the orb forms. The engine reads the box of whichever slot is shown: the one in the sky
+   (phones, tablets, short screens) or the one beside the words (wide screens, see below). The
+   still orb for reduced motion lives in it too. */
 .orb-slot {
   position: absolute;
   top: 50%;
-  right: 6%;
-  height: min(94%, 330px);
+  left: 50%;
+  height: min(86%, 300px);
   aspect-ratio: 1 / 1;
-  transform: translateY(-50%);
+  transform: translate(-50%, -50%);
   pointer-events: none;
 }
+.orb-slot.is-stage {
+  display: none;
+}
+/* The still orb: a dotted sphere like the particle one, shaded from the top left. Only its
+   opacity changes with the call (no motion). */
 .orb-css {
   position: absolute;
-  inset: 14%;
+  inset: 13%;
   border-radius: 50%;
   opacity: 0;
-  transform: scale(0.92);
-  transition: opacity 0.5s ease, transform 0.5s ease, box-shadow 0.5s ease;
-  background: radial-gradient(circle at 36% 30%, rgba(255, 255, 255, 0.8) 0%, rgba(213, 216, 234, 0.3) 7%, transparent 22%),
-    radial-gradient(circle at 50% 50%, #1c1c21 0%, #0e0e10 55%, #010103 100%);
-  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.3), inset 0 0 40px rgba(var(--accent-rgb), 0.1), 0 0 120px rgba(var(--accent-rgb), 0.1);
+  transition: opacity 0.5s ease;
+  background: radial-gradient(circle, rgba(213, 216, 234, 0.95) 0 0.9px, transparent 1.5px) 0 0 / 7px 7px;
+  -webkit-mask-image: radial-gradient(circle at 40% 36%, #000 0%, rgba(0, 0, 0, 0.62) 46%, rgba(0, 0, 0, 0.18) 68%, transparent 71%);
+  mask-image: radial-gradient(circle at 40% 36%, #000 0%, rgba(0, 0, 0, 0.62) 46%, rgba(0, 0, 0, 0.18) 68%, transparent 71%);
+}
+.orb-css::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(213, 216, 234, 0.12);
 }
 .hero.is-static.is-call .orb-css {
-  opacity: 1;
-  transform: none;
+  opacity: 0.9;
 }
-.hero.is-static[data-turn='listening'] .orb-css {
-  transform: scale(0.95);
-  box-shadow: inset 0 0 0 1px rgba(213, 216, 234, 0.34), inset 0 0 40px rgba(213, 216, 234, 0.05), 0 0 0 12px rgba(213, 216, 234, 0.04);
+.hero.is-static[data-turn='listening'] .orb-css,
+.hero.is-static[data-turn='waiting'] .orb-css {
+  opacity: 0.6;
+}
+.hero.is-static[data-turn='thinking'] .orb-css {
+  opacity: 0.45;
 }
 .call-status {
   position: absolute;
   left: 50%;
-  bottom: 0;
+  top: 100%;
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -141,7 +171,7 @@ html[data-story='off'] .hero-sky {
   letter-spacing: 0.02em;
   color: var(--body);
   white-space: nowrap;
-  transform: translate(-50%, 40%);
+  transform: translate(-50%, -60%);
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.35s ease, visibility 0.35s;
@@ -234,6 +264,15 @@ html[data-story='off'] .hero-sky {
 
 .hero-stage {
   position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+}
+.hero-stage > .hero-name {
+  grid-area: 1 / 1;
+}
+.hero-stage > .hero-text {
+  grid-area: 2 / 1;
 }
 .hero-name {
   width: fit-content;
@@ -247,15 +286,16 @@ html[data-story='off'] .hero-sky {
   font-weight: 600;
   line-height: 0.94;
   letter-spacing: -0.04em;
-  background: linear-gradient(to right, #bec1cf 60%, #d5d8ea 60%, #d5d8ea);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
+  /* The site's two-tone gray heading, split between the words (a hard stop inside a word would
+     cut a letter in half at this size). */
+  color: #d5d8ea;
   transition: opacity 0.42s ease;
 }
 .hero-name .w {
   display: inline;
+}
+.hero-name .w:first-child {
+  color: #bec1cf;
 }
 /* Zero-size baseline markers: the orb engine reads exactly where each line of the name sits. */
 .hero-name .bl {
@@ -291,6 +331,10 @@ html[data-story='off'] .hero-sky {
 .hero.is-call .hero-text {
   opacity: 0;
   visibility: hidden;
+}
+.hero.is-call .hero-rule {
+  opacity: 0.4;
+  transition: opacity 0.4s ease;
 }
 
 .hero-below {
@@ -328,6 +372,11 @@ html[data-story='off'] .hero-sky {
 }
 .hbtn:focus-visible {
   outline: 2px solid var(--silver);
+  outline-offset: 3px;
+}
+/* On the white button an offset ring reads as a second border: keep it close and quieter. */
+.hbtn-primary:focus-visible {
+  outline: 1.5px solid rgba(213, 216, 234, 0.55);
   outline-offset: 3px;
 }
 .hbtn-primary {
@@ -410,7 +459,6 @@ html[data-story='off'] .hero-sky {
     animation: hero-eq 0.7s ease-in-out infinite alternate;
   }
 }
-.hero:not(.is-call) .hbtn-primary:focus-visible .eq i,
 .hero[data-turn='speaking'] .eq i,
 .hero[data-turn='greeting'] .eq i {
   animation: hero-eq 0.7s ease-in-out infinite alternate;
@@ -432,6 +480,9 @@ html[data-story='off'] .hero-sky {
   font-size: 14px;
   line-height: 1.4;
 }
+.hero.is-call .hero-type {
+  visibility: hidden;
+}
 .hero-typelink {
   color: var(--body);
   text-decoration: underline;
@@ -451,24 +502,28 @@ html[data-story='off'] .hero-sky {
 }
 
 .hero-proof {
+  /* Separators sit in each item's left padding; the row is pulled left by that padding and
+     clipped, so the dot of whichever item starts a line is cut off, never left in the gutter. */
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 22px;
-  margin: 0;
-  padding: 16px 0 0;
+  gap: 2px 0;
+  margin: 0 0 0 -22px;
+  padding: 14px 0 0;
   list-style: none;
-  border-top: 1px solid var(--surface-2);
   font-size: 13.5px;
   line-height: 1.4;
-  transition: opacity 0.4s ease;
+  background: linear-gradient(var(--surface-2), var(--surface-2)) 22px 0 / calc(100% - 22px) 1px no-repeat;
+  clip-path: inset(-6px -6px -6px 14px);
+  transition: opacity 0.4s ease, visibility 0.4s;
 }
 .hero-proof li {
   position: relative;
+  padding-left: 22px;
 }
-.hero-proof li + li::before {
+.hero-proof li::before {
   content: '';
   position: absolute;
-  left: -12px;
+  left: 9.5px;
   top: 50%;
   width: 3px;
   height: 3px;
@@ -477,6 +532,8 @@ html[data-story='off'] .hero-sky {
   background: var(--line);
 }
 .hero-proof a {
+  display: inline-block;
+  padding: 3px 0;
   color: var(--body);
   text-decoration: none;
   transition: color 0.2s ease;
@@ -490,32 +547,49 @@ html[data-story='off'] .hero-sky {
 
 @media (min-width: 720px) {
   .hero-below {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
-    gap: 40px;
+    gap: 18px;
     margin-top: 30px;
   }
-  .hero-proof {
-    justify-content: flex-end;
-    padding: 0 0 15px;
-    border-top: 0;
-  }
 }
-/* Keep the proof links clear of the AniBot button in the corner. */
-@media (min-width: 720px) and (max-width: 1400px) {
+/* Wide screens: the proof row sits level with the buttons, on the right, on one line. */
+@media (min-width: 1100px) {
+  .hero-below {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'ctas proof' 'type type';
+    align-items: center;
+    column-gap: 40px;
+    row-gap: 0;
+  }
+  .hero-actions {
+    display: contents;
+  }
+  .hero-ctas {
+    grid-area: ctas;
+  }
+  .hero-type {
+    grid-area: type;
+  }
   .hero-proof {
-    padding-right: 64px;
+    grid-area: proof;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    padding-top: 0;
+    background: none;
   }
 }
 
-/* ---------- The call: caption and text field over the name ---------- */
+/* ---------- The call: caption and text field where the name was ---------- */
+/* The panel shares the stage's grid cell with the name and the role line (both hidden during the
+   call), so a long caption or a hint grows the stage instead of running under the buttons. */
 .call-panel {
-  position: absolute;
-  inset: 0 0 -8px;
+  grid-column: 1;
+  grid-row: 1 / 3;
+  position: relative;
+  z-index: 4;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 14px;
+  min-width: 0;
   padding-top: 18px;
   opacity: 0;
   animation: call-in 0.4s ease 0.85s forwards;
@@ -531,13 +605,14 @@ html[data-story='off'] .hero-sky {
 .call-caption {
   margin: 0;
   max-width: 24em;
-  min-height: 2.6em;
+  min-height: 1.3em;
   font-size: clamp(21px, 2.3vw, 32px);
   line-height: 1.3;
   font-weight: 500;
   letter-spacing: -0.012em;
   color: var(--strong);
   text-wrap: pretty;
+  transition: opacity 0.3s ease;
 }
 .call-caption.is-long {
   font-size: clamp(18px, 1.75vw, 25px);
@@ -545,6 +620,10 @@ html[data-story='off'] .hero-sky {
 }
 .call-caption[data-who='you'] {
   color: var(--body);
+}
+/* AniBot's last line, kept on screen between turns. */
+.call-caption.is-past {
+  opacity: 0.45;
 }
 .cw {
   opacity: 0.22;
@@ -565,11 +644,31 @@ html[data-story='off'] .hero-sky {
   text-transform: uppercase;
   color: rgba(175, 176, 182, 0.75);
 }
-.cap-hint {
+.call-prompt {
+  margin: 12px 0 0;
+  max-width: 34em;
   font-size: clamp(15px, 1.2vw, 17px);
-  font-weight: 400;
-  letter-spacing: 0;
-  color: rgba(175, 176, 182, 0.8);
+  line-height: 1.5;
+  color: rgba(175, 176, 182, 0.85);
+}
+.call-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding: 7px 12px;
+  border: 1px solid var(--surface-2);
+  border-radius: 999px;
+  background: rgba(14, 14, 16, 0.92);
+  color: var(--strong);
+  font: 500 13.5px/1.2 var(--font);
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+.call-more:hover {
+  background: var(--surface-2);
+  border-color: var(--line);
+  color: #fff;
 }
 .call-form {
   display: flex;
@@ -578,7 +677,7 @@ html[data-story='off'] .hero-sky {
   gap: 8px;
   width: 100%;
   max-width: 560px;
-  margin-top: auto;
+  margin-top: 18px;
 }
 .call-input {
   flex: 1 1 200px;
@@ -590,7 +689,7 @@ html[data-story='off'] .hero-sky {
   background: rgba(14, 14, 16, 0.92);
   color: var(--strong);
   font: 400 16px/1 var(--font);
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: border-color 0.2s ease;
 }
 .call-input::placeholder {
   color: rgba(175, 176, 182, 0.7);
@@ -598,7 +697,10 @@ html[data-story='off'] .hero-sky {
 .call-input:focus {
   outline: none;
   border-color: var(--line);
-  box-shadow: 0 0 0 3px rgba(213, 216, 234, 0.12);
+}
+.call-input:focus-visible {
+  outline: 2px solid var(--silver);
+  outline-offset: 2px;
 }
 .call-send,
 .call-icon {
@@ -631,7 +733,8 @@ html[data-story='off'] .hero-sky {
 }
 .call-send:focus-visible,
 .call-icon:focus-visible,
-.call-switch:focus-visible {
+.call-switch:focus-visible,
+.call-more:focus-visible {
   outline: 2px solid var(--silver);
   outline-offset: 2px;
 }
@@ -643,7 +746,7 @@ html[data-story='off'] .hero-sky {
   color: rgba(175, 176, 182, 0.85);
 }
 .call-switch {
-  margin-top: auto;
+  margin-top: 14px;
   padding: 6px 0;
   border: 0;
   background: none;
@@ -658,6 +761,31 @@ html[data-story='off'] .hero-sky {
   color: #fff;
 }
 
+/* ---------- Wide screens: the orb forms beside the words, level with where the name was ---------- */
+@media (min-width: 1024px) and (min-height: 561px) {
+  .hero {
+    --orb-w: clamp(230px, 34vh, 320px);
+  }
+  .orb-slot.is-sky {
+    display: none;
+  }
+  .orb-slot.is-stage {
+    display: block;
+    top: 50%;
+    left: auto;
+    right: 2%;
+    height: var(--orb-w);
+    transform: translateY(-50%);
+  }
+  .call-panel {
+    margin-right: calc(var(--orb-w) + 2% + 48px);
+  }
+  .hero.is-call .hero-proof {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
 /* ---------- Sky card: the star you are near ---------- */
 .sky-card {
   position: absolute;
@@ -669,17 +797,15 @@ html[data-story='off'] .hero-sky {
   padding: 10px 12px 11px;
   border: 1px solid var(--surface-2);
   border-radius: 10px;
-  background: rgba(1, 1, 3, 0.86);
+  background: rgba(14, 14, 16, 0.97);
   box-shadow: 0 14px 40px rgba(0, 0, 0, 0.5);
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.25s ease, visibility 0.25s;
 }
-@media (hover: hover) and (pointer: fine) {
-  .sky-card {
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
-  }
+.sky-card {
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
 }
 .sky-card p {
   margin: 0;
@@ -722,7 +848,9 @@ html[data-story='off'] .hero-sky {
   color: var(--body);
 }
 .sky-link {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-top: 8px;
   font-size: 13px;
   font-weight: 500;
@@ -743,10 +871,10 @@ html[data-story='off'] .hero-sky {
 
 /* ---------- Phones ---------- */
 @media (max-width: 719px) {
-  .orb-slot {
-    right: auto;
-    left: 50%;
-    transform: translate(-50%, -50%);
+  /* Leave room under the orb for its status pill, clear of the eyebrow below. */
+  .orb-slot.is-sky {
+    top: 46%;
+    height: min(78%, 240px);
   }
   .hero-eyebrow {
     font-size: 13px;
@@ -769,9 +897,6 @@ html[data-story='off'] .hero-sky {
   }
   .call-panel {
     padding-top: 12px;
-  }
-  .call-status {
-    transform: translate(-50%, -6px);
   }
 }
 @media (max-width: 359px) {
@@ -799,12 +924,9 @@ html[data-story='off'] .hero-sky {
     min-height: 0;
     max-height: none;
   }
-  .orb-slot {
-    top: 50%;
-    left: 50%;
-    right: auto;
-    height: min(100%, 300px);
-    transform: translate(-50%, -50%);
+  .orb-slot.is-sky {
+    top: 46%;
+    height: min(84%, 280px);
   }
   .hero-name {
     margin-top: 10px;
@@ -825,8 +947,20 @@ html[data-story='off'] .hero-sky {
   }
   .hero-below {
     grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: none;
+    align-items: end;
     gap: 24px;
     margin-top: 14px;
+  }
+  .hero-actions {
+    display: block;
+  }
+  .hero-proof {
+    grid-area: auto;
+    flex-wrap: wrap;
+    white-space: normal;
+    padding: 0 0 6px;
+    background: none;
   }
   .hero-ctas {
     flex-wrap: nowrap;
@@ -841,11 +975,23 @@ html[data-story='off'] .hero-sky {
     opacity: 0;
   }
   .call-panel {
-    right: 40%;
+    margin-right: 40%;
     padding-top: 4px;
   }
-  .call-caption {
+  .call-caption,
+  .call-caption.is-long {
     font-size: 18px;
+  }
+  .call-prompt {
+    margin-top: 6px;
+    font-size: 14px;
+  }
+  .call-form {
+    margin-top: 10px;
+  }
+  .call-switch,
+  .call-more {
+    margin-top: 8px;
   }
 }
 
@@ -860,6 +1006,7 @@ html[data-story='off'] .hero-sky {
     opacity: 1;
   }
   .story-canvas,
+  .hero-sky::before,
   .hero-name,
   .hero-text,
   .hero-proof,
@@ -873,10 +1020,9 @@ html[data-story='off'] .hero-sky {
   }
 }
 @media (forced-colors: active) {
-  .hero-name {
-    background: none;
+  .hero-name,
+  .hero-name .w:first-child {
     color: CanvasText;
-    -webkit-text-fill-color: CanvasText;
   }
   .hero-fx,
   .story-canvas {
@@ -884,376 +1030,6 @@ html[data-story='off'] .hero-sky {
   }
   .orb-css {
     border: 1px solid CanvasText;
-  }
-}
-
-/* ================= Universe ================= */
-.universe {
-  position: relative;
-  font-family: var(--font);
-  color: var(--body);
-}
-.u-stage {
-  position: relative;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-areas: 'head' 'orbit' 'list' 'more';
-  padding: 72px var(--gutter) 40px;
-}
-.u-head {
-  grid-area: head;
-}
-.u-eyebrow {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin: 0 0 10px;
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: rgba(175, 176, 182, 0.8);
-}
-.u-eyebrow::before {
-  content: '';
-  width: 22px;
-  height: 1px;
-  background: var(--line);
-}
-.u-title {
-  margin: 0;
-}
-.u-intro {
-  margin: 12px 0 0;
-  max-width: 34em;
-  font-size: 16px;
-  line-height: 1.6;
-  color: var(--body);
-  text-wrap: pretty;
-}
-.u-orbit {
-  grid-area: orbit;
-  position: relative;
-  height: min(96vw, 420px);
-  margin: 8px calc(var(--gutter) * -1) 0;
-}
-/* Phones and tablets: labels near the edge must never widen the page. */
-@media (max-width: 1023px), (max-height: 699px) {
-  .u-orbit {
-    overflow: hidden;
-    overflow: clip;
-  }
-}
-.u-orbit.is-over {
-  cursor: pointer;
-}
-html[data-story='off'] .u-orbit {
-  background: repeating-radial-gradient(ellipse 50% 32% at 50% 50%, transparent 0 46px, rgba(58, 58, 73, 0.55) 46px 47px, transparent 47px 70px);
-  -webkit-mask-image: radial-gradient(ellipse 50% 40% at 50% 50%, #000 70%, transparent 100%);
-  mask-image: radial-gradient(ellipse 50% 40% at 50% 50%, #000 70%, transparent 100%);
-}
-.u-label {
-  position: absolute;
-  left: 0;
-  top: 0;
-  padding: 3px 7px;
-  border-radius: 6px;
-  white-space: nowrap;
-  font-size: 12.5px;
-  line-height: 1.25;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  color: var(--strong);
-  text-shadow: 0 0 10px var(--ground), 0 0 3px var(--ground), 0 0 1px var(--ground);
-  cursor: pointer;
-  opacity: 0;
-  visibility: hidden;
-  will-change: transform, opacity;
-  -webkit-user-select: none;
-  user-select: none;
-}
-.u-label[data-on='true'] {
-  color: #fff;
-  background: rgba(14, 14, 16, 0.86);
-  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.5);
-  text-shadow: none;
-}
-html:not([data-story='on']) .u-label,
-html:not([data-story='on']) .u-float {
-  display: none;
-}
-.u-float {
-  position: absolute;
-  left: 0;
-  top: 0;
-  z-index: 4;
-  width: 300px;
-  padding: 14px 16px 14px;
-  border: 1px solid var(--surface-2);
-  border-radius: 14px;
-  background: rgba(14, 14, 16, 0.9);
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.2s ease, visibility 0.2s;
-}
-@media (hover: hover) and (pointer: fine) {
-  .u-float {
-    -webkit-backdrop-filter: blur(10px);
-    backdrop-filter: blur(10px);
-  }
-}
-.u-float p {
-  margin: 0;
-}
-.u-float-kicker,
-.u-kicker {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  color: var(--body);
-}
-.u-float-kicker::before,
-.u-kicker::before {
-  content: '';
-  flex: none;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 1px var(--body);
-}
-.u-float-kicker.is-award::before,
-.u-item.is-award .u-kicker::before {
-  background: var(--accent);
-  box-shadow: none;
-}
-.u-float-title {
-  margin-top: 7px !important;
-  font-size: 18px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: #fff;
-}
-.u-float-line {
-  margin-top: 5px !important;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--body);
-}
-.u-float-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 18px;
-  margin-top: 11px !important;
-}
-.u-float-links a,
-.u-links a {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--strong);
-  text-decoration: none;
-  border-bottom: 1px solid var(--line);
-  padding-bottom: 2px;
-  transition: border-color 0.2s ease, color 0.2s ease;
-}
-.u-float-links a:hover,
-.u-links a:hover {
-  color: #fff;
-  border-color: var(--accent);
-}
-.u-links a:focus-visible {
-  outline: 2px solid var(--silver);
-  outline-offset: 3px;
-  border-radius: 2px;
-}
-
-/* Phones and tablets: a row of cards you can swipe. */
-.u-list {
-  grid-area: list;
-  position: relative; /* keeps the screen-reader-only spans inside the scroller */
-  display: flex;
-  gap: 12px;
-  margin: 12px calc(var(--gutter) * -1) 0;
-  padding: 4px var(--gutter) 14px;
-  list-style: none;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scroll-padding: 0 var(--gutter);
-  scrollbar-width: none;
-  overscroll-behavior-x: contain;
-}
-.u-list::-webkit-scrollbar {
-  display: none;
-}
-.u-item {
-  flex: 0 0 min(80vw, 300px);
-  scroll-snap-align: start;
-}
-.u-card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding: 16px 16px 15px;
-  border: 1px solid var(--surface-2);
-  border-radius: 14px;
-  background: rgba(14, 14, 16, 0.88);
-  transition: border-color 0.2s ease, background-color 0.2s ease;
-}
-.u-item.is-active .u-card,
-.u-item:focus-within .u-card {
-  border-color: rgba(var(--accent-rgb), 0.45);
-}
-.u-card p,
-.u-card h3 {
-  margin: 0;
-}
-.u-name {
-  margin-top: 7px !important;
-  font-size: 18px;
-  line-height: 1.25;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  color: #fff;
-}
-.u-line {
-  margin-top: 6px !important;
-  font-size: 14px;
-  line-height: 1.5;
-  color: var(--body);
-}
-.u-links {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px 18px;
-  margin-top: auto !important;
-  padding-top: 12px;
-}
-.u-more {
-  grid-area: more;
-  display: flex;
-  gap: 10px;
-  margin: 18px 0 0;
-  font-size: 14px;
-  color: var(--line);
-}
-.u-more a {
-  color: var(--body);
-  text-decoration: underline;
-  text-decoration-color: var(--line);
-  text-underline-offset: 4px;
-}
-.u-more a:hover {
-  color: #fff;
-}
-
-@media (min-width: 720px) {
-  .u-orbit {
-    height: min(70vw, 520px);
-    margin: 16px 0 0;
-  }
-  .u-label {
-    font-size: 13px;
-  }
-}
-
-/* Wide, tall screens: copy and list on the left, the system on the right, pinned while it tilts. */
-@media (min-width: 1024px) and (min-height: 700px) {
-  .universe {
-    height: 175vh;
-  }
-  .u-stage {
-    position: sticky;
-    top: 0;
-    height: 100vh;
-    height: 100svh;
-    grid-template-columns: minmax(340px, 400px) minmax(0, 1fr);
-    grid-template-rows: auto auto auto;
-    grid-template-areas: 'head orbit' 'list orbit' 'more orbit';
-    align-content: center;
-    column-gap: 40px;
-    padding: calc(var(--nav) + 16px) var(--gutter) 28px;
-  }
-  .u-orbit {
-    grid-row: 1 / -1;
-    height: 100%;
-    margin: 0;
-  }
-  .u-intro {
-    font-size: 15.5px;
-  }
-  .u-list {
-    display: block;
-    margin: 22px 0 0;
-    padding: 0;
-    overflow: visible;
-    border-top: 1px solid var(--surface-2);
-  }
-  .u-item {
-    border-bottom: 1px solid var(--surface-2);
-  }
-  .u-card {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-areas: 'kicker kicker' 'name links';
-    align-items: baseline;
-    column-gap: 16px;
-    padding: 9px 10px 10px;
-    border: 0;
-    border-radius: 8px;
-    background: transparent;
-  }
-  .u-item.is-active .u-card {
-    background: linear-gradient(to right, rgba(28, 28, 33, 0.85), rgba(28, 28, 33, 0));
-  }
-  .u-kicker {
-    grid-area: kicker;
-    font-size: 11.5px;
-  }
-  .u-name {
-    grid-area: name;
-    margin-top: 3px !important;
-    font-size: 16px;
-    color: var(--strong);
-    transition: color 0.2s ease;
-  }
-  .u-item.is-active .u-name {
-    color: #fff;
-  }
-  /* The one line lives in the floating card here; screen readers still get it from the list. */
-  .u-line {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-  }
-  .u-links {
-    grid-area: links;
-    margin-top: 0 !important;
-    padding-top: 0;
-    gap: 14px;
-  }
-  .u-links a {
-    font-size: 12.5px;
-    color: var(--body);
-  }
-  .u-item.is-active .u-links a {
-    color: var(--strong);
-  }
-  .u-more {
-    margin-top: 16px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .u-float,
-  .u-card,
-  .u-name {
-    transition: none !important;
   }
 }
 

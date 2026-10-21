@@ -4,26 +4,12 @@ import { createPortal } from 'react-dom';
 import { GROUP_ORDER, articleCommands, askAniBotCommand, buildStaticCommands } from './commands.js';
 import { isApplePlatform } from './events.js';
 import { filterCommands } from './fuzzy.js';
+import { loadBlogIndex } from '../../data/blogIndex.js';
 
 // ---------- data ----------
-// /blog/index.json is written by scripts/build-blog.mjs. It is fetched the first time the palette
-// opens and kept for the rest of the visit; a failed fetch is retried on the next open.
-let articlesPromise = null;
-const loadArticles = () => {
-  if (!articlesPromise) {
-    articlesPromise = fetch('/blog/index.json')
-      .then((r) => {
-        if (!r.ok) throw new Error(`index.json ${r.status}`);
-        return r.json();
-      })
-      .then((list) => (Array.isArray(list) ? list : []))
-      .catch((err) => {
-        articlesPromise = null;
-        throw err;
-      });
-  }
-  return articlesPromise;
-};
+// /blog/index.json is written by scripts/build-blog.mjs. It is fetched once per visit (shared with
+// the homepage sections); a failed fetch is retried on the next open.
+const loadArticles = loadBlogIndex;
 
 // Recently used commands, per browser. Storage can be blocked, so every access is guarded.
 const RECENT_KEY = 'av:palette-recent';

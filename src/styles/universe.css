@@ -1,0 +1,440 @@
+/* The universe section (src/sections/Universe.jsx). Loaded with that lazy chunk, so none of it
+   blocks the first paint. Tokens (--surface-1 and the rest) come from story.css. */
+
+.universe {
+  position: relative;
+  font-family: var(--font);
+  color: var(--body);
+}
+.u-stage {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'head' 'orbit' 'list' 'more';
+  padding: 36px var(--gutter) 40px;
+}
+.u-head {
+  grid-area: head;
+}
+/* Same eyebrow as the hero's (sentence case, the live dot), without the ping. */
+.u-eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 500;
+  color: var(--strong);
+}
+.u-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.u-title {
+  margin: 0;
+}
+.u-intro {
+  margin: 12px 0 0;
+  max-width: 34em;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--body);
+  text-wrap: pretty;
+}
+.u-orbit {
+  grid-area: orbit;
+  position: relative;
+  height: min(96vw, 420px);
+  margin: 8px calc(var(--gutter) * -1) 0;
+}
+/* Phones and tablets: labels near the edge must never widen the page. */
+@media (max-width: 1023px), (max-height: 699px) {
+  .u-orbit {
+    overflow: hidden;
+    overflow: clip;
+  }
+}
+.u-orbit.is-over {
+  cursor: pointer;
+}
+html[data-story='off'] .u-orbit {
+  background: repeating-radial-gradient(ellipse 50% 32% at 50% 50%, transparent 0 46px, rgba(58, 58, 73, 0.55) 46px 47px, transparent 47px 70px);
+  -webkit-mask-image: radial-gradient(ellipse 50% 40% at 50% 50%, #000 70%, transparent 100%);
+  mask-image: radial-gradient(ellipse 50% 40% at 50% 50%, #000 70%, transparent 100%);
+}
+.u-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 3px 7px;
+  border-radius: 6px;
+  white-space: nowrap;
+  font-size: 12.5px;
+  line-height: 1.25;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--strong);
+  text-shadow: 0 0 10px var(--ground), 0 0 3px var(--ground), 0 0 1px var(--ground);
+  cursor: pointer;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform, opacity;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.u-label[data-on='true'] {
+  color: #fff;
+  background: rgba(14, 14, 16, 0.86);
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-rgb), 0.5);
+  text-shadow: none;
+}
+html:not([data-story='on']) .u-label,
+html:not([data-story='on']) .u-float {
+  display: none;
+}
+.u-float {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 4;
+  width: 320px;
+  padding: 14px 16px 14px;
+  border: 1px solid var(--surface-2);
+  border-radius: 14px;
+  background: rgba(14, 14, 16, 0.9);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease, visibility 0.2s;
+}
+@media (hover: hover) and (pointer: fine) {
+  .u-float {
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+}
+.u-float p {
+  margin: 0;
+}
+.u-float-kicker,
+.u-kicker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: var(--body);
+}
+.u-float-kicker::before,
+.u-kicker::before {
+  content: '';
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--body);
+}
+.u-float-kicker.is-award::before,
+.u-item.is-award .u-kicker::before {
+  background: var(--accent);
+  box-shadow: none;
+}
+.u-float-title {
+  margin-top: 7px !important;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+.u-float-line {
+  margin-top: 5px !important;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--body);
+}
+.u-float-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-top: 11px !important;
+}
+.u-float-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--strong);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 2px;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+.u-float-links a:hover {
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* Phones and tablets: a row of cards you can swipe. */
+.u-list {
+  grid-area: list;
+  position: relative; /* keeps the screen-reader-only spans inside the scroller */
+  display: flex;
+  gap: 12px;
+  margin: 12px calc(var(--gutter) * -1) 0;
+  padding: 4px var(--gutter) 14px;
+  list-style: none;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scroll-padding: 0 var(--gutter);
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.u-list::-webkit-scrollbar {
+  display: none;
+}
+.u-item {
+  flex: 0 0 min(80vw, 300px);
+  scroll-snap-align: start;
+}
+.u-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 16px 16px 15px;
+  border: 1px solid var(--surface-2);
+  border-radius: 14px;
+  background: rgba(14, 14, 16, 0.88);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+.u-item.is-active .u-card,
+.u-item:focus-within .u-card {
+  border-color: rgba(var(--accent-rgb), 0.45);
+}
+.u-card p,
+.u-card h3 {
+  margin: 0;
+}
+.u-name {
+  margin-top: 7px !important;
+  font-size: 18px;
+  line-height: 1.25;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+/* The whole card is the link to the write-up (the name is the link text). */
+.u-main {
+  color: inherit;
+  text-decoration: none;
+}
+.u-main::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+.u-main:focus-visible {
+  outline: none;
+}
+.u-main:focus-visible::after {
+  outline: 2px solid var(--silver);
+  outline-offset: 2px;
+}
+.u-line {
+  margin-top: 6px !important;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--body);
+}
+.u-links {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: auto !important;
+  padding-top: 12px;
+}
+.u-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--strong);
+  transition: color 0.2s ease;
+}
+.u-go svg {
+  transition: transform 0.2s ease;
+}
+.u-card:hover .u-go,
+.u-item.is-active .u-go {
+  color: #fff;
+}
+.u-card:hover .u-go svg,
+.u-item.is-active .u-go svg {
+  transform: translateX(2px);
+}
+/* The live site or the source: a small link of its own, above the card's link. */
+.u-ext {
+  position: relative;
+  z-index: 1;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin: -6px -6px -6px 0;
+  border-radius: 8px;
+  color: var(--body);
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.u-ext:hover {
+  background: var(--surface-2);
+  color: #fff;
+}
+.u-ext:focus-visible {
+  outline: 2px solid var(--silver);
+  outline-offset: 1px;
+}
+.u-more {
+  grid-area: more;
+  display: flex;
+  gap: 10px;
+  margin: 18px 0 0;
+  font-size: 14px;
+  color: var(--line);
+}
+.u-more a {
+  color: var(--body);
+  text-decoration: underline;
+  text-decoration-color: var(--line);
+  text-underline-offset: 4px;
+}
+.u-more a:hover {
+  color: #fff;
+}
+
+@media (min-width: 720px) {
+  .u-orbit {
+    height: min(70vw, 520px);
+    margin: 16px 0 0;
+  }
+  .u-label {
+    font-size: 13px;
+  }
+}
+
+/* Wide, tall screens: copy and list on the left, the system on the right, pinned while it tilts. */
+@media (min-width: 1024px) and (min-height: 700px) {
+  .universe {
+    height: 175vh;
+  }
+  .u-stage {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    height: 100svh;
+    grid-template-columns: minmax(340px, 400px) minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    grid-template-areas: 'head orbit' 'list orbit' 'more orbit';
+    align-content: start;
+    column-gap: 40px;
+    padding: calc(var(--nav) + 24px) var(--gutter) 28px;
+  }
+  .u-orbit {
+    grid-row: 1 / -1;
+    height: 100%;
+    margin: 0;
+  }
+  .u-intro {
+    font-size: 15.5px;
+  }
+  .u-list {
+    display: block;
+    margin: 22px 0 0;
+    padding: 0;
+    overflow: visible;
+    border-top: 1px solid var(--surface-2);
+  }
+  .u-item {
+    border-bottom: 1px solid var(--surface-2);
+  }
+  .u-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas: 'kicker links' 'name links';
+    align-items: center;
+    column-gap: 16px;
+    padding: 9px 10px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+  }
+  .u-item.is-active .u-card {
+    background: linear-gradient(to right, rgba(28, 28, 33, 0.85), rgba(28, 28, 33, 0));
+  }
+  .u-kicker {
+    grid-area: kicker;
+    font-size: 11.5px;
+  }
+  .u-name {
+    grid-area: name;
+    margin-top: 3px !important;
+    font-size: 16px;
+    color: var(--strong);
+    transition: color 0.2s ease;
+  }
+  .u-item.is-active .u-name {
+    color: #fff;
+  }
+  /* The one line lives in the floating card here; screen readers still get it from the list. */
+  .u-line {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .u-links {
+    grid-area: links;
+    margin-top: 0 !important;
+    padding-top: 0;
+    gap: 10px;
+  }
+  /* In the list only the arrow shows; the row itself says where it goes. */
+  .u-go-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  .u-go {
+    color: var(--line);
+  }
+  .u-ext {
+    margin: 0;
+  }
+  .u-more {
+    margin-top: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .u-float,
+  .u-card,
+  .u-name,
+  .u-go,
+  .u-go svg {
+    transition: none !important;
+  }
+}
+

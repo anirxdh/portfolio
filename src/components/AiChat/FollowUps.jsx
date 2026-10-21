@@ -8,9 +8,9 @@ const FollowUps = ({ onQuestionClick, onContact, disabled }) => {
   return (
     <div className="px-4 sm:px-5 py-3 border-t border-black-300 space-y-2.5">
       <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-white-600/80">Keep exploring</p>
-      <div className="flex gap-2 overflow-x-auto chat-scroll-x -mx-4 px-4 sm:-mx-5 sm:px-5 pb-0.5">
+      <div className="flex flex-wrap gap-2">
         {FOLLOWUPS.map((q) => (
-          <button key={q} type="button" onClick={() => onQuestionClick(q)} disabled={disabled} className="chat-chip shrink-0">
+          <button key={q} type="button" onClick={() => onQuestionClick(q)} disabled={disabled} className="chat-chip">
             {q}
           </button>
         ))}

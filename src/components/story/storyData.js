@@ -2,6 +2,7 @@
 // (myProjects, hackathons) and /blog/index.json (published write-ups), so a new project or article
 // shows up as a star without touching this file. scripts/prerender-home.mjs uses the same rules.
 import { hackathons, myProjects } from '../../constants/index.js';
+import { loadBlogIndex } from '../../data/blogIndex.js';
 
 // House style for the homepage copy: no emoji, no em or en dashes, "x" for "×", ", " for "·".
 export const cleanText = (s = '') =>
@@ -115,14 +116,5 @@ export const buildStars = (articles = []) => {
   return stars;
 };
 
-// The article list the Writing section also reads. One request per page view.
-let articlesPromise = null;
-export const loadArticles = () => {
-  if (!articlesPromise) {
-    articlesPromise = fetch('/blog/index.json')
-      .then((r) => (r.ok ? r.json() : []))
-      .then((list) => (Array.isArray(list) ? list : []))
-      .catch(() => []);
-  }
-  return articlesPromise;
-};
+// The article list the Writing section and the command palette also read (one request per visit).
+export const loadArticles = () => loadBlogIndex().catch(() => []);

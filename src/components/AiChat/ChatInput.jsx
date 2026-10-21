@@ -1,3 +1,5 @@
+import { Arrow } from '../Arrow.jsx';
+
 // `disabled` locks the whole input (while AniBot is thinking); `busy` only holds the send button
 // (while a reply is still streaming in), so a visitor can type the next question meanwhile.
 // The mic waits for the reply to finish, so a spoken question is never dropped or talked over.
@@ -55,7 +57,7 @@ const ChatInput = ({ value, onChange, onSend, disabled, busy = false, voice }) =
             type="button"
             onClick={listening ? voice.stopListening : voice.startListening}
             disabled={(disabled || busy) && !listening}
-            aria-label={listening ? 'Stop listening' : 'Talk to AniBot'}
+            aria-label={listening ? 'Stop listening' : 'Speak your question'}
             aria-pressed={listening}
             className={`chat-icon-btn shrink-0 ${listening ? 'is-recording' : ''}`}
           >
@@ -65,9 +67,7 @@ const ChatInput = ({ value, onChange, onSend, disabled, busy = false, voice }) =
           </button>
         )}
         <button type="submit" disabled={sendDisabled} aria-label="Send message" className="chat-send shrink-0">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-[18px] h-[18px]" aria-hidden="true" focusable="false">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
-          </svg>
+          <Arrow size={18} />
         </button>
       </div>
       <p role="status" aria-live="polite" className={voice?.error ? 'mt-2 px-1 text-xs text-amber-300' : 'sr-only'}>

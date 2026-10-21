@@ -3,7 +3,41 @@ import { Component, lazy, Suspense, useEffect, useRef, useState } from 'react';
 import Button from '../components/Button.jsx';
 
 // react-globe.gl is heavy and below the fold — load it on demand.
-const Globe = lazy(() => import('react-globe.gl'));
+const loadGlobe = () => import('react-globe.gl');
+const Globe = lazy(loadGlobe);
+
+// Mounting the globe (WebGL set-up) is one long task. Run it when scrolling has paused and the
+// page is idle, so it never lands in the middle of the universe's scroll story above.
+const whenScrollRests = (fn) => {
+  let timer = 0;
+  let idle = 0;
+  let done = false;
+  const fire = () => {
+    if (done) return;
+    done = true;
+    window.removeEventListener('scroll', onScroll);
+    fn();
+  };
+  const run = () => {
+    if (done) return;
+    if ('requestIdleCallback' in window) idle = window.requestIdleCallback(fire, { timeout: 1200 });
+    else timer = setTimeout(fire, 50);
+  };
+  function onScroll() {
+    clearTimeout(timer);
+    if (idle) window.cancelIdleCallback?.(idle);
+    idle = 0;
+    timer = setTimeout(run, 220);
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+  return () => {
+    done = true;
+    clearTimeout(timer);
+    if (idle) window.cancelIdleCallback?.(idle);
+    window.removeEventListener('scroll', onScroll);
+  };
+};
 
 // Always HTTPS, and pinned to the installed three-globe version so unpkg answers directly instead
 // of redirecting to the latest release first. Same images as before.
@@ -45,16 +79,27 @@ const About = () => {
       setShowGlobe(true);
       return undefined;
     }
+    let stopWaiting = () => {};
     const io = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
         io.disconnect();
-        setShowGlobe(true);
+        // Load the chunk when the scroll rests, then mount it at the next rest.
+        stopWaiting = whenScrollRests(() => {
+          loadGlobe()
+            .catch(() => {})
+            .then(() => {
+              stopWaiting = whenScrollRests(() => setShowGlobe(true));
+            });
+        });
       },
       { rootMargin: '100% 0px' },
     );
     io.observe(el);
-    return () => io.disconnect();
+    return () => {
+      io.disconnect();
+      stopWaiting();
+    };
   }, []);
 
   // Go through the #hash like the navbar links, so App.jsx can make sure the lazy-loaded

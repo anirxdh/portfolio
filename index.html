@@ -22,9 +22,12 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
 
-    <!-- Fonts: General Sans is served from cdnfonts; warm the connection and preload the body weight -->
+    <!-- Fonts: General Sans is served from cdnfonts; warm the connection and preload the weights the
+         first screen uses (body text, the buttons and role line, the name) -->
     <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin />
     <link rel="preload" as="font" type="font/woff" href="https://fonts.cdnfonts.com/s/85793/GeneralSans-Regular.woff" crossorigin />
+    <link rel="preload" as="font" type="font/woff" href="https://fonts.cdnfonts.com/s/85793/GeneralSans-Medium.woff" crossorigin />
+    <link rel="preload" as="font" type="font/woff" href="https://fonts.cdnfonts.com/s/85793/GeneralSans-Semibold.woff" crossorigin />
 
     <!-- Open Graph / Facebook / LinkedIn -->
     <meta property="og:type" content="website" />
@@ -144,12 +147,13 @@
         <!-- Same markup as src/sections/Hero.jsx (scripts/prerender-home.mjs checks the text matches). -->
         <section class="hero" id="static-intro" aria-labelledby="hero-name">
           <div class="hero-wrap">
-            <div class="hero-sky" aria-hidden="true"><div class="orb-slot"><div class="orb-css"></div></div></div>
+            <div class="hero-sky" aria-hidden="true"><div class="orb-slot is-sky"><div class="orb-css"></div></div></div>
             <div class="hero-copy">
               <div class="hero-mast"><p class="hero-eyebrow"><span class="hero-dot" aria-hidden="true"></span>Full-stack and AI engineer · San Francisco</p><span class="hero-rule" aria-hidden="true"></span></div>
               <div class="hero-stage">
                 <h1 class="hero-name" id="hero-name"><span class="w">Anirudh<span class="bl" aria-hidden="true"></span></span> <span class="w">Vasudevan<span class="bl" aria-hidden="true"></span></span></h1>
                 <div class="hero-text"><p class="hero-role">Member of Technical Staff at Rivo, building voice AI agents.</p><p class="hero-line">Each star here is a project I built and wrote up, and AniBot can tell you about any of them.</p></div>
+                <div class="orb-slot is-stage" aria-hidden="true"><div class="orb-css"></div></div>
               </div>
               <div class="hero-below">
                 <div class="hero-actions">

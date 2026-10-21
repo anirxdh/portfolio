@@ -4,12 +4,14 @@
 // sky drifts a few pixels at most; the nearest stars reach toward the cursor and a small card names
 // the closest one. Wins and the patent are the bright stars.
 // Act 2, the universe: as the hero scrolls away the same stars travel down and settle into orbits
-// around a small dotted orb (AniBot's motif). The homepage projects become planets with real DOM
-// labels; every other write-up joins an outer belt. While the universe stays pinned the system
-// tilts from a star chart into depth. Native scroll only: progress is read from the section's rect.
+// around a small dotted orb (AniBot's motif). The homepage projects light up as they leave the sky
+// and carry their names down, then become planets with real DOM labels; every other write-up joins
+// an outer belt. While the universe stays pinned the system tilts from a star chart into depth,
+// and the picked planet's card opens in a slot under it, joined by a thin line. Native scroll
+// only: progress is read from the section's rect.
 //
 // Cost: about 30 bodies, 4 orbits and a 140-dot sphere, under a millisecond a frame. The loop is
-// capped at 24 to 30 fps at rest, runs at full rate only while something moves, stops after a quiet
+// capped at 30 fps at rest, runs at full rate only while something moves, stops after a quiet
 // spell, and stops when the tab is hidden or both sections are offscreen. prefers-reduced-motion
 // draws still frames on scroll and input only, with no travel and no drift.
 //
@@ -208,8 +210,11 @@ export function createStoryEngine() {
   let heroDustOK = false;
   let uniDustOK = false;
   let labelSize = [];
-  let floatSize = { w: 280, h: 150 };
+  let floatSize = { w: 320, h: 150 };
   let cardSize = { w: 260, h: 110 };
+  let copyBoxes = []; // the hero's text and buttons, hero-local: the demo card keeps clear of them
+  let dock = 0; // pinned universe: room kept under the system for the picked planet's card
+  let clipOrbit = false; // the orbit box clips (phones, tablets): labels must stay inside it
   const sphere = [];
   {
     const n = 140;
@@ -313,10 +318,12 @@ export function createStoryEngine() {
       s.by = y0 + rand() * Math.max(1, bh);
     });
     if (bw < 160 || bh < 60) return;
-    const n = clamp(Math.round((bw * bh) / (narrow ? 4200 : 7800)), 5, stars.length);
+    // Every project star is in the sky, so each one can be watched on its way to its planet.
+    const nPlanets = stars.filter((s) => s.orbit >= 0).length;
+    const n = clamp(Math.max(Math.round((bw * bh) / (narrow ? 4200 : 7800)), nPlanets), 5, stars.length);
     const pick = stars
       .slice()
-      .sort((a, b) => a.mag - b.mag || a.i - b.i)
+      .sort((a, b) => Number(b.orbit >= 0) - Number(a.orbit >= 0) || a.mag - b.mag || a.i - b.i)
       .slice(0, n);
     let md = clamp(Math.sqrt((bw * bh) / n) * 0.72, 26, 150);
     const all = [];
@@ -374,6 +381,11 @@ export function createStoryEngine() {
       placeHeroStars();
       heroDustOK = buildDust(heroDust, hr.width, Math.max(1, band.y + band.h + 40), 99, W < 720 ? 2400 : 3200);
       if (H.card) cardSize = { w: H.card.offsetWidth || 260, h: H.card.offsetHeight || 110 };
+      copyBoxes = [...H.hero.querySelectorAll('.hero-eyebrow, .hero-name, .hero-text, .hero-ctas, .hero-type, .hero-proof')].map((el) => {
+        const r = el.getBoundingClientRect();
+        return { x: r.left - hr.left - 8, y: r.top - hr.top - 8, w: r.width + 16, h: r.height + 16 };
+      });
+      demoStar = -1;
     }
     if (U) {
       const orr = U.orbit.getBoundingClientRect();
@@ -382,11 +394,13 @@ export function createStoryEngine() {
       narrowU = orr.width < 480;
       orbitBox.w = orr.width;
       orbitBox.h = orr.height;
+      clipOrbit = getComputedStyle(U.orbit).overflow !== 'visible';
+      if (U.float) floatSize = { w: U.float.offsetWidth || floatSize.w, h: Math.max(130, U.float.offsetHeight || floatSize.h) };
+      dock = sticky ? Math.min(Math.round(orr.height * 0.26), floatSize.h + 30) : 0;
       const margin = narrowU ? 34 : 86;
-      Rmax = Math.max(60, Math.min(orr.width / 2 - margin, (orr.height / 2 - 30) / 0.88));
+      Rmax = Math.max(60, Math.min(orr.width / 2 - margin, ((orr.height - dock) / 2 - 30) / 0.88));
       uniDustOK = buildDust(uniDust, sr.width, sr.height, 311, narrowU ? 2600 : 3600);
       labelSize = U.labels.map((el) => (el ? { w: el.offsetWidth, h: el.offsetHeight } : { w: 0, h: 0 }));
-      if (U.float) floatSize = { w: U.float.offsetWidth || 280, h: U.float.offsetHeight || 150 };
     }
   }
 
@@ -399,6 +413,7 @@ export function createStoryEngine() {
   let heroPinned = -1;
   let hoverCandAt = 0;
   let demoEnd = -1;
+  let demoStar = -1; // -1: not chosen yet, -2: none fits
   let overCard = false;
   let uActive = -1;
   let uHover = -1;
@@ -429,6 +444,52 @@ export function createStoryEngine() {
       if (U?.float) floatSize = { w: U.float.offsetWidth || floatSize.w, h: U.float.offsetHeight || floatSize.h };
     });
   };
+
+  // Where the hero card goes for a star (hero-local), beside it, inside the sky where it fits.
+  function cardPos(s) {
+    const lx = s.hx - heroLeft;
+    const ly = s.hy - heroTop;
+    const gap = 16;
+    let x;
+    let y;
+    const room = cardSize.w + gap * 2 + 24;
+    const besideCopy = band.x > heroSize.w * 0.3; // short screens: the sky sits right of the copy
+    if (besideCopy) {
+      // Stay inside the sky, above or below the star, so the copy is never covered.
+      x = clamp(lx - cardSize.w / 2, band.x, Math.max(band.x, band.x + band.w - cardSize.w));
+      const top = 84; // below the site nav
+      const above = ly - gap - cardSize.h;
+      const below = ly + gap;
+      const fitsAbove = above >= top;
+      const fitsBelow = below + cardSize.h <= heroSize.h - 8;
+      y = (ly - band.y > band.h / 2 && fitsAbove) || !fitsBelow ? Math.max(top, above) : below;
+    } else if (lx + room <= heroSize.w || lx - room >= 0) {
+      x = lx + gap + cardSize.w <= heroSize.w - 12 ? lx + gap : lx - gap - cardSize.w;
+      y = clamp(ly - 18, band.y - 6, Math.max(band.y - 6, band.y + band.h - cardSize.h + 12));
+    } else {
+      // Narrow screens: above or below the star, so the star and the name stay visible.
+      x = lx - cardSize.w / 2;
+      const below = ly + gap;
+      const above = ly - gap - cardSize.h;
+      const fitsBelow = below + cardSize.h <= band.y + band.h + 16;
+      y = ly < band.y + band.h / 2 && fitsBelow ? below : above >= band.y - 30 ? above : below;
+    }
+    x = clamp(x, 12, Math.max(12, heroSize.w - cardSize.w - 12));
+    return { x, y };
+  }
+
+  // The one-time demo card: the first star whose card would not cover any of the hero's text or
+  // buttons. A short sky (a phone on its side) gets no demo at all.
+  function pickDemo() {
+    if (band.h < 200) return -2;
+    const order = stars.filter((s) => s.placed).sort((a, b) => a.order - b.order);
+    for (const s of order) {
+      const c = cardPos(s);
+      const b = { x: c.x, y: c.y, w: cardSize.w, h: cardSize.h };
+      if (!copyBoxes.some((o) => overlap(b, o) > 0)) return s.i;
+    }
+    return -2;
+  }
 
   /* ---------- Per-frame geometry ---------- */
   let heroTop = 0;
@@ -479,7 +540,7 @@ export function createStoryEngine() {
   function orbitGeometry() {
     if (!U || !orbitRect) return;
     cx = orbitRect.left + orbitRect.width / 2;
-    cy = orbitRect.top + orbitRect.height / 2;
+    cy = orbitRect.top + (orbitRect.height - dock) / 2;
     elev = reduced ? (sticky ? 0.62 : 0.66) : sticky ? lerp(1.04, 0.52, easeInOut(pD)) : 0.66;
     sinE = Math.sin(elev);
     cosE = Math.cos(elev);
@@ -610,8 +671,8 @@ export function createStoryEngine() {
       if (P.seen) demoEnd = 0;
       else if (t > 2.6) {
         if (demoEnd < 0) demoEnd = t + 4;
-        const first = stars.find((s) => s.placed && s.order === 0);
-        if (t < demoEnd && first && pT < 0.02 && dimTarget < 0.5) auto = first.i;
+        if (demoStar === -1) demoStar = pickDemo();
+        if (t < demoEnd && demoStar >= 0 && pT < 0.02 && dimTarget < 0.5) auto = demoStar;
         else if (t >= demoEnd) demoEnd = 0;
       }
     }
@@ -638,7 +699,20 @@ export function createStoryEngine() {
       const target = s.placed && s.i === heroActive ? 1 : s.orbit >= 0 && s.planet === uActive ? 1 : 0;
       s.act += (target - s.act) * e7;
     }
+
+    // The picked planet's card: docked under the system, centred on it (pinned layout only; on
+    // phones and tablets the card list below the system shows the same details).
+    floatPos.on = false;
+    const fs = uActive >= 0 ? planetStar[uActive] : null;
+    if (U && U.float && fs && sticky && dock > 0 && orbitRect && pT > 0.94) {
+      const x = clamp(orbitRect.width / 2 - floatSize.w / 2, 8, Math.max(8, orbitRect.width - floatSize.w - 8));
+      const y = Math.min(orbitRect.height - dock + 14, VH - orbitRect.top - floatSize.h - 12);
+      floatPos.x = x;
+      floatPos.y = y;
+      floatPos.on = true;
+    }
   }
+  const floatPos = { x: 0, y: 0, on: false };
 
   /* ---------- Drawing ---------- */
   const bodyOrder = [];
@@ -671,7 +745,7 @@ export function createStoryEngine() {
   function drawOrbits(alpha) {
     if (alpha <= 0.01) return;
     const segs = 120;
-    const prog = reduced ? 1 : smooth((pT - 0.3) / 0.6);
+    const prog = reduced ? 1 : smooth((pT - 0.14) / 0.6);
     ctx.lineWidth = 1;
     for (let oi = 0; oi < ORBITS.length; oi++) {
       const R = ORBITS[oi].r * Rmax;
@@ -782,6 +856,72 @@ export function createStoryEngine() {
     }
   }
 
+  // The project stars on their way down: an accent rim and their name, so a visitor can follow
+  // one from the sky to its planet. The planets' own DOM labels take over as they arrive.
+  const LABEL_FONT = '500 12px "General Sans", "Segoe UI", Helvetica, Arial, sans-serif';
+  function drawTravellers() {
+    const go = smooth((pT - 0.02) / 0.08);
+    if (go <= 0.01) return;
+    const labIn = smooth((pT - 0.8) / 0.18);
+    ctx.font = LABEL_FONT;
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    for (const s of planetStar) {
+      if (!s || !s.placed) continue;
+      const e = s.pe || 0;
+      const r = lerp(s.rr, s.prr, e);
+      const rim = go * (1 - smooth((e - 0.82) / 0.18));
+      if (rim > 0.01) {
+        ctx.globalAlpha = 0.8 * rim;
+        ctx.strokeStyle = ACCENT;
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.arc(s.px, s.py, r + 4.5, 0, TAU);
+        ctx.stroke();
+      }
+      // Names show once a star has left its place in the sky, not while it still sits there.
+      const la = go * smooth(e / 0.18) * (1 - labIn);
+      if (la > 0.01 && s.py > -20 && s.py < VH + 20) {
+        const x = s.px + r + 9;
+        ctx.globalAlpha = 0.85 * la;
+        ctx.strokeStyle = '#010103';
+        ctx.lineWidth = 4;
+        ctx.strokeText(s.name, x, s.py);
+        ctx.globalAlpha = la;
+        ctx.fillStyle = STRONG;
+        ctx.fillText(s.name, x, s.py);
+      }
+    }
+  }
+
+  // A thin line from the picked planet to its docked card, bowed away from the centre.
+  function drawLeader() {
+    const s = planetStar[uActive];
+    if (!s || s.act < 0.02 || !orbitRect) return;
+    const fx0 = orbitRect.left + floatPos.x;
+    const ty = orbitRect.top + floatPos.y - 3;
+    const tx = clamp(s.ux, fx0 + 28, fx0 + floatSize.w - 28);
+    const fromC = Math.atan2(s.uy - cy, s.ux - cx);
+    const sx = s.ux + Math.cos(fromC) * (s.prr + 7);
+    const sy = s.uy + Math.sin(fromC) * (s.prr + 7);
+    const mx = (sx + tx) / 2;
+    const my = (sy + ty) / 2;
+    const side = sx >= cx ? 1 : -1;
+    const bow = Math.min(Rmax * 0.6, Math.abs(ty - sy) * 0.35 + 30);
+    ctx.globalAlpha = 0.5 * s.act;
+    ctx.strokeStyle = ACCENT;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.quadraticCurveTo(mx + side * bow, my, tx, ty);
+    ctx.stroke();
+    ctx.globalAlpha = 0.9 * s.act;
+    ctx.fillStyle = ACCENT;
+    ctx.beginPath();
+    ctx.arc(tx, ty, 2, 0, TAU);
+    ctx.fill();
+  }
+
   function draw() {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalAlpha = 1;
@@ -801,12 +941,14 @@ export function createStoryEngine() {
       ctx.drawImage(heroDust, heroLeft, heroTop, heroDust.width, heroDust.height);
     }
     if (U && uniDustOK && stageRect) {
-      ctx.globalAlpha = reduced ? 1 : smooth(pT * 1.4);
+      ctx.globalAlpha = reduced ? 1 : smooth(pT * 1.8);
       ctx.drawImage(uniDust, stageRect.left, stageRect.top, uniDust.width, uniDust.height);
     }
 
     // Constellation figures, a faint chart that fades as the stars set off.
-    const figA = (reduced ? 1 : smooth((t - 0.9) / 1.4)) * (reduced ? 1 : 1 - smooth(pT * 5)) * heroVis;
+    // Constellation figures stay while the first half of the hero leaves, so the sky is still a
+    // sky when the stars start to move.
+    const figA = (reduced ? 1 : smooth((t - 0.9) / 1.4)) * (reduced ? 1 : 1 - smooth(pT / 0.5)) * heroVis;
     if (figA > 0.01) {
       ctx.lineCap = 'round';
       ctx.strokeStyle = SILVER;
@@ -859,7 +1001,7 @@ export function createStoryEngine() {
     }
 
     // The universe: orbits, the centre orb, then the bodies back to front.
-    const uA = U ? (reduced ? 1 : smooth((pT - 0.25) / 0.6)) : 0;
+    const uA = U ? (reduced ? 1 : smooth((pT - 0.12) / 0.55)) : 0;
     const showU = U && orbitRect && orbitRect.bottom > -40 && orbitRect.top < VH + 40;
     if (showU) drawOrbits(uA);
 
@@ -870,7 +1012,7 @@ export function createStoryEngine() {
     let centerDrawn = !showU;
     for (const s of bodies) {
       if (!centerDrawn && s.uz >= 0) {
-        drawSphere(Rmax * 0.12, (reduced ? 1 : smooth((pT - 0.55) / 0.4)) * 0.9);
+        drawSphere(Rmax * 0.12, (reduced ? 1 : smooth((pT - 0.4) / 0.4)) * 0.9);
         centerDrawn = true;
       }
       if (reduced || !U) {
@@ -894,8 +1036,11 @@ export function createStoryEngine() {
       drawBody(s, x, y, e, lerp(heroA, uniA, e), e > 0.5);
       s.px = x;
       s.py = y;
+      s.pe = e;
     }
-    if (!centerDrawn) drawSphere(Rmax * 0.12, (reduced ? 1 : smooth((pT - 0.55) / 0.4)) * 0.9);
+    if (!centerDrawn) drawSphere(Rmax * 0.12, (reduced ? 1 : smooth((pT - 0.4) / 0.4)) * 0.9);
+    if (!reduced && U) drawTravellers();
+    if (floatPos.on) drawLeader();
     ctx.restore();
     ctx.globalAlpha = 1;
     return true;
@@ -930,36 +1075,8 @@ export function createStoryEngine() {
     if (H?.card) {
       const s = heroActive >= 0 ? stars[heroActive] : null;
       if (s) {
-        const lx = s.hx - heroLeft;
-        const ly = s.hy - heroTop;
-        const gap = 16;
-        let x;
-        let y;
-        const room = cardSize.w + gap * 2 + 24;
-        const besideCopy = band.x > heroSize.w * 0.3; // short screens: the sky sits right of the copy
-        if (besideCopy) {
-          // Stay inside the sky, above or below the star, so the copy is never covered.
-          x = clamp(lx - cardSize.w / 2, band.x, Math.max(band.x, band.x + band.w - cardSize.w));
-          const top = 84; // below the site nav
-          const above = ly - gap - cardSize.h;
-          const below = ly + gap;
-          const fitsAbove = above >= top;
-          const fitsBelow = below + cardSize.h <= heroSize.h - 8;
-          y = (ly - band.y > band.h / 2 && fitsAbove) || !fitsBelow ? Math.max(top, above) : below;
-        } else if (lx + room <= heroSize.w || lx - room >= 0) {
-          // Beside the star, kept inside the sky band where it fits.
-          x = lx + gap + cardSize.w <= heroSize.w - 12 ? lx + gap : lx - gap - cardSize.w;
-          y = clamp(ly - 18, band.y - 6, Math.max(band.y - 6, band.y + band.h - cardSize.h + 12));
-        } else {
-          // Narrow screens: above or below the star, so the star and the name stay visible.
-          x = lx - cardSize.w / 2;
-          const below = ly + gap;
-          const above = ly - gap - cardSize.h;
-          const fitsBelow = below + cardSize.h <= band.y + band.h + 16;
-          y = ly < band.y + band.h / 2 && fitsBelow ? below : above >= band.y - 30 ? above : below;
-        }
-        x = clamp(x, 12, Math.max(12, heroSize.w - cardSize.w - 12));
-        place(H.card, x, y, 1);
+        const c = cardPos(s);
+        place(H.card, c.x, c.y, 1);
       } else hide(H.card);
     }
     if (!U) return;
@@ -974,32 +1091,55 @@ export function createStoryEngine() {
       const lx = s.ux - orbitRect.left;
       const ly = s.uy - orbitRect.top;
       const gap = s.prr * (PLANETS[s.planet]?.award ? 2.1 : 1.3) + 6;
-      const away = lx >= orbitRect.width / 2 ? 1 : -1;
-      const cands = [
-        { x: away > 0 ? lx + gap : lx - gap - sz.w, y: ly - sz.h / 2 },
-        { x: away > 0 ? lx - gap - sz.w : lx + gap, y: ly - sz.h / 2 },
-        { x: lx - sz.w / 2, y: ly + gap * 0.8 },
-        { x: lx - sz.w / 2, y: ly - gap * 0.8 - sz.h },
-      ];
+      // Outward from the centre first (labels never crowd the core), then the other sides.
+      const ox = cx - orbitRect.left;
+      const oy = cy - orbitRect.top;
+      const rx = lx - ox;
+      const ry = ly - oy;
+      const side = { x: rx >= 0 ? lx + gap : lx - gap - sz.w, y: ly - sz.h / 2 };
+      const flip = { x: rx >= 0 ? lx - gap - sz.w : lx + gap, y: ly - sz.h / 2 };
+      const vert = { x: lx - sz.w / 2, y: ry >= 0 ? ly + gap * 0.8 : ly - gap * 0.8 - sz.h };
+      const vflip = { x: lx - sz.w / 2, y: ry >= 0 ? ly - gap * 0.8 - sz.h : ly + gap * 0.8 };
+      const cands = Math.abs(rx) * sinE >= Math.abs(ry) ? [side, vert, vflip, flip] : [vert, side, flip, vflip];
       let best = cands[0];
       let bestCost = Infinity;
-      for (const c of cands) {
+      for (let ci = 0; ci < cands.length; ci++) {
+        const c = cands[ci];
         const b = { x: c.x, y: c.y, w: sz.w, h: sz.h };
-        let cost = 0;
+        let cost = ci * 25;
         if (b.x < -orbitRect.left + 4 || b.x + b.w > W - orbitRect.left - 4) cost += 1e6;
+        if (clipOrbit && (b.x < 2 || b.x + b.w > orbitRect.width - 2 || b.y < 2 || b.y + b.h > orbitRect.height - 2)) cost += 1e6;
         for (const o of boxes) cost += overlap(b, o) * 10;
         for (const p of planets) {
           if (p === s) continue;
-          const pr = p.prr + 3;
-          cost += overlap(b, { x: p.ux - orbitRect.left - pr, y: p.uy - orbitRect.top - pr, w: pr * 2, h: pr * 2 });
+          const pr = p.prr * (PLANETS[p.planet]?.award ? 1.9 : 1) + 4;
+          cost += overlap(b, { x: p.ux - orbitRect.left - pr, y: p.uy - orbitRect.top - pr, w: pr * 2, h: pr * 2 }) * 6;
         }
-        const cr = Rmax * 0.14;
-        cost += overlap(b, { x: orbitRect.width / 2 - cr, y: orbitRect.height / 2 - cr, w: cr * 2, h: cr * 2 }) * 0.5;
+        const cr = Rmax * 0.16;
+        cost += overlap(b, { x: ox - cr, y: oy - cr, w: cr * 2, h: cr * 2 }) * 3;
+        // A ring running through the text makes it hard to read.
+        const k = 1 / Math.max(0.2, sinE);
+        let rMin = Infinity;
+        let rMax = 0;
+        for (const [px2, py2] of [
+          [b.x, b.y],
+          [b.x + b.w, b.y],
+          [b.x, b.y + b.h],
+          [b.x + b.w, b.y + b.h],
+          [b.x + b.w / 2, b.y + b.h / 2],
+        ]) {
+          const r = Math.hypot(px2 - ox, (py2 - oy) * k);
+          if (r < rMin) rMin = r;
+          if (r > rMax) rMax = r;
+        }
+        for (const orb of ORBITS) {
+          const R = orb.r * Rmax;
+          if (R > rMin && R < rMax) cost += 60;
+        }
         if (cost < bestCost) {
           bestCost = cost;
           best = c;
         }
-        if (cost === 0) break;
       }
       boxes.push({ x: best.x, y: best.y, w: sz.w, h: sz.h });
       const depthA = 0.62 + 0.38 * smooth((s.uz + 0.8) / 1.6);
@@ -1008,19 +1148,10 @@ export function createStoryEngine() {
       place(el, best.x, best.y, labA * (isAct ? 1 : depthA * dimOthers));
       if (el.dataset.on !== String(isAct)) el.dataset.on = String(isAct);
     }
-    // Floating card beside the picked planet (wide screens only; phones use the card list).
+    // The picked planet's card, in its slot under the system (see update()).
     if (U.float) {
-      const s = uActive >= 0 ? planetStar[uActive] : null;
-      if (s && !narrowU && labA > 0.5) {
-        const lx = s.ux - orbitRect.left;
-        const ly = s.uy - orbitRect.top;
-        const gap = s.prr * 2.2 + 18;
-        const right = lx < orbitRect.width / 2;
-        let x = right ? lx + gap : lx - gap - floatSize.w;
-        x = clamp(x, 8, Math.max(8, orbitRect.width - floatSize.w - 8));
-        const y = clamp(ly - floatSize.h / 2, -orbitRect.top + 80, VH - orbitRect.top - floatSize.h - 12);
-        place(U.float, x, y, 1);
-      } else hide(U.float);
+      if (floatPos.on && labA > 0.5) place(U.float, floatPos.x, floatPos.y, 1);
+      else hide(U.float);
     }
   }
 
@@ -1044,8 +1175,7 @@ export function createStoryEngine() {
     raf = 0;
     if (!running || destroyed) return;
     const fast = busy(now);
-    const inU = pT > 0.9;
-    const gap = 1000 / (fast ? 60 : inU ? 30 : 24);
+    const gap = 1000 / (fast ? 60 : 30);
     if (now - lastDraw < gap * 0.7) {
       raf = requestAnimationFrame(frame);
       return;
@@ -1241,7 +1371,10 @@ export function createStoryEngine() {
     if (destroyed) return;
     setData(buildStars(list));
   });
-  requestAnimationFrame(() => canvas.classList.add('on'));
+  requestAnimationFrame(() => {
+    canvas.classList.add('on');
+    document.documentElement.classList.add('sky-on');
+  });
   wake();
 
   function fail(err) {
@@ -1345,6 +1478,7 @@ export function createStoryEngine() {
       cleanupUni.forEach((f) => f());
       ro?.disconnect();
       canvas.remove();
+      document.documentElement.classList.remove('sky-on');
     },
   };
   return api;

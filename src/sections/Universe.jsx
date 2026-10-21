@@ -1,12 +1,15 @@
 // "My work, as a universe": the second act of the homepage story, right after the hero.
 // The hero's stars travel down into this section and settle into orbits (src/components/story).
 // The canvas only decorates. Every project is real HTML in reading order: a list of rows on wide
-// screens (the planet you point at, or the row you hover or focus, lights up and a card opens
-// beside it) and a swipeable row of cards on phones. Native scroll; the stage is sticky only on
-// wide, tall screens, where the system tilts from a star chart into depth as you keep scrolling.
+// screens (the planet you point at, or the row you hover or focus, lights up and its card opens
+// in a slot under the system) and a swipeable row of cards on phones. Each row is one link to
+// the write-up, with a small separate link to the live site or the source. Native scroll; the
+// stage is sticky only on wide, tall screens, where the system tilts into depth as you scroll.
 
 import { useEffect, useRef, useState } from 'react';
 
+import '../styles/universe.css';
+import { Arrow, ArrowOut } from '../components/Arrow.jsx';
 import { PLANETS, linkPlanetArticles, loadArticles, writeUpHref } from '../components/story/storyData.js';
 import { registerUniverse, setUniverseActive } from '../components/story/story.js';
 
@@ -66,11 +69,11 @@ const Universe = () => {
     <section ref={sectionRef} id="universe" className="universe" aria-labelledby="universe-title">
       <div ref={stageRef} className="u-stage">
         <div className="u-head">
-          <p className="u-eyebrow">Selected work</p>
-          <h2 className="head-text u-title" id="universe-title">My work, as a universe</h2>
-          <p className="u-intro">
-            The stars in the sky above are the things I build. Here my homepage projects settle into orbit, and the ringed planets won a hackathon or became a granted patent.
+          <p className="u-eyebrow">
+            <span className="u-dot" aria-hidden="true"></span>Projects in orbit
           </p>
+          <h2 className="head-text u-title" id="universe-title">My work, as a universe</h2>
+          <p className="u-intro">The stars in the sky above are the things I build. Here they settle into orbit. The ringed planets won a hackathon or led to a patent.</p>
         </div>
 
         <div ref={orbitRef} className="u-orbit" aria-hidden="true">
@@ -95,12 +98,14 @@ const Universe = () => {
                 <p className="u-float-links">
                   {shown.article && (
                     <a href={writeUpHref(shown.article)} tabIndex={-1}>
-                      Read the write-up <span aria-hidden="true">→</span>
+                      Read the write-up
+                      <Arrow size={14} />
                     </a>
                   )}
                   {shown.href && (
                     <a href={shown.href} target="_blank" rel="noopener noreferrer" tabIndex={-1}>
-                      {shown.hrefLabel} <span aria-hidden="true">↗</span>
+                      {shown.hrefLabel}
+                      <ArrowOut size={14} />
                     </a>
                   )}
                 </p>
@@ -126,20 +131,31 @@ const Universe = () => {
             >
               <article className="u-card">
                 <p className="u-kicker">{p.result}</p>
-                <h3 className="u-name">{p.name}</h3>
-                <p className="u-line">{p.line}</p>
-                <p className="u-links">
-                  {p.article && (
-                    <a href={writeUpHref(p.article)}>
-                      Read the write-up<span className="sr-only">: {p.name}</span>
-                      <span aria-hidden="true"> →</span>
+                <h3 className="u-name">
+                  {p.article ? (
+                    <a className="u-main" href={writeUpHref(p.article)}>
+                      {p.name}
+                      <span className="sr-only">, read the write-up</span>
+                    </a>
+                  ) : (
+                    <a className="u-main" href={p.href} target="_blank" rel="noopener noreferrer">
+                      {p.name}
+                      <span className="sr-only">, {p.hrefLabel.toLowerCase()} (opens in a new tab)</span>
                     </a>
                   )}
-                  {p.href && (
-                    <a href={p.href} target="_blank" rel="noopener noreferrer">
-                      {p.hrefLabel}
-                      <span className="sr-only"> for {p.name} (opens in a new tab)</span>
-                      <span aria-hidden="true"> ↗</span>
+                </h3>
+                <p className="u-line">{p.line}</p>
+                <p className="u-links">
+                  <span className="u-go" aria-hidden="true">
+                    <span className="u-go-label">{p.article ? 'Read the write-up' : p.hrefLabel}</span>
+                    {p.article ? <Arrow size={14} /> : <ArrowOut size={14} />}
+                  </span>
+                  {p.article && p.href && (
+                    <a className="u-ext" href={p.href} target="_blank" rel="noopener noreferrer" title={p.hrefLabel}>
+                      <ArrowOut size={14} />
+                      <span className="sr-only">
+                        {p.hrefLabel} for {p.name} (opens in a new tab)
+                      </span>
                     </a>
                   )}
                 </p>

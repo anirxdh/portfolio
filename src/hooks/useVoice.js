@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 
+import { primeVoices, unlockSpeech } from '../data/speechUnlock.js';
+
 // Voice in/out for AniBot using the browser's own speech engines (no API keys, no extra cost).
 // Recognition: Web Speech API (Chrome, Edge, Safari). Synthesis: speechSynthesis (all modern browsers).
 
@@ -60,7 +62,9 @@ const useVoice = ({ onFinalTranscript, onUnconfirmedTranscript } = {}) => {
   const [error, setError] = useState('');
   const [blocked, setBlocked] = useState(false);
   const recRef = useRef(null);
-  const unlockedRef = useRef(false);
+  // The reply this hook is reading aloud. Stopping only ever cancels that one, so the chat cannot
+  // cut off the hero's voice call (they share the browser's one speech queue).
+  const utterRef = useRef(null);
   const finalCb = useRef(onFinalTranscript);
   finalCb.current = onFinalTranscript;
   const unconfirmedCb = useRef(onUnconfirmedTranscript);
@@ -69,33 +73,33 @@ const useVoice = ({ onFinalTranscript, onUnconfirmedTranscript } = {}) => {
   const canListen = !!Recognition && !blocked;
   const canSpeak = !!synth;
 
+  const cancelOwn = () => {
+    if (!utterRef.current) return;
+    utterRef.current = null;
+    synth?.cancel();
+  };
+
   useEffect(() => {
     // Some browsers load voices asynchronously; touching getVoices() starts that.
-    synth?.getVoices();
+    primeVoices();
     return () => {
       const rec = recRef.current;
       if (rec) {
         rec.cancelled = true;
         rec.abort();
       }
-      synth?.cancel();
+      cancelOwn();
     };
   }, []);
 
   // iOS Safari only lets a page speak after speak() has run inside a tap. Call this from a click
   // handler (the mic, the speaker toggle) so later replies, which arrive after a fetch, can play.
-  const unlock = useCallback(() => {
-    if (!synth || unlockedRef.current || typeof SpeechSynthesisUtterance === 'undefined') return;
-    unlockedRef.current = true;
-    const u = new SpeechSynthesisUtterance(' ');
-    u.volume = 0;
-    synth.speak(u);
-  }, []);
+  const unlock = useCallback(() => unlockSpeech(), []);
 
   const startListening = useCallback(() => {
     if (!Recognition || recRef.current) return;
     unlock();
-    synth?.cancel();
+    cancelOwn();
     setSpeaking(false);
     setError('');
     const rec = new Recognition();
@@ -176,14 +180,19 @@ const useVoice = ({ onFinalTranscript, onUnconfirmedTranscript } = {}) => {
     const voice = pickVoice();
     if (voice) u.voice = voice;
     u.rate = 1.03;
+    const done = () => {
+      if (utterRef.current === u) utterRef.current = null;
+      setSpeaking(false);
+    };
     u.onstart = () => setSpeaking(true);
-    u.onend = () => setSpeaking(false);
-    u.onerror = () => setSpeaking(false);
+    u.onend = done;
+    u.onerror = done;
+    utterRef.current = u;
     synth.speak(u);
   }, []);
 
   const stopSpeaking = useCallback(() => {
-    synth?.cancel();
+    cancelOwn();
     setSpeaking(false);
   }, []);
 

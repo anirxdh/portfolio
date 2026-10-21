@@ -7,10 +7,13 @@
 //
 //   onState(state)        'greeting' | 'listening' | 'thinking' | 'speaking' | 'waiting' | 'ended'
 //   onCaption(caption)    { who: 'bot' | 'you', words: string[], shown: number } or null
-//   onLine(text)          a whole line for the screen reader live region
+//   onLine(text)          a whole line for the screen reader live region. AniBot's own lines are
+//                         only sent when nothing reads them aloud (no speech engine, or it failed),
+//                         so a screen reader does not say every answer twice.
 //   onNeedText(message)   voice input is unavailable or failed: show the text field with this hint
+//   onCut(question)       the spoken answer stopped early; the chat window has the whole answer
 
-import { API_URL, FIRST_BYTE_TIMEOUT_MS, RETRY_LIVE_AFTER_MS, loadNotes } from '../../data/anibotClient.js';
+import { API_URL, RETRY_LIVE_AFTER_MS, loadNotes } from '../../data/anibotClient.js';
 import { RECOGNITION_ERRORS, pickVoice, toSpeech } from '../../hooks/useVoice.js';
 
 const Recognition = typeof window !== 'undefined' ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
@@ -21,13 +24,28 @@ export const canRecognize = () => !!Recognition;
 const GREETING = "Hi, I'm AniBot. Ask me anything about Anirudh's work.";
 const GREETING_TEXT = "Hi, I'm AniBot. Type a question below and I'll answer out loud.";
 const FAILED = 'Sorry, I could not reach my notes just now. Please try again in a moment.';
+const MORE = 'There is more in the chat window.';
+const HOLD_ON = 'One moment.';
 // A spoken answer stops after about this many words; the chat window is there for the long version.
 const MAX_SPOKEN_WORDS = 80;
+// In a call, silence is worse than a fallback: give up on the live AI sooner than the chat does,
+// and say something if it is slow to start.
+const FIRST_BYTE_TIMEOUT_MS = 8000;
+const HOLD_ON_AFTER_MS = 2500;
 const MAX_NO_SPEECH = 2;
 const RATE = 1.03;
 
 const now = () => performance.now() / 1000;
 const words = (s) => String(s).split(/\s+/).filter(Boolean);
+// Markdown to words worth hearing: no sentence that only points at a link ("Here is [the
+// engineering behind CIVS](/blog/...)."), and no long ID numbers read out digit by digit.
+const LINK_INTRO = /(^|[.!?]\s+|\n)\s*(?:here is|here's|see|read)\b[^.!?\n]*\]\([^)]*\)[^.!?\n]*[.!?]/gi;
+const speechify = (md) =>
+  toSpeech(String(md || '').replace(LINK_INTRO, '$1'))
+    .replace(/\s*\b\d{7,}\b/g, '')
+    .replace(/\s+([,.;:!?])/g, '$1')
+    .replace(/,\s*,/g, ',');
+
 // Complete sentences in cleaned text, and whatever is left after the last one.
 const splitSentences = (text) => {
   const out = [];
@@ -42,21 +60,7 @@ const splitSentences = (text) => {
   return { sentences: out, rest: text.slice(last).trim() };
 };
 
-// iOS Safari only lets a page speak after speak() has run inside a tap. Call from the click.
-let unlocked = false;
-export const unlockSpeech = () => {
-  if (!synth || unlocked || typeof SpeechSynthesisUtterance === 'undefined') return;
-  unlocked = true;
-  try {
-    const u = new SpeechSynthesisUtterance(' ');
-    u.volume = 0;
-    synth.speak(u);
-  } catch {
-    /* speech stays off; captions still work */
-  }
-};
-
-export function createVoiceCall({ onState, onCaption, onLine, onNeedText } = {}) {
+export function createVoiceCall({ onState, onCaption, onLine, onNeedText, onCut } = {}) {
   let gen = 0; // bumps on end(), so late async work from an old turn does nothing
   let state = 'idle';
   let rec = null;
@@ -67,13 +71,28 @@ export function createVoiceCall({ onState, onCaption, onLine, onNeedText } = {})
   let liveRetryAt = 0;
   let noSpeech = 0;
   let voiceBlocked = !Recognition;
-  let preferText = false; // the visitor chose to type: after an answer, wait for the next one
+  let preferText = false; // the visitor typed or chose to type: after an answer, wait for the next one
+  // One voice for the whole call, chosen at the first line (the list can load late).
+  let voice;
+  let voicePicked = false;
+  const callVoice = () => {
+    if (!voicePicked) {
+      voice = pickVoice();
+      voicePicked = true;
+    }
+    return voice;
+  };
+  let ttsFailed = !synth;
+  const botLine = (text) => {
+    if (ttsFailed) onLine?.(text);
+  };
 
   // Speech output
   let queue = [];
   let speakingLine = null; // { words, shown, boundary, startAt, timer, watchdog }
   let streamDone = true;
   let spokenWords = 0;
+  let cut = false;
   let afterSpeech = null;
   let ticker = 0;
 
@@ -125,7 +144,7 @@ export function createVoiceCall({ onState, onCaption, onLine, onNeedText } = {})
     clearTimeout(line.watchdog);
     reveal(line, line.words.length);
     speakingLine = null;
-    onLine?.(line.text);
+    botLine(line.text);
     speakNext(myGen);
   };
 
@@ -154,7 +173,7 @@ export function createVoiceCall({ onState, onCaption, onLine, onNeedText } = {})
     }
     try {
       const u = new SpeechSynthesisUtterance(text);
-      const v = pickVoice();
+      const v = callVoice();
       if (v) u.voice = v;
       u.rate = RATE;
       u.onstart = () => {
@@ -169,7 +188,12 @@ export function createVoiceCall({ onState, onCaption, onLine, onNeedText } = {})
         reveal(line, words(before).length);
       };
       u.onend = () => finishLine(line, myGen);
-      u.onerror = () => finishLine(line, myGen);
+      u.onerror = (e) => {
+        // A cancel is ours; anything else means this browser will not speak, so the screen reader
+        // live region carries AniBot's lines from here on.
+        if (e && e.error && e.error !== 'interrupted' && e.error !== 'canceled') ttsFailed = true;
+        finishLine(line, myGen);
+      };
       synth.speak(u);
     } catch {
       clearTimeout(line.watchdog);
@@ -177,13 +201,34 @@ export function createVoiceCall({ onState, onCaption, onLine, onNeedText } = {})
     }
   };
 
-  const enqueue = (sentence, myGen) => {
-    if (myGen !== gen || spokenWords >= MAX_SPOKEN_WORDS) return;
+  const enqueue = (sentence, myGen, { always = false } = {}) => {
+    if (myGen !== gen) return;
     const n = words(sentence).length;
     if (!n) return;
+    if (!always && spokenWords >= MAX_SPOKEN_WORDS) {
+      cut = true;
+      return;
+    }
     spokenWords += n;
     queue.push(sentence);
     if (!speakingLine) speakNext(myGen);
+  };
+
+  // Drop whatever AniBot is saying or about to say (a new question, or the visitor talks over it).
+  const resetTurn = () => {
+    gen += 1;
+    fetchAbort?.abort();
+    fetchAbort = null;
+    if (speakingLine) clearTimeout(speakingLine.watchdog);
+    speakingLine = null;
+    queue = [];
+    afterSpeech = null;
+    streamDone = true;
+    try {
+      synth?.cancel();
+    } catch {
+      /* nothing was speaking */
+    }
   };
 
   /* ---------- Listening ---------- */
@@ -203,10 +248,18 @@ export function createVoiceCall({ onState, onCaption, onLine, onNeedText } = {})
     listen();
   };
 
+  // The mic button: the visitor wants to talk now, even over AniBot. Stop the answer first, so the
+  // rest of it is never spoken into the open mic.
+  const talk = () => {
+    if (state === 'ended') return;
+    preferText = false;
+    resetTurn();
+    listen();
+  };
+
   const listen = () => {
     const myGen = gen;
     if (state === 'ended') return;
-    preferText = false;
     if (voiceBlocked || !Recognition) {
       needText('Type your question and AniBot will answer out loud.');
       return;
@@ -353,20 +406,17 @@ export function createVoiceCall({ onState, onCaption, onLine, onNeedText } = {})
     return acc;
   };
 
-  const ask = async (question) => {
+  // { typed: true } for a question from the text field: answer it, then wait for the next typed
+  // one instead of opening the mic under the visitor's cursor.
+  const ask = async (question, { typed = false } = {}) => {
     const text = String(question || '').trim();
     if (!text || state === 'ended') return;
+    if (typed) preferText = true;
     stopRecognition();
-    gen += 1;
+    resetTurn();
     const myGen = gen;
-    try {
-      synth?.cancel();
-    } catch {
-      /* nothing was speaking */
-    }
-    queue = [];
-    speakingLine = null;
     spokenWords = 0;
+    cut = false;
     streamDone = false;
     const ws = words(text);
     caption({ who: 'you', words: ws, shown: ws.length });
@@ -374,8 +424,10 @@ export function createVoiceCall({ onState, onCaption, onLine, onNeedText } = {})
     setState('thinking');
 
     let queued = 0;
+    let heardBack = false;
     const feed = (raw, final) => {
-      const clean = toSpeech(raw);
+      heardBack = true;
+      const clean = speechify(raw);
       const { sentences, rest } = splitSentences(clean);
       const ready = final && rest ? [...sentences, rest] : sentences;
       while (queued < ready.length) enqueue(ready[queued++], myGen);
@@ -383,7 +435,13 @@ export function createVoiceCall({ onState, onCaption, onLine, onNeedText } = {})
 
     let answer = null;
     const online = typeof navigator === 'undefined' || navigator.onLine !== false;
-    if (online && Date.now() >= liveRetryAt) answer = await streamLive(text, myGen, feed);
+    if (online && Date.now() >= liveRetryAt) {
+      const holdOn = setTimeout(() => {
+        if (!heardBack && myGen === gen) enqueue(HOLD_ON, myGen, { always: true });
+      }, HOLD_ON_AFTER_MS);
+      answer = await streamLive(text, myGen, feed);
+      clearTimeout(holdOn);
+    }
     if (myGen !== gen) return;
     if (!answer) {
       liveRetryAt = Date.now() + RETRY_LIVE_AFTER_MS;
@@ -404,6 +462,10 @@ export function createVoiceCall({ onState, onCaption, onLine, onNeedText } = {})
       history.push({ role: 'user', content: text }, { role: 'assistant', content: answer });
       history = history.slice(-10);
       previousQuestions = [...previousQuestions, text].slice(-3);
+    }
+    if (cut) {
+      enqueue(MORE, myGen, { always: true });
+      onCut?.(text);
     }
     streamDone = true;
     afterSpeech = next;
@@ -431,20 +493,9 @@ export function createVoiceCall({ onState, onCaption, onLine, onNeedText } = {})
   };
 
   const end = () => {
-    gen += 1;
     stopRecognition();
-    fetchAbort?.abort();
-    fetchAbort = null;
-    if (speakingLine) clearTimeout(speakingLine.watchdog);
-    speakingLine = null;
-    queue = [];
-    afterSpeech = null;
+    resetTurn();
     clearInterval(ticker);
-    try {
-      synth?.cancel();
-    } catch {
-      /* nothing was speaking */
-    }
     caption(null);
     setState('ended');
   };
@@ -495,7 +546,7 @@ export function createVoiceCall({ onState, onCaption, onLine, onNeedText } = {})
     start,
     end,
     ask,
-    listen,
+    listen: talk,
     typeInstead,
     levels,
     get state() {

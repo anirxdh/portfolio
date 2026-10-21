@@ -2,7 +2,8 @@ import { useEffect, useRef } from 'react';
 import ChatMessage from './ChatMessage';
 import TypingIndicator from './TypingIndicator';
 
-const ChatMessages = ({ messages, isLoading }) => {
+// `children` sits right under the messages (the starter questions under the welcome line).
+const ChatMessages = ({ messages, isLoading, children }) => {
   const messagesEndRef = useRef(null);
 
   // Auto-scroll to bottom when new messages arrive
@@ -17,6 +18,8 @@ const ChatMessages = ({ messages, isLoading }) => {
       ))}
 
       {isLoading && <TypingIndicator />}
+
+      {children}
 
       <div ref={messagesEndRef} />
     </div>

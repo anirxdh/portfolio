@@ -257,15 +257,18 @@ const App = ({ staticIntro = null }) => {
     return () => window.removeEventListener(SHOW_PROJECT_EVENT, onShowProject);
   }, []);
 
-  // Mount everything once the page is idle after load.
+  // Mount everything once the page is idle a little while after load: late enough that the
+  // heavy 3D chunks of Projects and Experience do not compete with the hero's sky and orb starting.
   useEffect(() => {
     if (mountAll) return undefined;
     let idle = 0;
     let timeout = 0;
     const go = () => setMountAll(true);
     const schedule = () => {
-      if ('requestIdleCallback' in window) idle = window.requestIdleCallback(go, { timeout: 3000 });
-      else timeout = window.setTimeout(go, 1200);
+      timeout = window.setTimeout(() => {
+        if ('requestIdleCallback' in window) idle = window.requestIdleCallback(go, { timeout: 3000 });
+        else go();
+      }, 2500);
     };
     if (document.readyState === 'complete') schedule();
     else window.addEventListener('load', schedule, { once: true });

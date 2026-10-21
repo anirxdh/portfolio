@@ -122,6 +122,23 @@ export function createNameOrb({ hero, nameEl, canvas, slot, levels, onPhase, onN
 
   const off = document.createElement('canvas');
   let octx = null;
+  // Each word of the name, as laid out: the first word is drawn in the darker silver, like the h1.
+  const wordBoxes = [];
+  const wordOf = (x, y) => {
+    let best = 0;
+    let bd = Infinity;
+    for (let k = 0; k < wordBoxes.length; k++) {
+      const w = wordBoxes[k];
+      const dy = Math.abs(y - (w.base - fontPx * 0.35));
+      const dx = x < w.l ? w.l - x : x > w.r ? x - w.r : 0;
+      const d = dy * 4 + dx;
+      if (d < bd) {
+        bd = d;
+        best = k;
+      }
+    }
+    return best;
+  };
   const rg = document.createRange();
   const textRect = (node) => {
     rg.selectNodeContents(node);
@@ -158,6 +175,7 @@ export function createNameOrb({ hero, nameEl, canvas, slot, levels, onPhase, onN
     if (wordRuns) o.letterSpacing = ls;
 
     const lines = [];
+    wordBoxes.length = 0;
     for (const w of nameEl.querySelectorAll('.w')) {
       const tnode = w.firstChild;
       const mark = w.querySelector('.bl');
@@ -175,6 +193,7 @@ export function createNameOrb({ hero, nameEl, canvas, slot, levels, onPhase, onN
       }
       const l = wr.left - hr.left;
       const r = wr.right - hr.left;
+      wordBoxes.push({ l, r, base });
       const L = lines.find((x) => Math.abs(x.base - base) < fontPx * 0.2);
       if (L) {
         L.l = Math.min(L.l, l);
@@ -326,11 +345,13 @@ export function createNameOrb({ hero, nameEl, canvas, slot, levels, onPhase, onN
       canvas.width = cw;
       canvas.height = ch;
     }
+    // Placed with a transform from the top-left corner, so a resize is never a layout shift, and
+    // only shown once it has its real box.
     const s = canvas.style;
-    s.left = `${cb.x}px`;
-    s.top = `${cb.y}px`;
+    s.transform = `translate3d(${cb.x}px,${cb.y}px,0)`;
     s.width = `${cb.w}px`;
     s.height = `${cb.h}px`;
+    s.visibility = 'visible';
     shrunk = false;
   }
 
@@ -381,6 +402,8 @@ export function createNameOrb({ hero, nameEl, canvas, slot, levels, onPhase, onN
     const T = sampleName(hr);
     if (!T || T.n < 60) return false;
     computeOrb(hr);
+    target.x = orb.x;
+    target.y = orb.y;
     nameDot = gridStep * 1.12;
     dustDot = Math.max(1.1, gridStep * 0.78);
     orbDot = clamp(orb.R * 0.0165, 1.4, 2.6);
@@ -389,7 +412,6 @@ export function createNameOrb({ hero, nameEl, canvas, slot, levels, onPhase, onN
     ensureCap(T.n);
     N = T.n;
     const { hx, hy, px, py, sz, rb, ph, rd, dn, ro, lw, fd, f0x, f0y, ft0, tn, md } = P;
-    const split = box.l + (box.r - box.l) * 0.6; // the headline gradient's hard stop
     let dmin = Infinity;
     let dmax = 0;
     for (let i = 0; i < N; i++) {
@@ -404,7 +426,7 @@ export function createNameOrb({ hero, nameEl, canvas, slot, levels, onPhase, onN
       ft0[i] = 0;
       sz[i] = nameDot;
       ro[i] = T.ro[i];
-      tn[i] = x < split ? 0 : 1;
+      tn[i] = wordOf(x, y) === 0 ? 0 : 1;
       ph[i] = Math.random() * TAU;
       rd[i] = Math.random();
       rb[i] = 1 - 0.14 * Math.pow(Math.random(), 2.5);
@@ -880,7 +902,31 @@ export function createNameOrb({ hero, nameEl, canvas, slot, levels, onPhase, onN
     kick();
   }
 
-  function end() {
+  // Everything home at once: the call ended out of sight, or the device is too slow to show the
+  // flight in good time. `fade` cross-fades the canvas copy into the real heading.
+  function snapHome(fade) {
+    const { md } = P;
+    for (let i = 0; i < N; i++) md[i] = HOME;
+    nIn = 0;
+    nOut = 0;
+    setNameOut(false);
+    if (fade && inView && visible) {
+      setPhase('settling');
+      settleT = t;
+      nameA = 1;
+      tweenName(0, 0.3, 0);
+      kick();
+    } else {
+      setPhase('rest');
+      nameA = 0;
+      nameTo = 0;
+      nameFrom = 0;
+      halt();
+    }
+  }
+
+  let returnWall = 0;
+  function end({ instant = false } = {}) {
     wantStart = false;
     if (state !== 'forming' && state !== 'live') return;
     if (!ready) {
@@ -888,6 +934,11 @@ export function createNameOrb({ hero, nameEl, canvas, slot, levels, onPhase, onN
       setNameOut(false);
       return;
     }
+    if (instant || !inView || !visible) {
+      snapHome(false);
+      return;
+    }
+    returnWall = performance.now();
     setPhase('returning');
     tweenName(1, 0.01, 0);
     const { px, py, rd, ro, fd, f0x, f0y, ft0, md } = P;
@@ -1004,7 +1055,8 @@ export function createNameOrb({ hero, nameEl, canvas, slot, levels, onPhase, onN
     const janky = (emaGap > 25 && !capped) || emaWork > 9;
     if (janky) {
       good = 0;
-      if (q > 0 && ++slow > 45) setQuality(q - 1);
+      // The flight home is short: step down sooner while it plays.
+      if (q > 0 && ++slow > (state === 'returning' ? 12 : 45)) setQuality(q - 1);
       return;
     }
     if (slow > 0) slow--;
@@ -1015,9 +1067,44 @@ export function createNameOrb({ hero, nameEl, canvas, slot, levels, onPhase, onN
     } else good = Math.max(0, good - dt);
   }
 
+  // The orb follows its slot if the layout moves under it during a call (a long caption that
+  // grows the copy, a font swap): it glides there instead of jumping.
+  let followN = 0;
+  const target = { x: 0, y: 0 };
+  function follow(dt) {
+    if (state === 'rest' || state === 'settling') return;
+    if (++followN % 6 === 0) {
+      const hr = heroRect();
+      const r = slot.getBoundingClientRect();
+      if (r.width > 0) {
+        target.x = r.left - hr.left + r.width / 2;
+        target.y = r.top - hr.top + r.height / 2;
+      }
+    }
+    if (!target.x && !target.y) return;
+    const dx = target.x - orb.x;
+    const dy = target.y - orb.y;
+    if (Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) return;
+    const k = 1 - Math.exp(-dt * 6);
+    orb.x += dx * k;
+    orb.y += dy * k;
+    // Keep the drawn area around the orb.
+    const oR = orb.R * 2.4;
+    if (orb.x - oR < cb.x || orb.x + oR > cb.x + cb.w || orb.y - oR < cb.y || orb.y + oR > cb.y + cb.h) {
+      fxBounds();
+      sizeCanvas();
+    }
+  }
+
   function frame(now) {
     raf = 0;
     if (destroyed) return;
+    // A very slow device plays the flight home in slow motion (dt is capped): past 2.5 s of real
+    // time, land the name.
+    if (state === 'returning' && performance.now() - returnWall > 2500) {
+      snapHome(true);
+      return;
+    }
     const gap = now - lastNow;
     lastNow = now;
     let dt = gap / 1000;
@@ -1026,6 +1113,7 @@ export function createNameOrb({ hero, nameEl, canvas, slot, levels, onPhase, onN
     t += dt;
     const w0 = performance.now();
     try {
+      follow(dt);
       voiceStep(dt);
       step(dt);
       draw();
@@ -1225,7 +1313,7 @@ export function createNameOrb({ hero, nameEl, canvas, slot, levels, onPhase, onN
 
   return {
     start: () => safe(start),
-    end: () => safe(end),
+    end: (opts) => safe(() => end(opts)),
     setArmed(a) {
       const want = !!a && state === 'rest';
       if (want && !armed) armT0 = t;

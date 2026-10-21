@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 
+import { loadBlogIndex } from '../data/blogIndex.js';
+
 // Latest long-form articles. The list comes from /blog/index.json, which the static blog
 // generator writes at build time, so the homepage needs no rebuild when articles change.
 const Writing = () => {
@@ -7,8 +9,7 @@ const Writing = () => {
 
   useEffect(() => {
     let cancelled = false;
-    fetch('/blog/index.json')
-      .then((r) => (r.ok ? r.json() : []))
+    loadBlogIndex()
       .then((list) => {
         if (!cancelled) setArticles(Array.isArray(list) ? list.slice(0, 3) : []);
       })
