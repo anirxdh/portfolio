@@ -27,7 +27,7 @@ export const toSpeech = (md) =>
 
 // What the visitor sees when recognition fails. `fatal` errors hide the mic for the rest of the visit,
 // since every later attempt would fail the same way.
-const RECOGNITION_ERRORS = {
+export const RECOGNITION_ERRORS = {
   'not-allowed': { message: 'Microphone access is blocked, so voice input is off. You can type your question instead.', fatal: true },
   'service-not-allowed': { message: 'Voice input is not available in this browser. You can type your question instead.', fatal: true },
   'audio-capture': { message: 'No microphone was found. You can type your question instead.', fatal: true },
@@ -37,7 +37,7 @@ const RECOGNITION_ERRORS = {
 };
 const START_FAILED = { message: 'Voice input could not start. You can type your question instead.', fatal: true };
 
-const pickVoice = () => {
+export const pickVoice = () => {
   const voices = synth?.getVoices() || [];
   const en = voices.filter((v) => /^en(-|_)/i.test(v.lang));
   const prefer = [/natural/i, /google us english/i, /samantha/i, /aria/i, /jenny/i, /daniel/i];

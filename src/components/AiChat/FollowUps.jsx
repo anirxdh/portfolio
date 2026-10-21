@@ -6,32 +6,21 @@ const FOLLOWUPS = [
 
 const FollowUps = ({ onQuestionClick, onContact, disabled }) => {
   return (
-    <div className="px-4 py-3 border-t border-black-300 space-y-2">
-      <p className="text-xs text-gray-400">Keep exploring:</p>
-      <div className="flex flex-wrap gap-2">
+    <div className="px-4 sm:px-5 py-3 border-t border-black-300 space-y-2.5">
+      <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-white-600/80">Keep exploring</p>
+      <div className="flex gap-2 overflow-x-auto chat-scroll-x -mx-4 px-4 sm:-mx-5 sm:px-5 pb-0.5">
         {FOLLOWUPS.map((q) => (
-          <button
-            key={q}
-            onClick={() => onQuestionClick(q)}
-            disabled={disabled}
-            className="text-xs px-3 py-1.5 bg-black-300 hover:bg-black-500 text-gray-300 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <button key={q} type="button" onClick={() => onQuestionClick(q)} disabled={disabled} className="chat-chip shrink-0">
             {q}
           </button>
         ))}
       </div>
-      <div className="flex flex-wrap gap-2 pt-1">
-        <a
-          href="mailto:anirudhvasudevan11@gmail.com"
-          className="text-xs px-3 py-1.5 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-full hover:from-blue-600 hover:to-purple-600 transition-all focus:outline-none focus:ring-2 focus:ring-blue-300"
-        >
-          📧 Email Anirudh
+      <div className="flex flex-wrap gap-2">
+        <a href="mailto:anirudhvasudevan11@gmail.com" className="chat-chip chat-chip-strong">
+          Email Anirudh
         </a>
-        <button
-          onClick={onContact}
-          className="text-xs px-3 py-1.5 border border-black-300 text-gray-300 rounded-full hover:bg-black-300 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400"
-        >
-          Go to contact form ↓
+        <button type="button" onClick={onContact} className="chat-chip">
+          Go to the contact form <span aria-hidden="true">↓</span>
         </button>
       </div>
     </div>

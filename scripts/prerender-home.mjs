@@ -1,6 +1,10 @@
 // Homepage prerender. Runs last in `npm run build` and writes a text-first copy of the homepage
 // sections into dist/index.html, inside #root, after the static intro:
-//   About, the stats band, Projects, Hackathons, Writing, Work Experience, Contact, footer links.
+//   the universe (the project list), About, the stats band, Projects, Hackathons, Writing,
+//   Work Experience, Contact, footer links.
+// It also checks that the static intro in index.html says exactly what src/sections/Hero.jsx
+// renders (eyebrow, h1, role line, sentence, buttons, proof links), so nothing changes on screen
+// when React mounts.
 //
 // Why: the homepage is a React app. Crawlers that do not run JavaScript (most AI crawlers, and
 // Google's first pass) used to see only the short static intro. Now they get the same content
@@ -8,6 +12,7 @@
 //
 // Where the content comes from, so it stays in step with what React renders:
 //   src/constants/index.js     projects, hackathons, work experience, stats (the arrays React maps)
+//   src/components/story/storyData.js  the universe's planets (the same rules the page uses)
 //   dist/blog/index.json       latest articles (the file the Writing section fetches)
 //   scripts/blog/person.mjs    email address and profile links
 //   src/sections/*.jsx         section headings, intro paragraphs and the About card text, read
@@ -131,6 +136,11 @@ const writeUp = (slug, name) => {
   return (matches.find((a) => a.award) || matches[0])?.slug;
 };
 
+const { PLANETS, linkPlanetArticles } = await import(
+  pathToFileURL(path.join(ROOT, 'src', 'components', 'story', 'storyData.js')).href
+);
+linkPlanetArticles(articles);
+
 const accentByUrl = new Map(hackathons.map((h) => [normUrl(h.href), h.accent]));
 
 // "🏆 Top 10 at the Y Combinator AI Hackathon. A hierarchical ..." -> award + the rest.
@@ -158,6 +168,27 @@ const sectionHead = (file, fallbackTitle, introClass, { link = '' } = {}) => {
   if (!link) return head;
   return `<div class="flex items-end justify-between gap-5 flex-wrap"><div>${head}</div>${link}</div>`;
 };
+
+// The universe: one card per planet, in the order the page lists them.
+function universeSection() {
+  if (!PLANETS.length) return '';
+  const title = jsxFirst('Universe.jsx', 'h2', 'head-text u-title', 'My work, as a universe', 'section heading');
+  const intro = jsxFirst('Universe.jsx', 'p', 'u-intro', '', 'intro paragraph');
+  const cards = PLANETS.map((p) => {
+    const links = [
+      p.article && textLink(`/blog/${p.article}/`, 'Read the write-up', `: ${p.name}`, { arrow: '→' }),
+      p.href && textLink(p.href, p.hrefLabel, ` for ${p.name} (opens in a new tab)`, { external: true, arrow: '↗' }),
+    ].filter(Boolean);
+    return `<article class="flex flex-col gap-3 rounded-2xl border border-black-300 bg-black-200 p-6">${
+      p.result ? `<p class="text-[11px] uppercase tracking-widest text-white-600">${t(p.result)}</p>` : ''
+    }<h3 class="text-white text-xl font-semibold">${t(p.name)}</h3><p class="text-sm text-white-600">${t(p.line)}</p>${
+      links.length ? `<div class="flex items-center gap-x-6 gap-y-3 flex-wrap mt-auto pt-1">${links.join('')}</div>` : ''
+    }</article>`;
+  });
+  return `<section class="c-space my-20" aria-label="${esc(tidy(title))}"><h2 class="head-text">${t(title)}</h2>${
+    intro ? `<p class="text-white-600 mt-3 max-w-2xl">${t(intro)}</p>` : ''
+  }<div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5 mt-10">${cards.join('')}</div></section>`;
+}
 
 function aboutSection() {
   const re = /<(h[23])\s+className="grid-headtext"\s*>([\s\S]*?)<\/\1>\s*<p\s+className="grid-subtext"\s*>([\s\S]*?)<\/p>/g;
@@ -337,7 +368,7 @@ function footer() {
 }
 
 // ---------- inject ----------
-const sections = [aboutSection(), statsSection(), projectsSection(), hackathonsSection(), writingSection(), workSection(), contactSection()]
+const sections = [universeSection(), aboutSection(), statsSection(), projectsSection(), hackathonsSection(), writingSection(), workSection(), contactSection()]
   .filter(Boolean)
   .join('\n');
 const tail = footer();
@@ -409,9 +440,33 @@ if (h1s !== 1) warn(`dist/index.html has ${h1s} h1 elements before React mounts 
   }
 }
 
+// The static intro must say what the React hero says, or the page changes as React mounts.
+{
+  const introText = (h) =>
+    decodeEntities(h.replace(/<[^>]+>/g, ' '))
+      .replace(/\s+/g, ' ')
+      .trim();
+  const plain = introText(intro);
+  const expect = [
+    ['eyebrow', jsxFirst('Hero.jsx', 'p', 'hero-eyebrow', '', 'eyebrow')],
+    ['h1', jsxFirst('Hero.jsx', 'h1', 'hero-name', '', 'h1')],
+    ['role line', jsxFirst('Hero.jsx', 'p', 'hero-role', '', 'role line')],
+    ['sentence', jsxFirst('Hero.jsx', 'p', 'hero-line', '', 'sentence')],
+    ['primary button', 'Talk to AniBot'],
+    ['work link', 'See my work'],
+    ['type link', 'or type a question'],
+    ...[...readJsx('Hero.jsx').matchAll(/<li>\s*<a href="([^"]+)">([^<]+)<\/a>\s*<\/li>/g)].map((m) => [`proof link ${m[1]}`, m[2].trim()]),
+  ];
+  for (const [what, text] of expect) {
+    if (text && !plain.includes(text)) warn(`index.html static intro does not match src/sections/Hero.jsx (${what}: "${text}")`);
+  }
+  const h1 = /<h1\b[^>]*>([\s\S]*?)<\/h1>/i.exec(intro);
+  if (!h1 || introText(h1[1]) !== 'Anirudh Vasudevan') warn('the static intro h1 should read "Anirudh Vasudevan"');
+}
+
 fs.writeFileSync(HOME, html);
 
 const kb = (Buffer.byteLength(injected) / 1024).toFixed(1);
 console.log(
-  `[prerender] dist/index.html: ${myProjects.length} projects, ${hackathons.length} hackathons, ${Math.min(articles.length, WRITING_COUNT)} articles, ${workExperiences.length} roles (${kb} KB of HTML)${warnings ? `, ${warnings} warning(s)` : ''}`,
+  `[prerender] dist/index.html: ${PLANETS.length} planets, ${myProjects.length} projects, ${hackathons.length} hackathons, ${Math.min(articles.length, WRITING_COUNT)} articles, ${workExperiences.length} roles (${kb} KB of HTML)${warnings ? `, ${warnings} warning(s)` : ''}`,
 );

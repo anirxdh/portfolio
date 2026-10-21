@@ -43,7 +43,7 @@ export default async (req) => {
     return json({ error: 'Invalid request' }, 400, headers);
   }
 
-  const { message, conversationHistory = [] } = body || {};
+  const { message, conversationHistory = [], mode } = body || {};
 
   if (!message || typeof message !== 'string') {
     return json({ error: 'Message is required' }, 400, headers);
@@ -64,7 +64,7 @@ export default async (req) => {
 
   let openaiStream;
   try {
-    openaiStream = await streamChatCompletion(messages);
+    openaiStream = await streamChatCompletion(messages, { voice: mode === 'voice' });
   } catch (error) {
     console.error('Error in chat function:', error);
     return json({ error: 'Failed to process chat request' }, 500, headers);

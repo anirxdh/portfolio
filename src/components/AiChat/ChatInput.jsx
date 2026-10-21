@@ -32,8 +32,8 @@ const ChatInput = ({ value, onChange, onSend, disabled, busy = false, voice }) =
   const sendDisabled = listening ? !heard : disabled || busy || !value.trim();
 
   return (
-    <form onSubmit={handleSubmit} className="p-4 border-t border-black-300 bg-black-200">
-      <div className="flex gap-2">
+    <form onSubmit={handleSubmit} className="px-3 sm:px-4 pt-3 pb-[max(12px,env(safe-area-inset-bottom))] border-t border-black-300">
+      <div className={`chat-inputbar ${listening ? 'is-listening' : ''}`}>
         <input
           type="text"
           value={listening ? heard : value}
@@ -44,10 +44,11 @@ const ChatInput = ({ value, onChange, onSend, disabled, busy = false, voice }) =
           }}
           readOnly={listening}
           onKeyDown={handleKeyDown}
-          placeholder={listening ? 'Listening… speak now' : 'Type or tap the mic…'}
+          placeholder={listening ? 'Listening… speak now' : 'Ask AniBot anything'}
           aria-label="Type your message"
           disabled={disabled}
-          className="flex-1 bg-black-300 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 placeholder-gray-400 disabled:opacity-50 disabled:cursor-not-allowed"
+          enterKeyHint="send"
+          className="flex-1 min-w-0 bg-transparent text-white-800 text-[15px] px-3.5 py-2.5 focus:outline-none placeholder:text-white-600/70 disabled:opacity-50 disabled:cursor-not-allowed"
         />
         {voice?.canListen && (
           <button
@@ -56,36 +57,20 @@ const ChatInput = ({ value, onChange, onSend, disabled, busy = false, voice }) =
             disabled={(disabled || busy) && !listening}
             aria-label={listening ? 'Stop listening' : 'Talk to AniBot'}
             aria-pressed={listening}
-            className={`px-3 py-2 rounded-lg flex items-center justify-center min-w-[44px] transition-all disabled:opacity-50 disabled:cursor-not-allowed ${
-              listening ? 'bg-red-500/90 text-white animate-pulse' : 'bg-black-300 text-gray-300 hover:text-white hover:bg-black-500'
-            }`}
+            className={`chat-icon-btn shrink-0 ${listening ? 'is-recording' : ''}`}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-5 h-5" aria-hidden="true" focusable="false">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.8} stroke="currentColor" className="w-[18px] h-[18px]" aria-hidden="true" focusable="false">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
             </svg>
           </button>
         )}
-        <button
-          type="submit"
-          disabled={sendDisabled}
-          aria-label="Send message"
-          className="px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-lg hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center min-w-[44px]"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={2}
-            stroke="currentColor"
-            className="w-5 h-5"
-            aria-hidden="true"
-            focusable="false"
-          >
+        <button type="submit" disabled={sendDisabled} aria-label="Send message" className="chat-send shrink-0">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-[18px] h-[18px]" aria-hidden="true" focusable="false">
             <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" />
           </svg>
         </button>
       </div>
-      <p role="status" aria-live="polite" className={voice?.error ? 'mt-2 text-xs text-amber-300' : 'sr-only'}>
+      <p role="status" aria-live="polite" className={voice?.error ? 'mt-2 px-1 text-xs text-amber-300' : 'sr-only'}>
         {voice?.error || ''}
       </p>
     </form>

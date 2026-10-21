@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { Component, lazy, Suspense, useEffect, useRef, useState } from 'react';
 
 import Button from '../components/Button.jsx';
 
@@ -10,6 +10,26 @@ const Globe = lazy(() => import('react-globe.gl'));
 const GLOBE_TEXTURES = 'https://unpkg.com/three-globe@2.41.11/example/img';
 const GLOBE_IMAGE = `${GLOBE_TEXTURES}/earth-night.jpg`;
 const GLOBE_BUMP = `${GLOBE_TEXTURES}/earth-topology.png`;
+
+// Without WebGL the globe throws while it mounts. Keep that to the globe's own box.
+class GlobeBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { failed: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch(error) {
+    console.warn('Globe unavailable:', error?.message || error);
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children; // eslint-disable-line react/prop-types
+  }
+}
 
 const About = () => {
   const [hasCopied, setHasCopied] = useState(false);
@@ -110,19 +130,21 @@ const About = () => {
               ref={globeBox}
               className="rounded-3xl w-full sm:h-[326px] h-fit min-h-[326px] flex justify-center items-center">
               {showGlobe && (
-                <Suspense fallback={null}>
-                  <Globe
-                    height={326}
-                    width={326}
-                    backgroundColor="rgba(0, 0, 0, 0)"
-                    backgroundImageOpacity={0.5}
-                    showAtmosphere
-                    showGraticules
-                    globeImageUrl={GLOBE_IMAGE}
-                    bumpImageUrl={GLOBE_BUMP}
-                    labelsData={[{ lat: 37.7749, lng: -122.4194, text: 'San Francisco, CA', color: 'white', size: 15 }]}
-                  />
-                </Suspense>
+                <GlobeBoundary>
+                  <Suspense fallback={null}>
+                    <Globe
+                      height={326}
+                      width={326}
+                      backgroundColor="rgba(0, 0, 0, 0)"
+                      backgroundImageOpacity={0.5}
+                      showAtmosphere
+                      showGraticules
+                      globeImageUrl={GLOBE_IMAGE}
+                      bumpImageUrl={GLOBE_BUMP}
+                      labelsData={[{ lat: 37.7749, lng: -122.4194, text: 'San Francisco, CA', color: 'white', size: 15 }]}
+                    />
+                  </Suspense>
+                </GlobeBoundary>
               )}
             </div>
             <div>

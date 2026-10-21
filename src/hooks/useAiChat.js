@@ -1,17 +1,11 @@
 import { useState, useCallback, useRef } from 'react';
 
-const API_URL = import.meta.env.VITE_CHAT_API_URL || '/api/chat';
-// Written at build time by scripts/build-anibot-kb.mjs. Same value as KB_URL in src/data/anibotLocal.js,
-// repeated here so the knowledge base and the engine chunk can download in parallel.
-const KB_URL = '/anibot-kb.json';
-// Give up on the live AI if it has not started answering by then.
-const FIRST_BYTE_TIMEOUT_MS = 15000;
-// After a failure, answer from notes for a while before trying the live AI again.
-const RETRY_LIVE_AFTER_MS = 60000;
+import { API_URL, FIRST_BYTE_TIMEOUT_MS, RETRY_LIVE_AFTER_MS, loadNotes } from '../data/anibotClient.js';
+
 // Pace for showing a notes answer line by line, so it reads like the streamed replies.
 const LINE_DELAY_MS = 45;
 
-const WELCOME_MESSAGE = "Hey! I'm AniBot 👋, Anirudh's AI assistant.\n\nAsk me anything about his work at Rivo, his AI agent & RAG projects, hackathons (including the YC AI Hackathon), or how to get in touch. What would you like to know?";
+const WELCOME_MESSAGE = "Hi, I'm AniBot, Anirudh's AI assistant.\n\nAsk me anything about his work at Rivo, his AI agent & RAG projects, hackathons (including the YC AI Hackathon), or how to get in touch. What would you like to know?";
 const ERROR_MESSAGE =
   "I'm sorry, I'm having trouble connecting right now. Please try again in a moment, or reach out through the contact form below.";
 
@@ -22,26 +16,6 @@ const newId = () => `${Date.now()}-${(idCounter += 1)}`;
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-
-// The offline engine and its knowledge base load once, on the first failure, then stay in memory.
-let notesPromise = null;
-const loadNotes = () => {
-  if (!notesPromise) {
-    notesPromise = Promise.all([
-      import('../data/anibotLocal.js'),
-      fetch(KB_URL).then((r) => {
-        if (!r.ok) throw new Error(`Knowledge base: ${r.status}`);
-        return r.json();
-      }),
-    ])
-      .then(([engine, kb]) => ({ engine, index: engine.buildIndex(kb) }))
-      .catch((err) => {
-        notesPromise = null; // let the next message try again
-        throw err;
-      });
-  }
-  return notesPromise;
-};
 
 export const useAiChat = () => {
   const [messages, setMessages] = useState(() => [welcome()]);

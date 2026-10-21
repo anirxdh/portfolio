@@ -1,6 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useGSAP } from '@gsap/react';
-import gsap from 'gsap';
 import useAiChat from '../../hooks/useAiChat';
 import useVoice from '../../hooks/useVoice';
 import { ANIBOT_HASH, ANIBOT_OPEN_EVENT, takePendingOpen } from '../../data/anibotEvents';
@@ -114,27 +112,6 @@ const AiChatbot = () => {
     if (isOpen) windowRef.current?.focus();
   }, [isOpen]);
 
-  // GSAP animation for chat window
-  useGSAP(() => {
-    if (isOpen) {
-      gsap.fromTo(
-        '.chat-window',
-        {
-          opacity: 0,
-          y: 20,
-          scale: 0.95,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.3,
-          ease: 'power2.out',
-        }
-      );
-    }
-  }, [isOpen]);
-
   const handleOpen = () => {
     setIsOpen(true);
   };
@@ -148,7 +125,6 @@ const AiChatbot = () => {
   };
 
   const handleClose = hideChat;
-  const handleMinimize = hideChat;
 
   const handleSend = (message) => {
     setDraft('');
@@ -197,68 +173,49 @@ const AiChatbot = () => {
       {/* Floating button - always visible when chat is closed */}
       {!isOpen && <FloatingChatButton onClick={handleOpen} />}
 
-      {/* Chat window */}
+      {/* Chat window: a panel in the corner on wide screens, a bottom sheet on phones. */}
       {isOpen && (
-        <div
-          ref={windowRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Chat with AniBot"
-          tabIndex={-1}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') handleClose();
-          }}
-          onClick={handleLinkClick}
-          className="chat-window fixed bottom-6 right-6 w-[400px] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-3rem)] bg-black-200 border border-black-300 rounded-lg shadow-2xl flex flex-col z-50 backdrop-blur-sm focus:outline-none">
-          <ChatHeader
-            onClose={handleClose}
-            onMinimize={handleMinimize}
-            mode={mode}
-            canSpeak={voice.canSpeak}
-            voiceReplies={voiceReplies}
-            onToggleVoice={() => {
-              if (voiceReplies) voice.stopSpeaking();
-              else voice.unlock(); // inside the tap, so iOS Safari allows the later replies
-              setVoiceReplies(!voiceReplies);
+        <>
+          <div className="chat-backdrop fixed inset-0 z-40 md:hidden" onClick={handleClose} aria-hidden="true" />
+          <div
+            ref={windowRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Chat with AniBot"
+            tabIndex={-1}
+            onKeyDown={(e) => {
+              if (e.key === 'Escape') handleClose();
             }}
-          />
-
-          <ChatMessages messages={messages} isLoading={isLoading} />
-
-          {showSuggestions && messages.length <= 1 && !busy && (
-            <SuggestedQuestions
-              onQuestionClick={handleSuggestedQuestion}
-              disabled={busy || voice.listening}
+            onClick={handleLinkClick}
+            className="chat-window fixed z-50 flex flex-col font-generalsans focus:outline-none"
+          >
+            <span className="chat-grabber md:hidden" aria-hidden="true" />
+            <ChatHeader
+              onClose={handleClose}
+              mode={mode}
+              canSpeak={voice.canSpeak}
+              voiceReplies={voiceReplies}
+              onToggleVoice={() => {
+                if (voiceReplies) voice.stopSpeaking();
+                else voice.unlock(); // inside the tap, so iOS Safari allows the later replies
+                setVoiceReplies(!voiceReplies);
+              }}
             />
-          )}
 
-          {hasAssistantReply && !busy && (
-            <FollowUps
-              onQuestionClick={handleSuggestedQuestion}
-              onContact={handleContact}
-              disabled={busy || voice.listening}
-            />
-          )}
+            <ChatMessages messages={messages} isLoading={isLoading} />
 
-          <ChatInput
-            value={draft}
-            onChange={setDraft}
-            onSend={handleSend}
-            disabled={isLoading}
-            busy={isStreaming}
-            voice={voice}
-          />
-        </div>
+            {showSuggestions && messages.length <= 1 && !busy && (
+              <SuggestedQuestions onQuestionClick={handleSuggestedQuestion} disabled={busy || voice.listening} />
+            )}
+
+            {hasAssistantReply && !busy && (
+              <FollowUps onQuestionClick={handleSuggestedQuestion} onContact={handleContact} disabled={busy || voice.listening} />
+            )}
+
+            <ChatInput value={draft} onChange={setDraft} onSend={handleSend} disabled={isLoading} busy={isStreaming} voice={voice} />
+          </div>
+        </>
       )}
-
-      {/* Mobile overlay backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={handleClose}
-        />
-      )}
-
     </>
   );
 };
