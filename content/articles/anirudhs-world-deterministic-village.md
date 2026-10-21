@@ -6,6 +6,7 @@ slug: anirudhs-world-deterministic-village
 project: "Anirudh's World (Vivarium)"
 tags: [Three.js, Deterministic Simulation, drand, PRNG, Procedural Generation, Replit]
 live: https://av-world.replit.app
+screenshot: /blog/shots/anirudhs-world-deterministic-village.webp
 accent: "#7c9cff"
 summary: "Anirudh's World is a low-poly village where every villager's position, mood and job is recomputed each frame from a seed and Date.now(), so it needs no server to stay alive. Here is how the named-stream PRNGs, the drand fate layer, the verification scripts and the project-portal camps work."
 ---

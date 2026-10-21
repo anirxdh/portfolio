@@ -8,6 +8,7 @@ tags: [Gaussian Splats, React Three Fiber, ElevenLabs, Stripe, Inngest, Next.js]
 award: "Winner, ElevenHacks (Stripe x ElevenLabs)"
 repo: https://github.com/anirxdh/Living-Photos
 live: https://living-photos-rust.vercel.app/
+screenshot: /blog/shots/living-photos-gaussian-splats.webp
 accent: "#2f6db5"
 summary: "Living Photos turns a single old photo into a walkable Gaussian-splat room with a consent-cloned voice playing inside it. This is the story of the mock-first adapter layer, the Inngest pipeline, the Stripe webhook floor, and the Spark.js viewer behind it."
 ---

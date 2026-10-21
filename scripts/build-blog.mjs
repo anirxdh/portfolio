@@ -32,6 +32,7 @@ import { ARTICLE_SCRIPT, ARTICLE_SCRIPT_HASH } from './blog/enhance.mjs';
 import { loadHackathons } from './blog/hackathons.mjs';
 import { loadUses } from './blog/uses.mjs';
 import { markdownToText, inlineToText } from './blog/plaintext.mjs';
+import { imageSize } from './blog/image-size.mjs';
 
 const ROOT = process.cwd();
 const SRC = path.join(ROOT, 'content', 'articles');
@@ -44,6 +45,17 @@ const AUTHOR = 'Anirudh Vasudevan';
 const DEFAULT_OG = `${SITE}/assets/og-image.png`;
 const DEFAULT_ACCENT = '#7C9CFF';
 const RESUME_PDF = '/assets/anirudh-vasudevan-resume.pdf';
+// Share images for the pages that are not articles, drawn by scripts/gen-og.py (public/blog/og/pages/).
+// A page whose image is missing falls back to the site-wide DEFAULT_OG.
+const PAGE_OG_NAMES = {
+  '/projects/': 'projects',
+  '/hackathons/': 'hackathons',
+  '/research/': 'research',
+  '/resume/': 'resume',
+  '/uses/': 'uses',
+  '/blog/': 'blog',
+  '/blog/topics/': 'topics',
+};
 // Paths under /blog/ that are not articles (so links to them are never mistaken for draft links).
 const BLOG_RESERVED = new Set(['topics']);
 
@@ -106,6 +118,18 @@ if (!fs.existsSync(DIST)) {
 }
 
 const REQUIRED = ['title', 'description', 'date', 'slug', 'project', 'tags'];
+// Optional `screenshot: /blog/shots/<slug>.webp` (a file under public/): shown under the article
+// header and listed in BlogPosting.image and the image sitemap. Its size is read from the file.
+function screenshotOf(file, src) {
+  if (!src) return undefined;
+  const rel = String(src);
+  const size = rel.startsWith('/') && !rel.includes('..') ? imageSize(path.join(ROOT, 'public', rel)) : null;
+  if (!size) {
+    warn(`${file}: screenshot ${rel} is not a readable image under public/; leaving it out`);
+    return undefined;
+  }
+  return { src: rel, ...size };
+}
 // A missing articles folder is not fatal: /about/, /resume/, /projects/, the sitemap, llms.txt and
 // blog.css (which public/404.html uses) are still built.
 if (!fs.existsSync(SRC)) warn('no content/articles directory; building the other pages without articles');
@@ -131,6 +155,7 @@ const articles = (fs.existsSync(SRC) ? fs.readdirSync(SRC) : [])
     return {
       ...data,
       cover,
+      screenshot: screenshotOf(file, data.screenshot),
       date: isoDay(data.date),
       updated: data.updated ? isoDay(data.updated) : undefined,
       accent: data.accent || DEFAULT_ACCENT,
@@ -156,6 +181,14 @@ for (const a of articles) {
 const TOPICS = buildTopics(articles);
 const TOPIC_SLUGS = new Set(TOPICS.map((t) => t.slug));
 const topicHref = (slug) => `/blog/topics/${slug}/`;
+// og:image for a non-article page, or the site-wide image when its card has not been generated.
+const pageOg = (route) => {
+  const name = PAGE_OG_NAMES[route];
+  const rel = name && `/blog/og/pages/${name}.png`;
+  return rel && fs.existsSync(path.join(ROOT, 'public', rel)) ? `${SITE}${rel}` : DEFAULT_OG;
+};
+// Display name of a project without its qualifier: "ScreenSense (v2)" -> "ScreenSense".
+const projectName = (p) => String(p).replace(/\s*\([^)]*\)\s*$/, '');
 const updatedOf = (list) => list.reduce((max, a) => ((a.updated || a.date) > max ? a.updated || a.date : max), '');
 
 // A link to /blog/<slug>/ whose article is still a draft (or does not exist) would 404. The href
@@ -534,7 +567,7 @@ function articlePage(a, { html, toc, faqs }, { related, prev, next, series }) {
     author: PERSON_REF,
     publisher: PERSON_REF,
     mainEntityOfPage: url,
-    image: ogImage,
+    image: a.screenshot ? [ogImage, `${SITE}${a.screenshot.src}`] : ogImage,
     keywords: a.tags.join(', '),
     wordCount: a.words,
     // codeRepository is not a BlogPosting property; the post is about the source code instead.
@@ -579,6 +612,13 @@ function articlePage(a, { html, toc, faqs }, { related, prev, next, series }) {
         ${a.summary ? `<div class="tldr"><strong>TL;DR</strong> ${esc(a.summary)}</div>` : ''}
         ${series ? seriesBox(series, a.slug) : ''}
       </header>
+      ${
+        a.screenshot
+          ? `<figure class="shot">
+        <img src="${esc(a.screenshot.src)}" alt="${esc(`${projectName(a.project)} screenshot`)}" width="${a.screenshot.width}" height="${a.screenshot.height}" loading="eager" fetchpriority="high" decoding="async" />
+      </figure>`
+          : ''
+      }
 
       <div class="article__layout">
         ${tocBlock(toc)}
@@ -674,6 +714,7 @@ function indexPage(list) {
   return shell({
     headOpts: {
       title: `Writing: How I Built My Projects | ${AUTHOR}`,
+      ogImage: pageOg('/blog/'),
       description:
         'Deep dives into the AI products, voice agents, and hackathon builds Anirudh Vasudevan shipped: architecture, decisions, and what actually worked.',
       url,
@@ -702,7 +743,7 @@ function indexPage(list) {
 }
 
 // ---------- topics ----------
-const projectNames = (list) => [...new Set(list.map((a) => String(a.project).replace(/\s*\([^)]*\)\s*$/, '')))];
+const projectNames = (list) => [...new Set(list.map((a) => projectName(a.project)))];
 
 function topicDescription(t) {
   const names = projectNames(t.articles);
@@ -796,7 +837,7 @@ function topicsIndexPage() {
           <p class="card__desc">${esc(projectNames(t.articles).join(', '))}</p>
         </a>`;
   return shell({
-    headOpts: { title: `Writing by Topic: Project Write-ups by Technology | ${AUTHOR}`, description, url, extra: [collection, breadcrumbLd(trail)].map(ld).join('\n    ') },
+    headOpts: { title: `Writing by Topic: Project Write-ups by Technology | ${AUTHOR}`, description, url, ogImage: pageOg('/blog/topics/'), extra: [collection, breadcrumbLd(trail)].map(ld).join('\n    ') },
     nav: 'blog',
     main: `<main id="content" class="index">
       ${crumbs(trail.slice(1))}
@@ -903,7 +944,7 @@ function resumePage(r, pdfBytes) {
     ${[profileLd, breadcrumbLd(trail)].map(ld).join('\n    ')}`;
 
   return shell({
-    headOpts: { title: `Resume: Full-Stack and AI Engineer | ${AUTHOR}`, description: r.description, url, ogType: 'profile', extra },
+    headOpts: { title: `Resume: Full-Stack and AI Engineer | ${AUTHOR}`, description: r.description, url, ogImage: pageOg('/resume/'), ogType: 'profile', extra },
     nav: 'resume',
     bodyClass: 'index-body resume-body',
     main: `<main id="content" class="index resume">
@@ -1002,7 +1043,7 @@ function projectsPage(page, projects) {
       </section>`
       : '';
   return shell({
-    headOpts: { title: `Projects, Products and Hackathon Builds | ${AUTHOR}`, description: page.description, url, extra: [itemList, breadcrumbLd(trail)].map(ld).join('\n    ') },
+    headOpts: { title: `Projects, Products and Hackathon Builds | ${AUTHOR}`, description: page.description, url, ogImage: pageOg('/projects/'), extra: [itemList, breadcrumbLd(trail)].map(ld).join('\n    ') },
     nav: 'projects',
     main: `<main id="content" class="index">
       <header class="index__head">
@@ -1143,7 +1184,7 @@ function researchPage(r) {
   };
   const counts = [p ? plural(1, 'patent') : '', papers.length ? plural(papers.length, 'paper') : ''].filter(Boolean);
   return shell({
-    headOpts: { title: `${r.title} | ${AUTHOR}`, description: r.description, url, extra: [pageLd, breadcrumbLd(trail)].map(ld).join('\n    ') },
+    headOpts: { title: `${r.title} | ${AUTHOR}`, description: r.description, url, ogImage: pageOg('/research/'), extra: [pageLd, breadcrumbLd(trail)].map(ld).join('\n    ') },
     nav: 'research',
     bodyClass: 'index-body resume-body',
     main: `<main id="content" class="index resume">
@@ -1268,7 +1309,7 @@ function hackathonsPage(page, sections) {
         <div class="cards">${s.events.map(hackathonCard).join('')}</div>
       </section>`;
   return shell({
-    headOpts: { title: `${page.title} | ${AUTHOR}`, description: page.description, url, extra: [listLd, breadcrumbLd(trail)].map(ld).join('\n    ') },
+    headOpts: { title: `${page.title} | ${AUTHOR}`, description: page.description, url, ogImage: pageOg('/hackathons/'), extra: [listLd, breadcrumbLd(trail)].map(ld).join('\n    ') },
     nav: 'hackathons',
     main: `<main id="content" class="index">
       <header class="index__head">
@@ -1319,7 +1360,7 @@ function usesPage(page, groups) {
     },
   };
   return shell({
-    headOpts: { title: `${page.title} | ${AUTHOR}`, description: page.description, url, extra: [pageLd, breadcrumbLd(trail)].map(ld).join('\n    ') },
+    headOpts: { title: `${page.title} | ${AUTHOR}`, description: page.description, url, ogImage: pageOg('/uses/'), extra: [pageLd, breadcrumbLd(trail)].map(ld).join('\n    ') },
     nav: 'uses',
     bodyClass: 'index-body resume-body',
     main: `<main id="content" class="index resume uses-page">
@@ -1687,7 +1728,7 @@ fs.writeFileSync(path.join(OUT, 'feed.xml'), rss);
 // lastmod tracks real content changes: article dates (updated/date frontmatter), and for the other
 // pages the newest of their frontmatter `updated`/`date` and the git history of their sources.
 // Image entries (sitemap image extension): each page's share image, the avatar on /about/, and each
-// article's share image. Only PNG, JPEG and WebP files that exist in dist/ are listed (the diagrams
+// article's share image and screenshot. Only PNG, JPEG and WebP files that exist in dist/ are listed (the diagrams
 // are inline SVG, which image sitemaps do not take).
 const latest = updatedOf(articles) || TODAY;
 const OG_PATH = '/assets/og-image.png';
@@ -1705,20 +1746,22 @@ const urls = [
   ...(aboutPage ? [{ loc: `${SITE}/about/`, lastmod: aboutPage.modified, images: images(AVATAR_PATH, OG_PATH) }] : []),
   // /projects/ is built from projects.md, the homepage project list and the articles.
   ...(projectsSrc
-    ? [{ loc: `${SITE}/projects/`, lastmod: maxDay(projectsSrc.modified, gitDay('src/constants'), updatedOf(articles)), images: images(OG_PATH) }]
+    ? [{ loc: `${SITE}/projects/`, lastmod: maxDay(projectsSrc.modified, gitDay('src/constants'), updatedOf(articles)), images: images(pageOg('/projects/')) }]
     : []),
-  ...(resume ? [{ loc: `${SITE}/resume/`, lastmod: resume.modified, images: images(OG_PATH) }] : []),
+  ...(resume ? [{ loc: `${SITE}/resume/`, lastmod: resume.modified, images: images(pageOg('/resume/')) }] : []),
   // /hackathons/ also shows each write-up's title and links, so it moves with those articles.
   ...(hackathonsSrc
-    ? [{ loc: `${SITE}/hackathons/`, lastmod: maxDay(hackathonsSrc.modified, updatedOf(hackathonArticles)), images: images(OG_PATH) }]
+    ? [{ loc: `${SITE}/hackathons/`, lastmod: maxDay(hackathonsSrc.modified, updatedOf(hackathonArticles)), images: images(pageOg('/hackathons/')) }]
     : []),
-  ...(research ? [{ loc: `${SITE}/research/`, lastmod: research.modified, images: images(OG_PATH) }] : []),
+  ...(research ? [{ loc: `${SITE}/research/`, lastmod: research.modified, images: images(pageOg('/research/')) }] : []),
   // /uses/ links every article whose stack uses a tool, so any article can change it.
-  ...(usesSrc ? [{ loc: `${SITE}/uses/`, lastmod: maxDay(usesSrc.modified, latest), images: images(OG_PATH) }] : []),
-  { loc: `${SITE}/blog/`, lastmod: maxDay(latest, gitDay('scripts/build-blog.mjs', 'scripts/blog')) },
-  ...(TOPICS.length ? [{ loc: `${SITE}/blog/topics/`, lastmod: maxDay(latest, gitDay('scripts/build-blog.mjs', 'scripts/blog')) }] : []),
+  ...(usesSrc ? [{ loc: `${SITE}/uses/`, lastmod: maxDay(usesSrc.modified, latest), images: images(pageOg('/uses/')) }] : []),
+  { loc: `${SITE}/blog/`, lastmod: maxDay(latest, gitDay('scripts/build-blog.mjs', 'scripts/blog')), images: images(pageOg('/blog/')) },
+  ...(TOPICS.length
+    ? [{ loc: `${SITE}/blog/topics/`, lastmod: maxDay(latest, gitDay('scripts/build-blog.mjs', 'scripts/blog')), images: images(pageOg('/blog/topics/')) }]
+    : []),
   ...TOPICS.map((t) => ({ loc: SITE + topicHref(t.slug), lastmod: updatedOf(t.articles) })),
-  ...articles.map((a) => ({ loc: `${SITE}/blog/${a.slug}/`, lastmod: a.updated || a.date, images: images(a.cover) })),
+  ...articles.map((a) => ({ loc: `${SITE}/blog/${a.slug}/`, lastmod: a.updated || a.date, images: images(a.cover, a.screenshot?.src) })),
 ];
 const sitemapUrl = (u) =>
   [

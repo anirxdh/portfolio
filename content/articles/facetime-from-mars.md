@@ -8,6 +8,7 @@ tags: [Voice AI, ElevenLabs, Web Audio API, React Three Fiber, FastAPI, Next.js]
 award: "2nd Place, ElevenLabs x Replit Hackathon"
 repo: https://github.com/anirxdh/facetime-from-mars-2159
 live: https://facetime-from-mars.netlify.app/
+screenshot: /blog/shots/facetime-from-mars.webp
 accent: "#e0662f"
 summary: "FaceTime from Mars is a push-to-talk voice call with three AI colonists living on Mars in 2159, built for the ElevenLabs x Replit hackathon. It hides a multi-second STT, LLM and TTS round trip behind a walkie-talkie interaction, a Web Audio radio filter and a 3D camera that pans between Earth and Mars."
 ---

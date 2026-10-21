@@ -124,7 +124,7 @@ https://anirudhvasudevan.com/blog/voicecaptcha-voice-turing-test/
 - Diagram: `syndication/diagrams/youtube-shorts-factory-automated-pipeline-architecture.jpg`, caption: YouTube Shorts Factory architecture: GitHub Actions jobs, the produce.ts pipeline, external AI APIs, R2 storage, and the Railway dashboard
 - Diagram: `syndication/diagrams/youtube-shorts-factory-automated-pipeline-flow.jpg`, caption: One daily production run flowing through YouTube Shorts Factory, from the cron trigger to the video landing in R2
 
-### 13. Putting a Talking AI Presenter Inside Any Video With ffmpeg and D-ID
+### 13. Putting a Talking AI Presenter in Any Video With ffmpeg and D-ID
 
 - Import: https://anirudhvasudevan.com/blog/d-id-you-ai-presenter/
 - Tags (Medium allows 5): Artificial Intelligence, D-ID, ElevenLabs, ffmpeg, Next.js
@@ -145,7 +145,7 @@ https://anirudhvasudevan.com/blog/voicecaptcha-voice-turing-test/
 - Diagram: `syndication/diagrams/screensense-v2-amazon-nova-agent-loop-architecture.jpg`, caption: ScreenSense v2 architecture: content script, service worker, FastAPI backend, and AWS services
 - Diagram: `syndication/diagrams/screensense-v2-amazon-nova-agent-loop-flow.jpg`, caption: One voice command flowing through ScreenSense v2 from key release to task done
 
-### 16. Building Second Shift, a Dispatch Agent That Proves Its Own Writes
+### 16. Building Second Shift, a Dispatch Agent That Proves Its Writes
 
 - Import: https://anirudhvasudevan.com/blog/second-shift-multi-app-dispatch-agent/
 - Tags (Medium allows 5): Artificial Intelligence, OR-Tools, Multi-App Agents, Google APIs, Slack
@@ -187,7 +187,7 @@ https://anirudhvasudevan.com/blog/voicecaptcha-voice-turing-test/
 - Diagram: `syndication/diagrams/jungle-safari-prewarmed-voice-quiz-architecture.jpg`, caption: Jungle Safari architecture: browser, Netlify functions, Upstash Redis and the AI vendors only on cache miss
 - Diagram: `syndication/diagrams/jungle-safari-prewarmed-voice-quiz-flow.jpg`, caption: One round of Jungle Safari from game start to the owl speaking
 
-### 22. Building ScreenSense v1, a Hold-to-Talk Chrome Extension, in 36 Hours
+### 22. ScreenSense v1: A Hold-to-Talk Chrome Extension Built in 36 Hours
 
 - Import: https://anirudhvasudevan.com/blog/screensense-v1-talk-to-your-screen/
 - Tags (Medium allows 5): Artificial Intelligence, Chrome Extension, Voice AI, Groq, Whisper

@@ -7,6 +7,7 @@ project: "TalkativePDF"
 tags: [RAG, LangChain, Pinecone, Next.js, Firebase, OpenAI]
 repo: https://github.com/anirxdh/TalkativePDF
 live: https://talkative-pdf.vercel.app
+screenshot: /blog/shots/talkativepdf-rag-chat.webp
 accent: "#2f67b6"
 summary: "TalkativePDF lets a signed-in user upload a PDF and chat with it. Each document gets its own Pinecone namespace, a history-aware LangChain chain rewrites follow-up questions before retrieval, and Firestore doubles as the real-time chat transport."
 ---

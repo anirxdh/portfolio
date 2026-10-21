@@ -8,6 +8,7 @@ tags: [Voice AI, Chrome Extension, Firecrawl, ElevenLabs, AWS Bedrock, Agents]
 award: "Best Voice Agent, ElevenLabs x Firecrawl Hackathon"
 repo: https://github.com/anirxdh/elevenlab_firecrawl
 live: https://screen-sense-anirudh.netlify.app/
+screenshot: /blog/shots/screensense-voice-browser-agent.webp
 accent: "#2fb583"
 summary: "ScreenSense v3 is a Chrome extension plus FastAPI backend that turns a spoken command into browser actions and can ask you questions mid-task. This is the story of adding Firecrawl page context and a conversation state machine with per-tab history on top of the v2 agent loop."
 ---
