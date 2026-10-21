@@ -1,5 +1,5 @@
 ---
-title: "Building ScreenSense v1, a Hold-to-Talk Chrome Extension, in 36 Hours"
+title: "ScreenSense v1: A Hold-to-Talk Chrome Extension Built in 36 Hours"
 description: "How I built a voice-first Chrome extension that screenshots your tab, transcribes your spoken question, and streams a vision-model answer next to your cursor."
 date: 2026-10-03
 slug: screensense-v1-talk-to-your-screen

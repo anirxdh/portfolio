@@ -7,6 +7,7 @@ project: "Voices of the Last World"
 tags: [ElevenLabs, Voice AI, Web Audio, Groq, React, Game Design]
 repo: https://github.com/anirxdh/voices-of-the-last-world
 live: https://voices-of-the-last-world.vercel.app
+screenshot: /blog/shots/voices-of-the-last-world.webp
 accent: "#ff8a65"
 summary: "Voices of the Last World is a cinematic crisis-simulation game built for the Kiro x ElevenLabs Hack #5. Two AI Archive minds debate a 2098 emergency in distinct ElevenLabs voices, then the player commits the response. This is how the voice layer, the Web Audio robot filter, and the LLM-with-a-local-twin engine work."
 ---

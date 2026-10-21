@@ -6,6 +6,7 @@ slug: screensense-v2-amazon-nova-agent-loop
 project: "ScreenSense (v2)"
 tags: [Amazon Nova, Chrome Extension, Browser Agents, FastAPI, Voice AI, AWS Bedrock]
 live: https://screen-sense-nova-anirxdh.netlify.app/
+screenshot: /blog/shots/screensense-v2-amazon-nova-agent-loop.webp
 accent: "#2fb583"
 summary: "ScreenSense v2 is a Chrome MV3 extension plus a FastAPI backend that lets you hold a key, speak a task, and watch Amazon Nova Lite click, type and navigate a live page one action at a time. This is the story of the observe-act-observe loop and everything that broke around it."
 ---

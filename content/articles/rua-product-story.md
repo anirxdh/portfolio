@@ -7,6 +7,7 @@ project: "RUA (product story)"
 tags: [Product Design, Privacy, Next.js, Netlify, React Native, Caregiving]
 repo: https://github.com/anirxdh/hearth-app
 live: https://rua-care.netlify.app
+screenshot: /blog/shots/rua-product-story.webp
 accent: "#e07a5f"
 summary: "RUA started as a chatbot that talked to an older adult and ended as a command center for the person caring for several of them. This is how the idea moved through a proposal, an HTML mockup, a local-first iOS app, and a waitlist site, and why each step changed the architecture."
 ---

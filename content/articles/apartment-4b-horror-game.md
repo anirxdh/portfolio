@@ -8,6 +8,7 @@ tags: [Three.js, React Three Fiber, ElevenLabs, Howler.js, Zustand, Game Dev]
 award: "3rd Place, ElevenHacks (ElevenLabs x Zed)"
 repo: https://github.com/anirxdh/Apartment-4B
 live: https://apartment-4b.netlify.app
+screenshot: /blog/shots/apartment-4b-horror-game.webp
 accent: "#aa3c30"
 summary: "Apartment 4B is a first-person horror puzzle game built in React Three Fiber for ElevenHacks. Every voice line, scream and music cue was generated ahead of time and committed as MP3s, so the shipped site is a static bundle with zero runtime API calls."
 ---

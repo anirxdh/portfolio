@@ -6,6 +6,7 @@ slug: horror-pov-director-ai
 project: "Horror POV"
 tags: [Three.js, TypeScript, Game AI, Web Audio, Vite, Game Dev]
 live: https://horror-pov.vercel.app
+screenshot: /blog/shots/horror-pov-director-ai.webp
 accent: "#d64545"
 summary: "Horror POV is a first-person browser horror game built in three.js and TypeScript in a single day. A small Director state machine decides when the ghost lurks, shows itself, or hunts, sanity is computed from the actual room lights, and five stacked floors share one flat collider list."
 ---

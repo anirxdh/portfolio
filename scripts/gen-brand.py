@@ -2,8 +2,8 @@
 """Brand image system for anirudhvasudevan.com, plus the default share image.
 
 Writes public/assets/og-image.png (1200x630), the Open Graph / Twitter image for the homepage,
-the About page, and the blog index. scripts/gen-og.py imports this file for the per-article
-share images, so every share card uses the same palette, type, frame, and glow.
+the About page, and the topic pages. scripts/gen-og.py imports this file for the per-article and
+per-page share images, so every share card uses the same palette, type, frame, and glow.
 
     python3 scripts/gen-brand.py            # regenerate public/assets/og-image.png
     OUT=/tmp/og.png python3 scripts/gen-brand.py

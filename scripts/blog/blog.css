@@ -129,6 +129,12 @@ h1 {
   border-left: 3px solid var(--accent); color: var(--white-600); font-size: 16px;
 }
 .tldr strong { color: #fff; margin-right: 8px; letter-spacing: 0.08em; font-size: 12px; text-transform: uppercase; }
+/* Screenshot of the live project, right under the article header (above the fold, so not lazy). */
+.shot { max-width: 800px; margin: -12px 0 48px; }
+.shot img {
+  display: block; width: 100%; height: auto; border-radius: clamp(10px, 2vw, 16px); border: 1px solid var(--black-300); background: var(--black-200);
+  box-shadow: 0 24px 60px -28px color-mix(in srgb, var(--accent) 45%, transparent);
+}
 
 .article__layout { display: grid; grid-template-columns: minmax(0, var(--measure)) 1fr; gap: 56px; align-items: start; }
 .toc { order: 2; position: sticky; top: 96px; max-width: 260px; font-size: 14px; color: var(--white-600); }

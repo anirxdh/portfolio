@@ -1,5 +1,5 @@
 ---
-title: "Putting a Talking AI Presenter Inside Any Video With ffmpeg and D-ID"
+title: "Putting a Talking AI Presenter in Any Video With ffmpeg and D-ID"
 subtitle: "How D-ID You turns an uploaded video into a narrated MP4 with a circular AI presenter, using ElevenLabs, DeepSeek V3, D-ID Talks and one long ffmpeg filter."
 slug: d-id-you-ai-presenter
 tags: ai, elevenlabs, ffmpeg, nextjs, hackathon
