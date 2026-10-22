@@ -29,8 +29,25 @@ const useScrollReveal = () => {
       revealAll();
     }
 
-    // Safety net: guarantee content becomes visible even if observers stall.
-    const fallback = setTimeout(revealAll, 4000);
+    // Safety net: guarantee content becomes visible even if observers stall. What is offscreen by
+    // then appears at once: a fade nobody sees would only leave it half transparent for a moment.
+    const fallback = setTimeout(() => {
+      const offscreen = els.filter((el) => {
+        if (el.classList.contains('is-visible')) return false;
+        const r = el.getBoundingClientRect();
+        return r.bottom < 0 || r.top > window.innerHeight;
+      });
+      offscreen.forEach((el) => {
+        el.style.transition = 'none';
+      });
+      revealAll();
+      if (offscreen.length) {
+        void document.body.offsetHeight; // apply the change before the transition comes back
+        offscreen.forEach((el) => {
+          el.style.transition = '';
+        });
+      }
+    }, 4000);
 
     return () => {
       clearTimeout(fallback);

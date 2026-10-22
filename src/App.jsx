@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types -- the codebase does not use PropTypes */
-import { Component, lazy, Suspense, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Component, lazy, Suspense, useEffect, useRef, useState } from 'react';
 
+import Hero from './sections/Hero.jsx';
 import About from './sections/About.jsx';
 import Footer from './sections/Footer.jsx';
 import Navbar from './sections/Navbar.jsx';
@@ -40,18 +41,14 @@ class ChunkBoundary extends Component {
 // place. The hero stand-in is not marked: it has the hero's height, so it never moves anything.
 const hasPlaceholders = () => document.querySelector('[data-deferred-section]') !== null;
 
-// ---------- Hero ----------
-// The hero's 3D scene needs three.js, React Three Fiber and drei (about 250 KB gzipped). Loading
-// Hero.jsx as its own chunk lets React render the rest of the page without waiting for them.
-// Until it arrives, the hero spot shows the static intro from index.html (the same block visitors
-// see before any JavaScript runs), moved here as is, so nothing on screen changes. The import
-// starts once that intro has painted.
-const Hero = lazy(() => import('./sections/Hero.jsx'));
-
-// Runs `fn` once the static intro's text is on screen, so the hero never replaces it unseen. On a
-// slow phone that has long happened by the time React runs; on a fast connection the text paint
-// waits for the web font. Uses the largest-contentful-paint entries where the browser reports
-// them, the first contentful paint elsewhere, and waits 3 seconds at most. Returns a cancel function.
+// ---------- First paint ----------
+// The hero is plain HTML and a little React (its sky and orb effects load later on their own), so
+// it renders right away, in the same markup as the static intro in index.html: nothing moves when
+// React takes over. The AniBot chat chunk waits until that intro has painted.
+//
+// Runs `fn` once the static intro's text is on screen. Uses the largest-contentful-paint entries
+// where the browser reports them, the first contentful paint elsewhere, and waits 3 seconds at
+// most. Returns a cancel function.
 const afterIntroPainted = (intro, fn) => {
   let done = false;
   let raf = 0;
@@ -83,7 +80,6 @@ const afterIntroPainted = (intro, fn) => {
     giveUp = setTimeout(run, 3000); // never wait on paint timing for long
   };
   if (intro && types.includes('largest-contentful-paint')) {
-    // The intro's paragraph is the largest text on the first screen.
     watch('largest-contentful-paint', (entry) => entry.element && intro.contains(entry.element));
   } else if (types.includes('paint')) {
     watch('paint', (entry) => entry.name === 'first-contentful-paint');
@@ -93,18 +89,8 @@ const afterIntroPainted = (intro, fn) => {
   return cancel;
 };
 
-const HeroStandIn = ({ staticIntro }) => {
-  const ref = useRef(null);
-  useLayoutEffect(() => {
-    // React has just emptied #root; put the intro back before the browser paints.
-    if (staticIntro && ref.current) ref.current.appendChild(staticIntro);
-  }, [staticIntro]);
-  if (!staticIntro) return <section className="min-h-screen w-full" />;
-  return <div ref={ref} style={{ display: 'contents' }} />;
-};
-
 // ---------- Below-the-fold sections ----------
-// Projects (the 3D computer and its screenshots), Work Experience (the animated avatar) and
+// The universe (the second act of the hero's story), Projects (the 3D computer and its screenshots), Work Experience (the animated avatar) and
 // Contact (EmailJS) are their own chunks too. The small sections (ImpactBand, Hackathons,
 // Writing) are not worth a request each.
 //
@@ -117,12 +103,14 @@ const HeroStandIn = ({ staticIntro }) => {
 //      scrolling still see every section),
 //   3. someone follows a #hash link (all of them, then the target is scrolled into place again,
 //      because the sections above it may have changed height).
+const Universe = lazy(() => import('./sections/Universe.jsx'));
 const Projects = lazy(() => import('./sections/Projects.jsx'));
 const WorkExperience = lazy(() => import('./sections/Experience.jsx'));
 const Contact = lazy(() => import('./sections/Contact.jsx'));
 
 // Heights measured on the built page at 390px and 1440px wide (the layouts switch at lg).
 const RESERVE = {
+  universe: 'min-h-[1000px] lg:min-h-[175vh]',
   projects: 'min-h-[1220px] lg:min-h-[670px]',
   work: 'min-h-[2350px] lg:min-h-[1010px]',
   contact: 'min-h-screen',
@@ -152,7 +140,9 @@ const DeferredSection = ({ component: Section, id, active, ...props }) => {
     return () => io.disconnect();
   }, [show]);
 
-  const placeholder = <section ref={ref} id={id} className={`c-space my-20 ${RESERVE[id]}`} data-deferred-section="" />;
+  // The universe has its own gutters and no outer margin.
+  const spacing = id === 'universe' ? '' : 'c-space my-20 ';
+  const placeholder = <section ref={ref} id={id} className={`${spacing}${RESERVE[id]}`} data-deferred-section="" />;
   if (!show) return placeholder;
   return (
     <ChunkBoundary>
@@ -245,8 +235,8 @@ const isFreshNavigation = () => {
 const App = ({ staticIntro = null }) => {
   useScrollReveal();
 
-  // Once the intro text has painted, start the hero chunk (see Hero above) and the AniBot chunk
-  // (the chat button), so neither competes with the CSS and fonts for that first paint.
+  // Once the intro text has painted, start the AniBot chunk (the chat button), so it does not
+  // compete with the CSS and fonts for that first paint.
   const [painted, setPainted] = useState(false);
   useEffect(() => afterIntroPainted(staticIntro, () => setPainted(true)), [staticIntro]);
 
@@ -267,15 +257,18 @@ const App = ({ staticIntro = null }) => {
     return () => window.removeEventListener(SHOW_PROJECT_EVENT, onShowProject);
   }, []);
 
-  // Mount everything once the page is idle after load.
+  // Mount everything once the page is idle a little while after load: late enough that the
+  // heavy 3D chunks of Projects and Experience do not compete with the hero's sky and orb starting.
   useEffect(() => {
     if (mountAll) return undefined;
     let idle = 0;
     let timeout = 0;
     const go = () => setMountAll(true);
     const schedule = () => {
-      if ('requestIdleCallback' in window) idle = window.requestIdleCallback(go, { timeout: 3000 });
-      else timeout = window.setTimeout(go, 1200);
+      timeout = window.setTimeout(() => {
+        if ('requestIdleCallback' in window) idle = window.requestIdleCallback(go, { timeout: 3000 });
+        else go();
+      }, 2500);
     };
     if (document.readyState === 'complete') schedule();
     else window.addEventListener('load', schedule, { once: true });
@@ -305,8 +298,6 @@ const App = ({ staticIntro = null }) => {
     };
   }, []);
 
-  const heroStandIn = <HeroStandIn staticIntro={staticIntro} />;
-
   return (
     <>
       <a
@@ -317,15 +308,8 @@ const App = ({ staticIntro = null }) => {
       </a>
       <Navbar />
       <main className="max-w-7xl mx-auto relative">
-        {painted ? (
-          <ChunkBoundary fallback={heroStandIn}>
-            <Suspense fallback={heroStandIn}>
-              <Hero />
-            </Suspense>
-          </ChunkBoundary>
-        ) : (
-          heroStandIn
-        )}
+        <Hero />
+        <DeferredSection component={Universe} id="universe" active={mountAll} />
         <About />
         <ImpactBand />
         <DeferredSection

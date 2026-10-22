@@ -10,16 +10,11 @@ const QUESTIONS = [
 
 const SuggestedQuestions = ({ onQuestionClick, disabled }) => {
   return (
-    <div className="px-4 py-3 border-t border-black-300">
-      <p className="text-xs text-gray-400 mb-2">💡 Suggested questions:</p>
+    <div className="pt-1">
+      <p className="text-[12px] font-medium uppercase tracking-[0.08em] text-white-600/80 mb-2.5">Try asking</p>
       <div className="flex flex-wrap gap-2">
         {QUESTIONS.map((question) => (
-          <button
-            key={question}
-            onClick={() => onQuestionClick(question)}
-            disabled={disabled}
-            className="text-xs px-3 py-1.5 bg-black-300 hover:bg-black-500 text-gray-300 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <button key={question} type="button" onClick={() => onQuestionClick(question)} disabled={disabled} className="chat-chip">
             {question}
           </button>
         ))}

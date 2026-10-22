@@ -9,9 +9,9 @@ const CHAT_MODEL = 'gpt-4o-mini';
 /**
  * Get chat completion from OpenAI with streaming
  */
-export async function streamChatCompletion(messages) {
+export async function streamChatCompletion(messages, { voice = false } = {}) {
   try {
-    const systemPrompt = createSystemPrompt();
+    const systemPrompt = createSystemPrompt() + (voice ? VOICE_RULES : '');
 
     const stream = await openai.chat.completions.create({
       model: CHAT_MODEL,
@@ -20,7 +20,7 @@ export async function streamChatCompletion(messages) {
         ...messages,
       ],
       temperature: 0.6,
-      max_tokens: 900,
+      max_tokens: voice ? 220 : 900,
       stream: true,
     });
 
@@ -30,6 +30,18 @@ export async function streamChatCompletion(messages) {
     throw new Error('Failed to generate response');
   }
 }
+
+// The homepage voice orb reads replies aloud with the browser's speech engine.
+const VOICE_RULES = `
+
+===========================
+VOICE MODE (this conversation)
+===========================
+The visitor is talking to you out loud through the voice orb on the homepage, and your reply is read aloud.
+- Answer in two or three short spoken sentences, about 60 words at most.
+- Plain sentences only: no Markdown, no lists, no headings, no links, no URLs, no emoji.
+- Say numbers and names the way a person would say them.
+- If there is more worth knowing, offer it in one short sentence, for example by suggesting they ask a follow-up.`;
 
 /**
  * Create system prompt with all portfolio information

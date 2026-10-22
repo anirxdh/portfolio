@@ -1,6 +1,4 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useGSAP } from '@gsap/react';
-import gsap from 'gsap';
 import useAiChat from '../../hooks/useAiChat';
 import useVoice from '../../hooks/useVoice';
 import { ANIBOT_HASH, ANIBOT_OPEN_EVENT, takePendingOpen } from '../../data/anibotEvents';
@@ -31,6 +29,14 @@ const AiChatbot = () => {
   };
   const openRef = useRef(isOpen);
   openRef.current = isOpen;
+  // Whatever had focus when the chat opened (a link, the command palette's input, the button).
+  const openerRef = useRef(null);
+  const restoreFocus = useRef(false);
+  const rememberOpener = () => {
+    if (openRef.current) return;
+    const el = document.activeElement;
+    openerRef.current = el && el !== document.body ? el : null;
+  };
 
   const voice = useVoice({
     // Talking to AniBot implies you want to hear it back. Words typed before tapping the mic
@@ -72,6 +78,7 @@ const AiChatbot = () => {
   // optionally with a question to ask right away. See src/data/anibotEvents.js.
   useEffect(() => {
     const openWith = (question) => {
+      rememberOpener();
       setIsOpen(true);
       if (!question) return;
       setShowSuggestions(false);
@@ -101,54 +108,89 @@ const AiChatbot = () => {
   }, [ask, isBusy]);
 
   // Hiding the chat in any way (close, minimize, a link, the contact button) turns the mic off
-  // without sending what it heard, and stops any reply being read aloud.
+  // without sending what it heard, and stops any reply being read aloud. Only after it was open:
+  // on mount there is nothing of the chat's to stop (and the hero's voice call may be speaking).
+  const wasOpen = useRef(false);
   useEffect(() => {
-    if (isOpen) return;
+    if (isOpen) {
+      wasOpen.current = true;
+      return;
+    }
+    if (!wasOpen.current) return;
     voiceRef.current.cancelListening();
     voiceRef.current.stopSpeaking();
   }, [isOpen]);
   const windowRef = useRef(null);
+  const fabRef = useRef(null);
 
-  // Move focus into the dialog when it opens so screen readers announce it.
+  // Move focus into the dialog when it opens so screen readers announce it. When it closes, give
+  // focus back to whatever opened it, or to the AniBot button.
   useEffect(() => {
-    if (isOpen) windowRef.current?.focus();
+    if (isOpen) {
+      windowRef.current?.focus();
+      return;
+    }
+    if (!restoreFocus.current) return;
+    restoreFocus.current = false;
+    const opener = openerRef.current;
+    openerRef.current = null;
+    const target = opener && opener.isConnected && opener !== document.body ? opener : fabRef.current;
+    target?.focus?.({ preventScroll: true });
   }, [isOpen]);
 
-  // GSAP animation for chat window
-  useGSAP(() => {
-    if (isOpen) {
-      gsap.fromTo(
-        '.chat-window',
-        {
-          opacity: 0,
-          y: 20,
-          scale: 0.95,
-        },
-        {
-          opacity: 1,
-          y: 0,
-          scale: 1,
-          duration: 0.3,
-          ease: 'power2.out',
-        }
+  // While the chat is open, Tab stays inside it and Escape closes it from anywhere.
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const onKey = (e) => {
+      const dialog = windowRef.current;
+      if (!dialog) return;
+      if (e.key === 'Escape' && !e.defaultPrevented) {
+        e.preventDefault();
+        hideChatRef.current();
+        return;
+      }
+      if (e.key !== 'Tab') return;
+      const items = [...dialog.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])')].filter(
+        (el) => el.getClientRects().length > 0,
       );
-    }
+      if (!items.length) return;
+      const first = items[0];
+      const last = items[items.length - 1];
+      const inside = dialog.contains(document.activeElement);
+      if (!inside) {
+        e.preventDefault();
+        (e.shiftKey ? last : first).focus();
+      } else if (e.shiftKey && (document.activeElement === first || document.activeElement === dialog)) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
   }, [isOpen]);
 
   const handleOpen = () => {
+    rememberOpener();
     setIsOpen(true);
   };
 
   // Every way of hiding the chat goes through here, so the mic and speech stop at once.
-  const hideChat = () => {
+  // `refocus` is false when the chat closes to go somewhere else on the page (a link, Contact).
+  const hideChat = ({ refocus = true } = {}) => {
+    if (!openRef.current) return;
     openRef.current = false;
+    restoreFocus.current = refocus;
     voice.cancelListening();
     voice.stopSpeaking();
     setIsOpen(false);
   };
+  const hideChatRef = useRef(hideChat);
+  hideChatRef.current = hideChat;
 
-  const handleClose = hideChat;
-  const handleMinimize = hideChat;
+  const handleClose = () => hideChat();
 
   const handleSend = (message) => {
     setDraft('');
@@ -162,7 +204,7 @@ const AiChatbot = () => {
   };
 
   const handleContact = () => {
-    hideChat();
+    hideChat({ refocus: false });
     const el = document.getElementById('contact');
     if (el) el.scrollIntoView({ behavior: 'smooth' });
   };
@@ -175,7 +217,7 @@ const AiChatbot = () => {
     const el = m && m[1] !== ANIBOT_HASH.slice(1) && document.getElementById(m[1]);
     if (!el) return;
     e.preventDefault();
-    hideChat();
+    hideChat({ refocus: false });
     el.scrollIntoView({ behavior: 'smooth' });
     window.history.replaceState(null, '', `#${m[1]}`);
   };
@@ -195,70 +237,48 @@ const AiChatbot = () => {
   return (
     <>
       {/* Floating button - always visible when chat is closed */}
-      {!isOpen && <FloatingChatButton onClick={handleOpen} />}
+      {!isOpen && <FloatingChatButton onClick={handleOpen} buttonRef={fabRef} />}
 
-      {/* Chat window */}
+      {/* Chat window: a panel in the corner on wide screens, a bottom sheet on phones. */}
       {isOpen && (
-        <div
-          ref={windowRef}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Chat with AniBot"
-          tabIndex={-1}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') handleClose();
-          }}
-          onClick={handleLinkClick}
-          className="chat-window fixed bottom-6 right-6 w-[400px] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-3rem)] bg-black-200 border border-black-300 rounded-lg shadow-2xl flex flex-col z-50 backdrop-blur-sm focus:outline-none">
-          <ChatHeader
-            onClose={handleClose}
-            onMinimize={handleMinimize}
-            mode={mode}
-            canSpeak={voice.canSpeak}
-            voiceReplies={voiceReplies}
-            onToggleVoice={() => {
-              if (voiceReplies) voice.stopSpeaking();
-              else voice.unlock(); // inside the tap, so iOS Safari allows the later replies
-              setVoiceReplies(!voiceReplies);
-            }}
-          />
-
-          <ChatMessages messages={messages} isLoading={isLoading} />
-
-          {showSuggestions && messages.length <= 1 && !busy && (
-            <SuggestedQuestions
-              onQuestionClick={handleSuggestedQuestion}
-              disabled={busy || voice.listening}
+        <>
+          <div className="chat-backdrop fixed inset-0 z-40 md:hidden" onClick={handleClose} aria-hidden="true" />
+          <div
+            ref={windowRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Chat with AniBot"
+            tabIndex={-1}
+            onClick={handleLinkClick}
+            className="chat-window fixed z-50 flex flex-col font-generalsans focus:outline-none"
+          >
+            <span className="chat-grabber md:hidden" aria-hidden="true" />
+            <ChatHeader
+              onClose={handleClose}
+              mode={mode}
+              canSpeak={voice.canSpeak}
+              voiceReplies={voiceReplies}
+              onToggleVoice={() => {
+                if (voiceReplies) voice.stopSpeaking();
+                else voice.unlock(); // inside the tap, so iOS Safari allows the later replies
+                setVoiceReplies(!voiceReplies);
+              }}
             />
-          )}
 
-          {hasAssistantReply && !busy && (
-            <FollowUps
-              onQuestionClick={handleSuggestedQuestion}
-              onContact={handleContact}
-              disabled={busy || voice.listening}
-            />
-          )}
+            <ChatMessages messages={messages} isLoading={isLoading}>
+              {showSuggestions && messages.length <= 1 && !busy && (
+                <SuggestedQuestions onQuestionClick={handleSuggestedQuestion} disabled={busy || voice.listening} />
+              )}
+            </ChatMessages>
 
-          <ChatInput
-            value={draft}
-            onChange={setDraft}
-            onSend={handleSend}
-            disabled={isLoading}
-            busy={isStreaming}
-            voice={voice}
-          />
-        </div>
+            {hasAssistantReply && !busy && (
+              <FollowUps onQuestionClick={handleSuggestedQuestion} onContact={handleContact} disabled={busy || voice.listening} />
+            )}
+
+            <ChatInput value={draft} onChange={setDraft} onSend={handleSend} disabled={isLoading} busy={isStreaming} voice={voice} />
+          </div>
+        </>
       )}
-
-      {/* Mobile overlay backdrop */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={handleClose}
-        />
-      )}
-
     </>
   );
 };

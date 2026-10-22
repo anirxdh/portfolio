@@ -15,13 +15,13 @@ const markdownComponents = {
     <a
       href={href}
       {...(/^\/?#/.test(href) ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
-      className="text-blue-400 underline underline-offset-2 hover:text-blue-300"
+      className="text-white-800 underline decoration-black-500 underline-offset-[3px] hover:text-white hover:decoration-green-400"
     >
       {children}
     </a>
   ),
   code: ({ children }) => (
-    <code className="bg-black-300 px-1 py-0.5 rounded text-[0.8em]">{children}</code>
+    <code className="bg-black-200 px-1 py-0.5 rounded text-[0.85em]">{children}</code>
   ),
   h1: ({ children }) => <p className="font-semibold text-white mb-2">{children}</p>,
   h2: ({ children }) => <p className="font-semibold text-white mb-2">{children}</p>,
@@ -32,51 +32,38 @@ const ChatMessage = ({ message }) => {
   const isUser = message.role === 'user';
   const isError = message.isError;
 
-  return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
-      <div className={`flex items-start gap-2 max-w-[80%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
-        {/* Avatar */}
-        <div
-          className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center overflow-hidden ${
-            isUser ? 'bg-black-500' : 'bg-gradient-to-r from-blue-500 to-purple-500'
-          }`}
-        >
-          {isUser ? (
-            <span className="text-white text-xs">👤</span>
-          ) : (
-            <img src="/assets/anirudh-avatar.png" alt="AniBot" className="w-full h-full object-cover" />
-          )}
-        </div>
+  const time = new Date(message.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
 
-        {/* Message bubble */}
+  if (isUser) {
+    return (
+      <div className="flex justify-end chat-msg">
+        <div className="max-w-[85%] flex flex-col items-end">
+          <div className="px-4 py-2.5 rounded-2xl rounded-tr-md bg-white-800 text-black-100 text-[14.5px] leading-relaxed whitespace-pre-wrap break-words">
+            {message.content}
+          </div>
+          <div className="text-[11px] mt-1 mr-1 text-white-500">{time}</div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-start gap-2.5 chat-msg">
+      <span className="anibot-mark anibot-mark-sm mt-0.5" aria-hidden="true" />
+      <div className="max-w-[85%] min-w-0 flex flex-col">
         <div
-          className={`px-4 py-3 rounded-lg ${
-            isUser
-              ? 'bg-black-500 text-white'
-              : isError
-              ? 'bg-red-900/30 border border-red-500/50 text-red-200'
-              : 'bg-black-200 text-gray-100'
+          className={`px-4 py-3 rounded-2xl rounded-tl-md text-[14.5px] break-words ${
+            isError ? 'bg-red-950/40 border border-red-500/30 text-red-100' : 'bg-black-300 text-white-800'
           }`}
         >
-          {/* Message content */}
-          {isUser ? (
-            <div className="text-sm whitespace-pre-wrap break-words">{message.content}</div>
-          ) : (
-            <div className="text-sm break-words">
-              <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
-                {message.content}
-              </ReactMarkdown>
-            </div>
-          )}
+          <ReactMarkdown remarkPlugins={[remarkGfm]} components={markdownComponents}>
+            {message.content}
+          </ReactMarkdown>
 
           {/* Footnote on answers that came from the offline notes (kept out of the spoken text). */}
-          {message.note && <p className="text-xs mt-2 italic text-white-600">{message.note}</p>}
-
-          {/* Timestamp */}
-          <div className="text-xs mt-1 text-gray-400">
-            {new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </div>
+          {message.note && <p className="text-xs mt-2 text-white-600">{message.note}</p>}
         </div>
+        <div className="text-[11px] mt-1 ml-1 text-white-500">AniBot · {time}</div>
       </div>
     </div>
   );

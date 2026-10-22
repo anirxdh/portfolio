@@ -22,9 +22,12 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
 
-    <!-- Fonts: General Sans is served from cdnfonts; warm the connection and preload the body weight -->
+    <!-- Fonts: General Sans is served from cdnfonts; warm the connection and preload the weights the
+         first screen uses (body text, the buttons and role line, the name) -->
     <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin />
     <link rel="preload" as="font" type="font/woff" href="https://fonts.cdnfonts.com/s/85793/GeneralSans-Regular.woff" crossorigin />
+    <link rel="preload" as="font" type="font/woff" href="https://fonts.cdnfonts.com/s/85793/GeneralSans-Medium.woff" crossorigin />
+    <link rel="preload" as="font" type="font/woff" href="https://fonts.cdnfonts.com/s/85793/GeneralSans-Semibold.woff" crossorigin />
 
     <!-- Open Graph / Facebook / LinkedIn -->
     <meta property="og:type" content="website" />
@@ -140,14 +143,29 @@
   </head>
   <body>
     <div id="root">
-      <section class="min-h-screen w-full flex flex-col relative" id="static-intro">
-        <div class="w-full mx-auto flex flex-col sm:mt-36 mt-20 c-space gap-3 max-w-7xl">
-          <p class="sm:text-3xl text-xl font-medium text-white text-center font-generalsans">Hi, I am Anirudh 👋</p>
-          <h1 class="hero_tag text-gray_gradient">Turning Ideas into Web Solutions<span class="sr-only"> | Anirudh Vasudevan, Full-Stack &amp; AI Engineer</span></h1>
-          <p class="text-white-600 text-center max-w-2xl mx-auto mt-6">Anirudh Vasudevan is a full-stack and AI engineer in San Francisco and a Member of Technical Staff at Rivo, building production voice AI agents. 5x hackathon winner, granted patent, EMNLP author.</p>
-          <p class="text-white-600 text-center mt-2"><a class="underline" href="/about/">About Anirudh Vasudevan</a> · <a class="underline" href="/blog/">Writing</a> · <a class="underline" href="/assets/anirudh-vasudevan-resume.pdf">Resume</a></p>
-        </div>
-      </section>
+      <div class="max-w-7xl mx-auto relative">
+        <!-- Same markup as src/sections/Hero.jsx (scripts/prerender-home.mjs checks the text matches). -->
+        <section class="hero" id="static-intro" aria-labelledby="hero-name">
+          <div class="hero-wrap">
+            <div class="hero-sky" aria-hidden="true"><div class="orb-slot is-sky"><div class="orb-css"></div></div></div>
+            <div class="hero-copy">
+              <div class="hero-mast"><p class="hero-eyebrow"><span class="hero-dot" aria-hidden="true"></span>Full-stack and AI engineer · San Francisco</p><span class="hero-rule" aria-hidden="true"></span></div>
+              <div class="hero-stage">
+                <h1 class="hero-name" id="hero-name"><span class="w">Anirudh<span class="bl" aria-hidden="true"></span></span> <span class="w">Vasudevan<span class="bl" aria-hidden="true"></span></span></h1>
+                <div class="hero-text"><p class="hero-role">Member of Technical Staff at Rivo, building voice AI agents.</p><p class="hero-line">Each star here is a project I built and wrote up, and AniBot can tell you about any of them.</p></div>
+                <div class="orb-slot is-stage" aria-hidden="true"><div class="orb-css"></div></div>
+              </div>
+              <div class="hero-below">
+                <div class="hero-actions">
+                  <div class="hero-ctas"><button type="button" class="hbtn hbtn-primary"><span class="eq" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span class="labels"><span class="l-talk">Talk to AniBot</span><span class="l-end">End call</span></span></button><a class="hbtn hbtn-ghost" href="#universe">See my work<svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" focusable="false"><path d="M3 8h9.5M8.5 4l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path></svg></a></div>
+                  <p class="hero-type"><a href="#anibot" class="hero-typelink">or type a question</a></p>
+                </div>
+                <ul class="hero-proof" aria-label="Highlights"><li><a href="/hackathons/">5x hackathon winner</a></li><li><a href="/blog/lark-multi-agent-mcp/">YC AI Hackathon top 10</a></li><li><a href="/research/#patent">granted patent</a></li></ul>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
     </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>

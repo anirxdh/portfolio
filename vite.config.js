@@ -9,11 +9,11 @@ import react from '@vitejs/plugin-react'
 // Rollup's shared helpers (CommonJS interop, Vite's preload helper) go in vendor-react, the chunk
 // with no dependencies. Left to Rollup they can land in vendor-3d, and then vendor-react and
 // vendor-3d import each other and React is undefined when R3F initializes.
-// The entry chunk itself holds no 3D code: App.jsx lazy-loads Hero.jsx (which pulls in vendor-3d and
-// vendor-gsap) once the static intro has painted, and the heavy sections below the fold mount later
-// still. So a first visit needs only vendor-react and the small entry chunk to render the page.
-// gsap is shared by the hero objects, the Projects computer and the AniBot window; naming its chunk
-// keeps it cached across deploys instead of Rollup giving it a generic "index-<hash>" name.
+// The entry chunk itself holds no 3D code: the hero is plain HTML plus Canvas 2D effects that load
+// on idle, and the heavy sections below the fold mount later. So a first visit needs only
+// vendor-react and the small entry chunk to render the page.
+// gsap is shared by the Projects computer and other below-the-fold pieces; naming its chunk keeps
+// it cached across deploys instead of Rollup giving it a generic "index-<hash>" name.
 const VENDOR_CHUNKS = [
   ['vendor-react', /[\\/]node_modules[\\/](react|react-dom|scheduler)[\\/]|commonjsHelpers|vite[\\/]preload-helper/],
   [
