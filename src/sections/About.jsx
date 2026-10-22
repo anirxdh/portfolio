@@ -7,7 +7,10 @@ const loadGlobe = () => import('react-globe.gl');
 const Globe = lazy(loadGlobe);
 
 // Mounting the globe (WebGL set-up) is one long task. Run it when scrolling has paused and the
-// page is idle, so it never lands in the middle of the universe's scroll story above.
+// page is idle, so it never lands in the middle of the universe's scroll story above. A pause
+// between two turns of the wheel is not a rest: the page has to be still for a moment, the way it
+// is while someone reads.
+const REST_MS = 1200;
 const whenScrollRests = (fn) => {
   let timer = 0;
   let idle = 0;
@@ -27,7 +30,7 @@ const whenScrollRests = (fn) => {
     clearTimeout(timer);
     if (idle) window.cancelIdleCallback?.(idle);
     idle = 0;
-    timer = setTimeout(run, 220);
+    timer = setTimeout(run, REST_MS);
   }
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
