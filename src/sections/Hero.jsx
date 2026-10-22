@@ -10,7 +10,7 @@
 // The call ends with the End button, Escape, a click outside the hero, or leaving the page, and
 // the name rebuilds. prefers-reduced-motion, no canvas, or an error: a still orb, same call.
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { cloneElement, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 import { Arrow } from '../components/Arrow.jsx';
 import { openAniBot } from '../data/anibotEvents.js';
@@ -33,6 +33,9 @@ const ASK_ABOUT = 'Ask about a project, a hackathon or his work at Rivo.';
 // The caption starts at its CSS size (a headline) and steps down to fit the space the name and
 // the role line leave; below this it scrolls, line by line, to keep the word being spoken in view.
 const CAPTION_MIN = 16;
+// When the call ends, the panel fades out (story.css, .call-panel.is-leaving) while the role line
+// fades back in under it, so the space above the buttons is never empty.
+const LEAVE_MS = 340;
 const NO_VOICE = 'Voice input is not available in this browser, so type your question.';
 
 const hasRecognition = () => typeof window !== 'undefined' && !!(window.SpeechRecognition || window.webkitSpeechRecognition);
@@ -85,6 +88,8 @@ const Hero = () => {
   const capRef = useRef(null);
   const capLines = useRef(null); // set while a caption is too long to fit: { lh, base, lines }
   const capTop = useRef(0); // how far that caption is scrolled
+  const lastPanel = useRef(null); // the panel as last drawn, kept to fade out when the call ends
+  const leaveTimer = useRef(0);
 
   const [fx, setFx] = useState(() => wantsMotion() && canDraw());
   const fxRefState = useRef(fx);
@@ -105,6 +110,8 @@ const Hero = () => {
   const [more, setMore] = useState('');
   const [card, setCard] = useState(null);
   const [canListen, setCanListen] = useState(false);
+  const [callNo, setCallNo] = useState(0);
+  const [leaving, setLeaving] = useState(null);
 
   useEffect(() => setCanListen(hasRecognition()), []);
 
@@ -171,6 +178,7 @@ const Hero = () => {
 
   useEffect(
     () => () => {
+      clearTimeout(leaveTimer.current);
       callRef.current?.end();
       callRef.current = null;
       callOnRef.current = false;
@@ -188,6 +196,16 @@ const Hero = () => {
     callOnRef.current = false;
     callRef.current?.end();
     callRef.current = null;
+    // The panel as it was, faded out from wherever its own fade-in had got to, while the role line
+    // comes back under it. Not when the hero is out of sight or motion is off: then it just goes.
+    clearTimeout(leaveTimer.current);
+    const panel = panelRef.current;
+    const from = !instant && wantsMotion() && panel && lastPanel.current ? parseFloat(getComputedStyle(panel).opacity) || 0 : 0;
+    if (from > 0.02) {
+      setLeaving(cloneElement(lastPanel.current, { className: 'call-panel is-leaving', inert: '', style: { opacity: from } }));
+      leaveTimer.current = setTimeout(() => setLeaving(null), LEAVE_MS);
+    } else setLeaving(null);
+    lastPanel.current = null;
     setCallOn(false);
     setVState('ended');
     setCaption(null);
@@ -206,6 +224,9 @@ const Hero = () => {
     unlockSpeech();
     callOnRef.current = true;
     focusFormRef.current = false;
+    clearTimeout(leaveTimer.current);
+    setLeaving(null);
+    setCallNo((n) => n + 1);
     setCallOn(true);
     setVState('starting');
     setCaption(null);
@@ -461,6 +482,80 @@ const Hero = () => {
     return () => ro.disconnect();
   }, [callOn, fitCaption]);
 
+  // The caption and the controls, drawn over the name and the role line while the call is on.
+  const panel = callOn ? (
+    <div key={callNo} ref={panelRef} className="call-panel">
+      <div className="call-say">
+        <p key={capKey} ref={capRef} className={`call-caption${past ? ' is-past' : ''}`} aria-hidden="true" data-who={shown?.who || 'none'}>
+          {shown?.who === 'you' && <span className="cap-label">You</span>}
+          {shown?.words?.map((w, i) => (
+            <span key={`${i}-${w}`} className={`cw${i < shown.shown ? ' on' : ''}${!past && i === shown.shown - 1 && shown.who === 'bot' ? ' now' : ''}`}>
+              {w}{' '}
+            </span>
+          ))}
+        </p>
+        <span className="call-gap" aria-hidden="true" />
+      </div>
+      <div className="call-foot">
+        {prompt && (
+          <p key={promptKey} className="call-prompt">
+            {prompt}
+          </p>
+        )}
+        {more && (
+          <button key={`more|${footKey}|${hint}`} type="button" className="call-more" onClick={continueInChat}>
+            Continue in chat
+            <Arrow size={14} />
+          </button>
+        )}
+        {showForm && hint && (
+          <p key={`hint|${footKey}|${hint}`} className="call-hint" id="call-hint">
+            {hint}
+          </p>
+        )}
+        <div key={footKey} className="call-controls">
+          {showForm ? (
+            <form className="call-form" onSubmit={sendTyped}>
+              <label className="sr-only" htmlFor="call-input">
+                Ask AniBot a question
+              </label>
+              <input
+                id="call-input"
+                ref={inputRef}
+                className="call-input"
+                type="text"
+                value={draft}
+                onChange={(e) => setDraft(e.target.value)}
+                placeholder="Ask AniBot anything"
+                autoComplete="off"
+                enterKeyHint="send"
+                aria-describedby={hint ? 'call-hint' : undefined}
+              />
+              {canListen && callRef.current?.canListen !== false && (
+                <button type="button" className="call-icon" onClick={switchToMic} aria-label="Speak instead">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" focusable="false">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+                  </svg>
+                </button>
+              )}
+              <button type="submit" className="call-send" disabled={!draft.trim()} aria-label="Send question">
+                <Arrow />
+              </button>
+            </form>
+          ) : (
+            <button type="button" className="call-switch" onClick={typeInstead}>
+              Type instead
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  ) : null;
+  // Kept so that when the call ends this exact panel can fade out (endCall, `leaving`).
+  useLayoutEffect(() => {
+    if (panel) lastPanel.current = panel;
+  });
+
   const classes = [
     'hero',
     callOn ? 'is-call' : '',
@@ -503,74 +598,7 @@ const Hero = () => {
             </div>
             <OrbSlot slotRef={stageSlotRef} where="stage" status={status} />
 
-            {callOn && (
-              <div ref={panelRef} className="call-panel">
-                <div className="call-say">
-                  <p key={capKey} ref={capRef} className={`call-caption${past ? ' is-past' : ''}`} aria-hidden="true" data-who={shown?.who || 'none'}>
-                    {shown?.who === 'you' && <span className="cap-label">You</span>}
-                    {shown?.words?.map((w, i) => (
-                      <span key={`${i}-${w}`} className={`cw${i < shown.shown ? ' on' : ''}${!past && i === shown.shown - 1 && shown.who === 'bot' ? ' now' : ''}`}>
-                        {w}{' '}
-                      </span>
-                    ))}
-                  </p>
-                  <span className="call-gap" aria-hidden="true" />
-                </div>
-                <div className="call-foot">
-                  {prompt && (
-                    <p key={promptKey} className="call-prompt">
-                      {prompt}
-                    </p>
-                  )}
-                  {more && (
-                    <button key={`${footKey}|${hint}`} type="button" className="call-more" onClick={continueInChat}>
-                      Continue in chat
-                      <Arrow size={14} />
-                    </button>
-                  )}
-                  <div key={footKey} className="call-controls">
-                    {showForm ? (
-                      <form className="call-form" onSubmit={sendTyped}>
-                        <label className="sr-only" htmlFor="call-input">
-                          Ask AniBot a question
-                        </label>
-                        <input
-                          id="call-input"
-                          ref={inputRef}
-                          className="call-input"
-                          type="text"
-                          value={draft}
-                          onChange={(e) => setDraft(e.target.value)}
-                          placeholder="Ask AniBot anything"
-                          autoComplete="off"
-                          enterKeyHint="send"
-                          aria-describedby={hint ? 'call-hint' : undefined}
-                        />
-                        {canListen && callRef.current?.canListen !== false && (
-                          <button type="button" className="call-icon" onClick={switchToMic} aria-label="Speak instead">
-                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true" focusable="false">
-                              <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
-                            </svg>
-                          </button>
-                        )}
-                        <button type="submit" className="call-send" disabled={!draft.trim()} aria-label="Send question">
-                          <Arrow />
-                        </button>
-                        {hint && (
-                          <p className="call-hint" id="call-hint">
-                            {hint}
-                          </p>
-                        )}
-                      </form>
-                    ) : (
-                      <button type="button" className="call-switch" onClick={typeInstead}>
-                        Type instead
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
+            {panel || leaving}
           </div>
 
           <div className="hero-below">

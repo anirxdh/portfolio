@@ -53,6 +53,13 @@
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
   touch-action: pan-y pinch-zoom;
+  /* When the call's caption and controls take over from the role line: once the name has flown
+     into the orb, or at once without the particles. Until then the role line stays, so the space
+     above the buttons is never empty (.call-panel, .hero.is-call .hero-text). */
+  --call-in: 0.85s;
+}
+.hero.is-static {
+  --call-in: 0.2s;
 }
 .hero::before {
   content: '';
@@ -308,6 +315,10 @@ html.sky-on .hero-sky::before {
   opacity: 0;
   transition-duration: 0.3s;
 }
+/* Without the particles the name stays until the caption takes its place. */
+.hero.is-static.is-call.name-out .hero-name {
+  transition-delay: var(--call-in);
+}
 .hero-text {
   margin-top: 22px;
   max-width: 36em;
@@ -328,9 +339,11 @@ html.sky-on .hero-sky::before {
   color: var(--body);
   text-wrap: pretty;
 }
+/* It fades out as the call panel fades in over it, a moment behind, never before. */
 .hero.is-call .hero-text {
   opacity: 0;
   visibility: hidden;
+  transition-delay: calc(var(--call-in) + 0.1s);
 }
 .hero.is-call .hero-rule {
   opacity: 0.4;
@@ -597,14 +610,22 @@ html.sky-on .hero-sky::before {
   min-width: 0;
   padding-top: 18px;
   opacity: 0;
-  animation: call-in 0.4s ease 0.85s forwards;
-}
-.hero.is-static .call-panel {
-  animation-delay: 0.2s;
+  animation: call-in 0.4s ease var(--call-in) forwards;
 }
 @keyframes call-in {
   to {
     opacity: 1;
+  }
+}
+/* The call has ended: the panel as it was fades out while the role line fades back in under it.
+   Hero.jsx starts it from the opacity the panel had (it may not have finished fading in). */
+.call-panel.is-leaving {
+  pointer-events: none;
+  animation: call-out 0.3s ease-in forwards;
+}
+@keyframes call-out {
+  to {
+    opacity: 0;
   }
 }
 /* The space above the controls, where the caption stands. What the caption leaves free (a short
@@ -670,8 +691,8 @@ html.sky-on .hero-sky::before {
 .call-caption.is-past {
   opacity: 0.45;
 }
-/* The prompt, "Continue in chat" and the controls, stacked on the bottom of the panel. The foot
-   itself draws no box, so a prompt coming or going never moves anything under the reader. */
+/* The prompt, "Continue in chat", the hint and the controls, stacked on the bottom of the panel.
+   The foot itself draws no box, so a prompt or a hint coming or going never moves the controls. */
 .call-foot {
   display: contents;
 }
@@ -805,12 +826,18 @@ html.sky-on .hero-sky::before {
   outline: 2px solid var(--silver);
   outline-offset: 2px;
 }
+/* Why the text field is there (no voice input, the mic was denied). It stands just above the field,
+   outside it, so clearing it when a question is sent never moves the field. */
 .call-hint {
-  flex-basis: 100%;
-  margin: 2px 0 0;
-  font-size: 13px;
+  flex: none;
+  /* The field keeps its own margin (the controls never change size); the hint sits a little
+     closer to it than the prompt would. */
+  margin: 12px 0 -8px;
+  max-width: 34em;
+  font-size: 13.5px;
   line-height: 1.45;
   color: rgba(175, 176, 182, 0.85);
+  animation: call-fade 0.3s ease both;
 }
 .call-switch {
   margin-top: 14px;
@@ -1048,9 +1075,14 @@ html.sky-on .hero-sky::before {
   .call-caption {
     font-size: clamp(22px, 8vh, 34px);
   }
-  .call-prompt {
+  .call-prompt,
+  .call-hint {
     margin-top: 6px;
     font-size: 14px;
+  }
+  .call-hint {
+    margin-bottom: -4px;
+    font-size: 13px;
   }
   .call-form {
     margin-top: 10px;
@@ -1075,6 +1107,7 @@ html.sky-on .hero-sky::before {
     scroll-behavior: auto;
   }
   .call-prompt,
+  .call-hint,
   .call-more {
     animation: none;
   }

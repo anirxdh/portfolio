@@ -13,9 +13,9 @@
 
 # ---------- Security headers (every response) ----------
 # No full Content-Security-Policy on purpose: script/img/connect rules would have to allow three.js
-# blob workers and textures, EmailJS and the cdnfonts font files, and a mistake there breaks the
-# site silently. The CSP below only has directives that never block loading anything: who may
-# frame the site, <base> hijacking, and plugin content.
+# blob workers and textures, EmailJS, the cdnfonts font files and the unpkg globe textures, and a
+# mistake there breaks the site silently. The CSP below only has directives that never block
+# loading anything: who may frame the site, <base> hijacking, and plugin content.
 # microphone=(self): AniBot voice uses the Web Speech API on this origin. Nothing uses the camera
 # or location. If an embedded third-party widget ever needs the mic, add its origin here.
 # HSTS without includeSubDomains/preload until every subdomain is confirmed to serve HTTPS.
