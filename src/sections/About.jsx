@@ -257,14 +257,11 @@ const About = () => {
 
             <div className="space-y-2">
               <p className="grid-subtext text-center">Contact me</p>
-              <button
-                type="button"
-                className="copy-container w-full bg-transparent border-0"
-                onClick={handleCopy}
-                aria-label={hasCopied ? 'Email address copied' : 'Copy email address to clipboard'}
-              >
+              {/* The button's name starts with the address it shows (a voice user says what they see). */}
+              <button type="button" className="copy-container w-full bg-transparent border-0" onClick={handleCopy}>
                 <img src={hasCopied ? '/assets/tick.svg' : '/assets/copy.svg'} alt="" aria-hidden="true" />
                 <span className="lg:text-xl md:text-xl font-medium text-gray_gradient text-white">anirudhvasudevan11@gmail.com</span>
+                <span className="sr-only">{hasCopied ? ', copied' : ', copy to clipboard'}</span>
               </button>
             </div>
           </div>
