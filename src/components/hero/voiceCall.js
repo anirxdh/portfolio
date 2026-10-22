@@ -482,6 +482,8 @@ export function createVoiceCall({ onState, onCaption, onLine, onNeedText, onCut 
     state = 'starting';
     clearInterval(ticker);
     ticker = setInterval(tick, 50);
+    // The greeting is on screen (unlit) while the orb forms; its words light up as they are spoken.
+    caption({ who: 'bot', words: words(voiceBlocked ? GREETING_TEXT : GREETING), shown: 0 });
     setTimeout(() => {
       if (myGen !== gen || state === 'ended') return;
       setState('greeting');

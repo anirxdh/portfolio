@@ -165,10 +165,14 @@ export function createStoryEngine() {
       py: 0,
       prr: 0,
       lab: null,
-      la: 0, // travelling name: shown alpha, speed (px/s) and last position
+      la: 0, // travelling name: shown alpha, speed (px/s) and the star's last position
       lv: 0,
       lpx: NaN,
       lpy: 0,
+      lx: 0, // where the name was last drawn (screen), and the page's top at that moment
+      ly: 0,
+      lc: 0,
+      lg: false, // let go of its star: fading out where it was
     }));
     planetStar = [];
     // Planets: wins and the patent on the inner orbits, the others further out.
@@ -222,10 +226,18 @@ export function createStoryEngine() {
   let copyBoxes = []; // the hero's text and buttons, hero-local: the demo card keeps clear of them
   // What the travelling names keep clear of, measured on layout only (never per frame): the boxes
   // and the line boxes of the hero's copy (hero-local) and of the universe's heading, list and
-  // links (stage-local), and the bottom of the site's fixed nav.
+  // links (stage-local), the bottom of the site's fixed nav and the fixed AniBot button. The hero
+  // card is placed by this engine, so its box is known without measuring.
   let heroText = [];
   let uniText = [];
   let navBottom = 0;
+  let fabEl = null;
+  let fabBox = null; // screen box, or null
+  let fabCheckAt = 0;
+  const cardBox = { x: 0, y: 0, r: 0, b: 0, until: 0 }; // hero-local, kept while it fades out
+  let frameNow = 0;
+  let domGate = 0; // the planets' DOM labels show only once every canvas name is gone
+  let namesOn = false;
   let frameDt = 1 / 60;
   let pageV = 0; // how fast the page moves, px/s (see update())
   let lastRegionTop = 0;
@@ -400,6 +412,16 @@ export function createStoryEngine() {
     }
   }
 
+  // The AniBot button is fixed in a corner and comes and goes with the chat window: its box is
+  // measured when it appears (checked twice a second, no layout read) and on layout.
+  function measureFab(el) {
+    fabEl = el;
+    fabBox = null;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    if (r.width > 1 && r.height > 1 && getComputedStyle(el).position === 'fixed') fabBox = { x: r.left - 6, y: r.top - 6, r: r.right + 6, b: r.bottom + 6 };
+  }
+
   function layout() {
     layoutDirty = false;
     sizeCanvas();
@@ -424,6 +446,7 @@ export function createStoryEngine() {
     }
     const nav = document.querySelector('header');
     navBottom = nav && getComputedStyle(nav).position === 'fixed' ? Math.max(0, nav.getBoundingClientRect().bottom) : 0;
+    measureFab(document.querySelector('.anibot-fab'));
     labelW.clear();
     if (U) {
       const orr = U.orbit.getBoundingClientRect();
@@ -462,6 +485,7 @@ export function createStoryEngine() {
   let speedK = 1;
   let tOrb = 0;
   let pT = 0;
+  let pSpan = 1; // px of scroll from pT 0 to 1
   let pD = 0;
   let lastInput = performance.now();
   let lastScroll = -1e9;
@@ -573,6 +597,7 @@ export function createStoryEngine() {
     const S0 = Math.max(0, docTop - VH);
     const S1 = Math.max(S0 + 1, docTop - (sticky ? 0 : VH * 0.12));
     pT = clamp((sy - S0) / (S1 - S0), 0, 1);
+    pSpan = S1 - S0;
     pD = sticky ? clamp((sy - S1) / Math.max(1, uniRect.height - VH), 0, 1) : 0;
   }
 
@@ -641,8 +666,14 @@ export function createStoryEngine() {
     // How fast the page is moving (px/s, held at its peak and let go slowly): the travelling names
     // look ahead by it, so they fade before they reach text instead of popping off.
     frameDt = dt;
+    frameNow = nowMs;
     pageV = Math.max(Math.abs(regionTop - lastRegionTop) / Math.max(dt, 1 / 240), pageV * Math.exp(-dt * 8));
     lastRegionTop = regionTop;
+    if (nowMs > fabCheckAt) {
+      fabCheckAt = nowMs + 500;
+      const f = document.querySelector('.anibot-fab');
+      if (f !== fabEl || (f && !fabBox)) measureFab(f);
+    }
 
     // Orbits slow down while a planet is picked, so it is easy to read.
     speedK += ((uActive >= 0 ? 0.12 : 1) - speedK) * e5;
@@ -757,6 +788,22 @@ export function createStoryEngine() {
     }
   }
   const floatPos = { x: 0, y: 0, on: false };
+
+  // Where a star is on its way from the sky to its planet at progress p, for the page as it is
+  // now (TX, TY on screen and the eased progress TE). A gentle swirl on the way down, so the
+  // stars arrive like a flock, not on rails.
+  let TX = 0;
+  let TY = 0;
+  let TE = 0;
+  function travelAt(s, p) {
+    const e = easeInOut(clamp((p - s.delay) / 0.7, 0, 1));
+    const mx = (s.hx + s.ux) / 2 + (s.uy - s.hy) * 0.22 * s.swirl;
+    const my = (s.hy + s.uy) / 2 - (s.ux - s.hx) * 0.12 * s.swirl;
+    const v = 1 - e;
+    TX = v * v * s.hx + 2 * v * e * mx + e * e * s.ux;
+    TY = v * v * s.hy + 2 * v * e * my + e * e * s.uy;
+    TE = e;
+  }
 
   /* ---------- Drawing ---------- */
   const bodyOrder = [];
@@ -902,44 +949,135 @@ export function createStoryEngine() {
 
   // The project stars on their way down: an accent rim and their name, so a visitor can follow
   // one from the sky to its planet. A name shows only where it has room: it fades out as it nears
-  // any text (the hero's copy, the universe's heading and list, the nav), a screen edge or the
-  // name of a star that left the sky before it, and it is fully gone before the planets' own DOM
-  // labels start to fade in, so a name is never on screen twice. A moving name looks ahead by its
-  // speed, so it has faded by the time it would reach text; a held scroll position always settles
-  // on the same picture.
+  // any text (the hero's copy, the universe's heading and list), the nav, the AniBot button, the
+  // hero card, a screen edge or the name of a star that left the sky before it. A moving name
+  // looks ahead by its speed, so it has faded by the time it would get there. A jump nothing can
+  // see coming (one wheel notch from rest, a page key) would put it on top of something: then the
+  // name lets go of its star and fades out where it was, moving with the page like the text beside
+  // it (or holding still on screen where the page would carry it under the nav or past an edge).
+  // So a name always fades, never pops, and never covers anything. Names fade with time, never
+  // with the scroll position, and the planets' own DOM labels only fade in once every name here is
+  // gone (writeDom), so a name is never on screen twice. A held scroll position always settles on
+  // the same picture.
   const LABEL_FONT = '500 12px "General Sans", "Segoe UI", Helvetica, Arial, sans-serif';
-  const LABEL_END = 0.76; // canvas names gone (the DOM labels start at 0.8)
+  const LABEL_END = 0.76; // canvas names fade out by here (the DOM labels start at 0.8)
   const ROOM_TEXT = 16; // px of clear space a name needs around it to show at full strength
   const ROOM_NAME = 12;
   const LOOK_AHEAD = 0.1; // s
   const FADE_IN = 6; // alpha per second
-  const FADE_OUT = 12; // fast enough to finish inside the look-ahead
+  const FADE_OUT = 12; // about five frames from full strength
   // Distance between two boxes (0 when they touch or overlap).
   const apart = (x0, y0, x1, y1, bx0, by0, bx1, by1) => {
     const dx = Math.max(0, bx0 - x1, x0 - bx1);
     const dy = Math.max(0, by0 - y1, y0 - by1);
     return Math.sqrt(dx * dx + dy * dy);
   };
-  function nameRoom(x0, y0, x1, y1) {
-    let room = Math.min(x0 - 8, W - 8 - x1, y0 - navBottom, VH - y1);
+  // Clear space between a name's box and what is fixed on screen: the edges, the nav and the
+  // AniBot button.
+  function screenRoom(x0, y0, x1, y1) {
+    const room = Math.min(x0 - 8, W - 8 - x1, y0 - navBottom, VH - y1);
+    return fabBox ? Math.min(room, apart(x0, y0, x1, y1, fabBox.x, fabBox.y, fabBox.r, fabBox.b)) : room;
+  }
+  // Clear space around a name's box: the screen (screenRoom), text, the hero card, and the first
+  // `upto` boxes of other names this frame (only the drawn ones with `drawnOnly`). 0 or less: it
+  // touches something. With `noScreen` the screen is left out.
+  function nameRoom(x0, y0, x1, y1, upto, drawnOnly, noScreen) {
+    let room = noScreen ? Infinity : screenRoom(x0, y0, x1, y1);
+    if (room <= 0) return room;
     if (H) {
       for (const b of heroText) {
-        if (room <= 0) return 0;
         room = Math.min(room, apart(x0, y0, x1, y1, b.x + heroLeft, b.y + heroTop, b.r + heroLeft, b.b + heroTop));
+        if (room <= 0) return 0;
       }
+      if (cardBox.until > frameNow) room = Math.min(room, apart(x0, y0, x1, y1, cardBox.x + heroLeft, cardBox.y + heroTop, cardBox.r + heroLeft, cardBox.b + heroTop));
     }
     if (U && stageRect) {
       const sx = stageRect.left;
       const sy = stageRect.top;
       for (const b of uniText) {
-        if (room <= 0) return 0;
         room = Math.min(room, apart(x0, y0, x1, y1, b.x + sx, b.y + sy, b.r + sx, b.b + sy));
+        if (room <= 0) return 0;
       }
     }
-    return Math.max(0, room);
+    for (let k = 0; k < upto && room > 0; k++) {
+      const o = labelBox[k];
+      if (!drawnOnly || o[5]) room = Math.min(room, apart(x0, y0, x1, y1, o[0], o[1], o[2], o[3]));
+    }
+    return room;
+  }
+  const MIN_ROOM = 1;
+  // Where a star takes its name within one step of the page either way (48px of scroll, more than
+  // a wheel notch), sampled along the path: scroll offsets, and the boxes' top-left corners
+  // relative to the page as it is now (stored after a name's box; one that let go stays put).
+  const PATH = [-48, -36, -24, -12, 12, 24, 36, 48];
+  const BOX = 6 + PATH.length * 2;
+  let boxCount = 0;
+  // A name's box this frame: [x0, y0, x1, y1, its look-ahead, drawn, ...its path].
+  const pushBox = (x0, y0, x1, y1, ahead, drawn) => {
+    const box = labelBox[boxCount] || (labelBox[boxCount] = new Array(BOX).fill(0));
+    box[0] = x0;
+    box[1] = y0;
+    box[2] = x1;
+    box[3] = y1;
+    box[4] = ahead;
+    box[5] = drawn;
+    for (let k = 6; k < BOX; k += 2) {
+      box[k] = x0;
+      box[k + 1] = y0;
+    }
+    return boxCount++;
+  };
+  const nameWidth = (name) => {
+    let w = labelW.get(name);
+    if (w === undefined) {
+      w = ctx.measureText(name).width;
+      labelW.set(name, w);
+    }
+    return w;
+  };
+  function drawName(s, x, y, a) {
+    s.la = a;
+    s.lx = x;
+    s.ly = y;
+    s.lc = H ? heroTop : stageRect ? stageRect.top : 0;
+    namesOn = true;
+    ctx.globalAlpha = 0.85 * a;
+    ctx.strokeStyle = '#010103';
+    ctx.lineWidth = 4;
+    ctx.strokeText(s.name, x, y);
+    ctx.globalAlpha = a;
+    ctx.fillStyle = STRONG;
+    ctx.fillText(s.name, x, y);
+  }
+  // A name that let go of its star: where it fades this frame. With the page if that is clear,
+  // else holding still on screen, else part of the way (a long jump of the page can bring text to
+  // one place and another name to the other); null: nowhere clear, the last resort.
+  const LET_GO = [1, 0, 0.5, 0.25, 0.75];
+  function letGoY(s, w, upto, drawnOnly) {
+    const pageTop = H ? heroTop : stageRect ? stageRect.top : 0;
+    const moved = pageTop - s.lc;
+    for (const f of LET_GO) {
+      const y = s.ly + moved * f;
+      if (nameRoom(s.lx - 2, y - 9, s.lx + w + 2, y + 9, upto, drawnOnly) >= MIN_ROOM) return y;
+      if (!moved) break;
+    }
+    return null;
+  }
+  // Clear space for a name's box at (x, y) on the page as it is now, after the page moved by `dy`
+  // px of scroll: the text has not moved, the screen has (by dy), and the shown names earlier in
+  // the order are where their stars take them (sample k of their path).
+  function spotRoom(x, y, w, dy, k, upto) {
+    let room = Math.min(screenRoom(x, y - dy, x + w, y - dy + 18), nameRoom(x, y, x + w, y + 18, 0, false, true));
+    for (let j = 0; j < upto && room > 0; j++) {
+      const o = labelBox[j];
+      if (o[5]) room = Math.min(room, apart(x, y, x + w, y + 18, o[6 + k * 2], o[7 + k * 2], o[6 + k * 2] + o[2] - o[0], o[7 + k * 2] + o[3] - o[1]));
+    }
+    return room;
   }
   function drawTravellers() {
     const go = smooth((pT - 0.02) / 0.08);
+    // A late frame (a busy main thread) fades no further than a quarter step, never all at once.
+    const out = Math.min(0.25, FADE_OUT * Math.max(frameDt, 1 / 240));
     for (const s of planetStar) {
       if (!s || !s.placed) continue;
       const e = s.pe || 0;
@@ -958,64 +1096,97 @@ export function createStoryEngine() {
     ctx.font = LABEL_FONT;
     ctx.textBaseline = 'middle';
     ctx.lineJoin = 'round';
-    let n = 0;
+    boxCount = 0;
     const dt = Math.max(frameDt, 1 / 240);
+    // First the names that already let go of their star: they keep their place while they fade.
     for (const s of travelOrder) {
+      if (!s.lg) continue;
+      const w = nameWidth(s.name);
+      const y = letGoY(s, w, boxCount, true);
+      const a = y === null ? 0 : Math.max(0, s.la - out);
+      s.lpx = NaN;
+      s.lv = 0;
+      if (a <= 0.01) {
+        s.la = 0;
+        s.lg = false;
+        continue;
+      }
+      pushBox(s.lx - 2, y - 9, s.lx + w + 2, y + 9, 0, 1);
+      drawName(s, s.lx, y, a);
+    }
+    // Then the names on their stars, in the order the stars left the sky.
+    for (const s of travelOrder) {
+      if (s.lg) continue;
       const e = s.pe || 0;
       const base = s.placed ? fade * smooth(e / 0.18) : 0;
-      if (base <= 0.001) {
+      if (base <= 0.001 && s.la <= 0.01) {
         s.la = 0;
         s.lv = 0;
         s.lpx = NaN;
         continue;
       }
-      let w = labelW.get(s.name);
-      if (w === undefined) {
-        w = ctx.measureText(s.name).width;
-        labelW.set(s.name, w);
-      }
+      const w = nameWidth(s.name);
       // The star's speed, held at its peak and let go slowly, like the page's.
       const v = Number.isNaN(s.lpx) ? 0 : Math.hypot(s.px - s.lpx, s.py - s.lpy) / dt;
       s.lv = Math.max(v, s.lv * Math.exp(-dt * 8));
       s.lpx = s.px;
       s.lpy = s.py;
       const ahead = Math.min(400, (s.lv + pageV) * LOOK_AHEAD);
+      // Its place beside the star (the drawn box, with the dark outline around the letters). It
+      // is kept for it even while it is hidden, so a later name never sits where this one would
+      // fade in.
       const x = s.px + lerp(s.rr, s.prr, e) + 9;
-      // The drawn box, with the dark outline around the letters.
       const x0 = x - 2;
       const x1 = x + w + 2;
       const y0 = s.py - 9;
       const y1 = s.py + 9;
-      const room = nameRoom(x0, y0, x1, y1);
-      // Where it may fade to (with the look-ahead), and a hard limit: never over text at all.
+      const room = nameRoom(x0, y0, x1, y1, 0, false);
       let want = base * smooth((room - ahead) / ROOM_TEXT);
-      let cap = base * clamp(room / 4, 0, 1);
-      // A name that left earlier keeps its place even while it is hidden, so two names can never
-      // be on screen over each other (a later one fades as it nears it).
-      for (let k = 0; k < n && cap > 0.001; k++) {
+      let free = room >= MIN_ROOM;
+      const before = boxCount;
+      for (let k = 0; k < before; k++) {
         const o = labelBox[k];
         const d = apart(x0, y0, x1, y1, o[0], o[1], o[2], o[3]);
         want *= smooth((d - ahead - o[4]) / ROOM_NAME);
-        cap *= clamp(d / 4, 0, 1);
+        if (d < MIN_ROOM) free = false;
       }
-      const box = labelBox[n] || (labelBox[n] = [0, 0, 0, 0, 0]);
-      box[0] = x0;
-      box[1] = y0;
-      box[2] = x1;
-      box[3] = y1;
-      box[4] = ahead;
-      n++;
-      const la = s.la;
-      const a = Math.min(cap, want > la ? Math.min(want, la + FADE_IN * dt) : Math.max(want, la - FADE_OUT * dt));
-      s.la = a;
-      if (a <= 0.01) continue;
-      ctx.globalAlpha = 0.85 * a;
-      ctx.strokeStyle = '#010103';
-      ctx.lineWidth = 4;
-      ctx.strokeText(s.name, x, s.py);
-      ctx.globalAlpha = a;
-      ctx.fillStyle = STRONG;
-      ctx.fillText(s.name, x, s.py);
+      const mine = pushBox(x0, y0, x1, y1, ahead, 0);
+      // One step of the page either way, this name must still have somewhere clear to be: beside
+      // its star, or where it is now, moving with the page or holding still on screen. Where it
+      // would not, it makes room now, while it can still fade.
+      const path = labelBox[mine];
+      for (let k = 0; k < PATH.length; k++) {
+        travelAt(s, clamp(pT + PATH[k] / Math.max(1, pSpan), 0, 1));
+        path[6 + k * 2] = TX + lerp(s.rr, s.prr, TE) + 7;
+        path[7 + k * 2] = TY - 9;
+      }
+      let safe = Infinity;
+      for (let k = 0; k < PATH.length && safe > 2; k++) {
+        const dy = PATH[k];
+        let best = spotRoom(path[6 + k * 2], path[7 + k * 2], x1 - x0, dy, k, before);
+        if (best < ROOM_NAME + 2) best = Math.max(best, spotRoom(x0, y0, x1 - x0, dy, k, before));
+        if (best < ROOM_NAME + 2) best = Math.max(best, spotRoom(x0, y0 + dy, x1 - x0, dy, k, before));
+        if (best < safe) safe = best;
+      }
+      want *= smooth((safe - 2) / ROOM_NAME);
+      if (free) {
+        const a = want > s.la ? Math.min(want, s.la + Math.min(0.25, FADE_IN * dt)) : Math.max(want, s.la - out);
+        if (a > 0.01) {
+          labelBox[mine][5] = 1;
+          drawName(s, x, s.py, a);
+        } else s.la = 0;
+      } else if (s.la > 0.01) {
+        // Its star moved it onto something in one step: let go and fade out where it was.
+        const y = letGoY(s, w, before, true);
+        const a = y === null ? 0 : Math.max(0, s.la - out);
+        if (a > 0.01) {
+          s.lg = true;
+          s.lpx = NaN;
+          s.lv = 0;
+          pushBox(s.lx - 2, y - 9, s.lx + w + 2, y + 9, 0, 1);
+          drawName(s, s.lx, y, a);
+        } else s.la = 0;
+      } else s.la = 0;
     }
   }
 
@@ -1048,6 +1219,7 @@ export function createStoryEngine() {
   }
 
   function draw() {
+    namesOn = false;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.globalAlpha = 1;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -1146,16 +1318,10 @@ export function createStoryEngine() {
         if (showU) drawBody(s, s.ux, s.uy, 1, s.orbit >= 0 ? 1 : 0.4 + 0.3 * (s.uz + 1) * 0.5, true);
         continue;
       }
-      const u = clamp((pT - s.delay) / 0.7, 0, 1);
-      const e = easeInOut(u);
-      const sxp = s.hx;
-      const syp = s.hy;
-      // A gentle swirl on the way down, so the stars arrive like a flock, not on rails.
-      const mx = (sxp + s.ux) / 2 + (s.uy - syp) * 0.22 * s.swirl;
-      const my = (syp + s.uy) / 2 - (s.ux - sxp) * 0.12 * s.swirl;
-      const v = 1 - e;
-      const x = v * v * sxp + 2 * v * e * mx + e * e * s.ux;
-      const y = v * v * syp + 2 * v * e * my + e * e * s.uy;
+      travelAt(s, pT);
+      const e = TE;
+      const x = TX;
+      const y = TY;
       const heroA = s.placed ? s.ign * heroVis : 0;
       const uniA = s.orbit >= 0 ? 1 : 0.35 + 0.35 * (s.uz + 1) * 0.5;
       drawBody(s, x, y, e, lerp(heroA, uniA, e), e > 0.5);
@@ -1202,10 +1368,19 @@ export function createStoryEngine() {
       if (s) {
         const c = cardPos(s);
         place(H.card, c.x, c.y, 1);
+        // The travelling names keep clear of it, also while its fade-out runs.
+        cardBox.x = c.x;
+        cardBox.y = c.y;
+        cardBox.r = c.x + cardSize.w;
+        cardBox.b = c.y + cardSize.h;
+        cardBox.until = frameNow + 400;
       } else hide(H.card);
     }
     if (!U) return;
-    const labA = reduced ? 1 : smooth((pT - 0.8) / 0.18);
+    // The planets' labels take over from the travelling names: they wait until every name on the
+    // canvas is gone, then fade in.
+    domGate = reduced ? 1 : namesOn ? 0 : Math.min(1, domGate + 6 * frameDt);
+    const labA = (reduced ? 1 : smooth((pT - 0.8) / 0.18)) * domGate;
     // Planet labels: nearest first, each on the side that covers the least.
     const planets = planetStar.filter(Boolean).slice().sort((a, b) => b.uz - a.uz);
     boxes.length = 0;

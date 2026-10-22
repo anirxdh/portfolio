@@ -580,11 +580,12 @@ html.sky-on .hero-sky::before {
 
 /* ---------- The call: caption and controls where the name was ---------- */
 /* The panel covers exactly the space of the name and the role line (both hidden during the call)
-   and never changes the hero's height, so End call is where Talk to AniBot was. The caption is a
-   headline at the top of that space (Hero.jsx steps its size down until it fits); the prompt and
-   the controls sit at the bottom, just above the buttons. If the controls alone are taller than
-   the space (a phone on its side, in text mode), they grow upward over the caption, never down
-   over the buttons. */
+   and never changes the hero's height, so End call is where Talk to AniBot was. The controls sit
+   at the bottom, just above the buttons, and the caption stands right on them, with the prompt in
+   between when there is one. The caption starts at headline size and Hero.jsx steps it down until
+   it fits the space, so the words fill it instead of leaving a band above the controls. If the
+   controls alone are taller than the space (a phone on its side, in text mode), they grow upward
+   over the caption, never down over the buttons. */
 .call-panel {
   position: absolute;
   inset: 0;
@@ -606,18 +607,39 @@ html.sky-on .hero-sky::before {
     opacity: 1;
   }
 }
+/* The space above the controls, where the caption stands. What the caption leaves free (a short
+   line at the largest size) is shared above and below it, but only a little below (.call-gap), so
+   the words never float far from the controls. Only the caption gives way when space runs out. */
+.call-say {
+  flex: 1 1 0;
+  align-self: stretch;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+.call-say::before {
+  content: '';
+  flex: 1 1 0;
+}
+.call-gap {
+  flex: 1 1 0;
+  max-height: 20px;
+}
 .call-caption {
   position: relative;
   flex: 0 1 auto;
   min-height: 0;
   max-width: 100%;
-  margin: 0 0 auto;
-  /* Room for the letters that reach below the last line, so a caption that fits is not clipped
-     (Hero.jsx compares scrollHeight with the box). */
-  padding-bottom: 0.12em;
+  margin: 0;
+  /* Room for the letters that reach past the first and the last line, so a caption that fits
+     is not clipped (Hero.jsx compares scrollHeight with the box). */
+  padding: 0.12em 0;
   overflow: hidden;
-  font-size: clamp(28px, 2.2vw + 14px, 46px);
-  line-height: 1.16;
+  /* The largest it gets: a headline, a little under the name it replaces. Headline leading at
+     that size, a little more as it steps down for a long line. */
+  font-size: min(15vw, 64px);
+  line-height: calc(0.97em + 5px);
   font-weight: 500;
   letter-spacing: -0.022em;
   color: var(--strong);
@@ -634,20 +656,31 @@ html.sky-on .hero-sky::before {
 .call-caption[data-who='you'] {
   color: var(--body);
 }
+@media (min-width: 720px) {
+  .call-caption {
+    font-size: clamp(60px, 6.4vw, 96px);
+  }
+}
+@media (min-width: 1024px) {
+  .call-gap {
+    max-height: 36px;
+  }
+}
 /* AniBot's last line, kept on screen between turns. */
 .call-caption.is-past {
   opacity: 0.45;
 }
+/* The prompt, "Continue in chat" and the controls, stacked on the bottom of the panel. The foot
+   itself draws no box, so a prompt coming or going never moves anything under the reader. */
 .call-foot {
+  display: contents;
+}
+.call-controls {
   flex: none;
+  align-self: stretch;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  width: 100%;
-  padding-top: 12px;
-}
-.call-foot > :first-child {
-  margin-top: 0;
 }
 .cw {
   opacity: 0.22;
@@ -663,19 +696,29 @@ html.sky-on .hero-sky::before {
   display: block;
   margin-bottom: 6px;
   font-size: 12px;
+  line-height: 1.4;
   font-weight: 500;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(175, 176, 182, 0.75);
 }
 .call-prompt {
+  flex: none;
   margin: 12px 0 0;
   max-width: 34em;
   font-size: clamp(15px, 1.2vw, 17px);
   line-height: 1.5;
   color: rgba(175, 176, 182, 0.85);
+  animation: call-fade 0.3s ease both;
+}
+@keyframes call-fade {
+  from {
+    opacity: 0.2;
+  }
 }
 .call-more {
+  flex: none;
+  animation: call-fade 0.3s ease both;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -1003,7 +1046,7 @@ html.sky-on .hero-sky::before {
     padding-top: 4px;
   }
   .call-caption {
-    font-size: 22px;
+    font-size: clamp(22px, 8vh, 34px);
   }
   .call-prompt {
     margin-top: 6px;
@@ -1030,6 +1073,10 @@ html.sky-on .hero-sky::before {
   }
   .call-caption {
     scroll-behavior: auto;
+  }
+  .call-prompt,
+  .call-more {
+    animation: none;
   }
   .story-canvas,
   .hero-sky::before,

@@ -1,6 +1,6 @@
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useState, useEffect, useRef } from 'react';
 import Canvas from '../components/LazyCanvas.jsx'; // R3F Canvas that mounts near the viewport and idles offscreen
 import { Center, OrbitControls } from '@react-three/drei';
 
@@ -40,7 +40,13 @@ const Projects = ({ getInitialProjectId }) => {
     });
   };
 
+  // The project's text fades in when the visitor switches projects. Not when the section mounts:
+  // that happens offscreen (it is lazy-loaded ahead of the scroll), where a fade shows nobody
+  // anything and only leaves the text half transparent for a moment.
+  const animatedIndex = useRef(selectedProjectIndex);
   useGSAP(() => {
+    if (animatedIndex.current === selectedProjectIndex) return;
+    animatedIndex.current = selectedProjectIndex;
     gsap.fromTo(`.animatedText`, { opacity: 0 }, { opacity: 1, duration: 1, stagger: 0.2, ease: 'power2.inOut' });
   }, [selectedProjectIndex]);
 

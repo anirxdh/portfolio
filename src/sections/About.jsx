@@ -39,11 +39,12 @@ const whenScrollRests = (fn) => {
   };
 };
 
-// Always HTTPS, and pinned to the installed three-globe version so unpkg answers directly instead
-// of redirecting to the latest release first. Same images as before.
-const GLOBE_TEXTURES = 'https://unpkg.com/three-globe@2.41.11/example/img';
-const GLOBE_IMAGE = `${GLOBE_TEXTURES}/earth-night.jpg`;
-const GLOBE_BUMP = `${GLOBE_TEXTURES}/earth-topology.png`;
+// three-globe's example textures (three-globe 2.41.11, MIT), served from this site at the size a
+// 326px globe can show: 2048x1024 and 1024x512 instead of 4096x2048 and 2048x1024. Decoding and
+// uploading the full-size night map took one 130ms task on the main thread, right where the
+// universe's scroll story ends; these take a fraction of that and a fifth of the download.
+const GLOBE_IMAGE = '/textures/globe/earth-night.jpg';
+const GLOBE_BUMP = '/textures/globe/earth-topology.png';
 
 // Without WebGL the globe throws while it mounts. Keep that to the globe's own box.
 class GlobeBoundary extends Component {
