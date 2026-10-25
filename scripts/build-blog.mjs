@@ -383,6 +383,8 @@ function renderMarkdown(article) {
 }
 
 // ---------- shared templates ----------
+// Two font preloads: Regular for body text and Semibold for every page's h1 and card titles, so
+// both arrive with the first paint more often and the page swaps fonts less after it shows.
 const head = ({ title, description, url, ogImage = DEFAULT_OG, ogType = 'website', extra = '' }) => `<!doctype html>
 <html lang="en">
   <head>
@@ -413,6 +415,7 @@ const head = ({ title, description, url, ogImage = DEFAULT_OG, ogType = 'website
     <meta name="twitter:image" content="${ogImage}" />
     <link rel="preconnect" href="https://fonts.cdnfonts.com" crossorigin />
     <link rel="preload" as="font" type="font/woff" href="https://fonts.cdnfonts.com/s/85793/GeneralSans-Regular.woff" crossorigin />
+    <link rel="preload" as="font" type="font/woff" href="https://fonts.cdnfonts.com/s/85793/GeneralSans-Semibold.woff" crossorigin />
     <link rel="stylesheet" href="/blog/blog.css" />
     ${extra}
   </head>`;
@@ -510,10 +513,12 @@ const authorBox = () => `
         </div>
       </aside>`;
 
-const articleCard = (a) => `
+// `heading` keeps the outline in order: h2 where the cards sit right under the page's h1 (blog
+// index, topic pages), h3 under a section's own h2 (More writing on an article).
+const articleCard = (a, { heading = 'h3' } = {}) => `
         <a class="card" href="/blog/${a.slug}/" style="--accent:${a.accent}">
           <p class="card__eyebrow">${a.award ? `<span class="badge">${esc(a.award)}</span>` : ''}<span>${esc(a.project)}</span></p>
-          <h3 class="card__title">${esc(a.title)}</h3>
+          <${heading} class="card__title">${esc(a.title)}</${heading}>
           <p class="card__desc">${esc(a.description)}</p>
           <p class="card__meta"><time datetime="${a.date}">${fmtDate(a.date)}</time> · ${a.readingMinutes} min read</p>
         </a>`;
@@ -635,7 +640,7 @@ function articlePage(a, { html, toc, faqs }, { related, prev, next, series }) {
         related.length
           ? `<section class="related" aria-labelledby="related-title">
         <h2 id="related-title">More writing</h2>
-        <div class="cards">${related.map(articleCard).join('')}</div>
+        <div class="cards">${related.map((a) => articleCard(a)).join('')}</div>
       </section>`
           : ''
       }
@@ -734,10 +739,10 @@ function indexPage(list) {
       }
       ${
         featured
-          ? `<section class="featured" aria-label="Latest article">${articleCard(featured).replace('class="card"', 'class="card card--featured"')}</section>`
+          ? `<section class="featured" aria-label="Latest article">${articleCard(featured, { heading: 'h2' }).replace('class="card"', 'class="card card--featured"')}</section>`
           : ''
       }
-      ${rest.length ? `<section class="cards" aria-label="All articles">${rest.map(articleCard).join('')}</section>` : ''}
+      ${rest.length ? `<section class="cards" aria-label="All articles">${rest.map((a) => articleCard(a, { heading: 'h2' })).join('')}</section>` : ''}
     </main>`,
   });
 }
@@ -796,7 +801,7 @@ function topicPage(t) {
         <h1>${esc(t.name)}</h1>
         <p class="standfirst">Every project write-up tagged ${esc(t.name)}.</p>
       </header>
-      <section class="cards" aria-label="Articles tagged ${esc(t.name)}">${t.articles.map(articleCard).join('')}</section>
+      <section class="cards" aria-label="Articles tagged ${esc(t.name)}">${t.articles.map((a) => articleCard(a, { heading: 'h2' })).join('')}</section>
       ${
         others.length
           ? `<section class="more-topics" aria-labelledby="more-topics-title">
@@ -833,7 +838,7 @@ function topicsIndexPage() {
   const topicCard = (t) => `
         <a class="card" href="${topicHref(t.slug)}">
           <p class="card__eyebrow"><span>${plural(t.articles.length, 'article')}</span></p>
-          <h3 class="card__title">${esc(t.name)}</h3>
+          <h2 class="card__title">${esc(t.name)}</h2>
           <p class="card__desc">${esc(projectNames(t.articles).join(', '))}</p>
         </a>`;
   return shell({

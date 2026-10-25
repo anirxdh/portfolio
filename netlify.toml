@@ -12,13 +12,46 @@
     Content-Type = "application/manifest+json"
 
 # ---------- Security headers (every response) ----------
-# No full Content-Security-Policy on purpose: script/img/connect rules would have to allow three.js
-# blob workers and textures, EmailJS, the cdnfonts font files and the unpkg globe textures, and a
-# mistake there breaks the site silently. The CSP below only has directives that never block
-# loading anything: who may frame the site, <base> hijacking, and plugin content.
+# The enforced Content-Security-Policy only has directives that never block loading anything: who
+# may frame the site, <base> hijacking, and plugin content. A full policy is on trial below as
+# Content-Security-Policy-Report-Only: browsers check every request against it and log what it
+# would block in the console, but block nothing. Once it has run clean in production, its rules can
+# move into the enforced header.
 # microphone=(self): AniBot voice uses the Web Speech API on this origin. Nothing uses the camera
 # or location. If an embedded third-party widget ever needs the mic, add its origin here.
 # HSTS without includeSubDomains/preload until every subdomain is confirmed to serve HTTPS.
+#
+# What the report-only policy allows, and why:
+#   default-src 'self'          anything not listed below may only come from this site.
+#   script-src 'self'           the Vite bundles in /assets/. The homepage has no inline scripts
+#                               (its <script type="application/ld+json"> blocks are data and are
+#                               never run), so no 'unsafe-inline' and no 'unsafe-eval'.
+#     'sha256-...'              the one inline script on article pages (reading progress bar and
+#                               the Copy button on code blocks). `npm run build` prints this hash,
+#                               and `node scripts/validate-seo.mjs` fails if it no longer matches.
+#     'wasm-unsafe-eval'        the Draco decoder that unpacks the 3D models is WebAssembly. It
+#                               allows compiling WebAssembly only, not eval() of JavaScript.
+#   style-src 'self'            /assets/*.css and /blog/blog.css.
+#     'unsafe-inline'           the article diagrams are inline SVG with style="" attributes and
+#                               their own <style> blocks, and cards set their accent color in a
+#                               style="" attribute.
+#   font-src                    General Sans comes from fonts.cdnfonts.com. data: lets a font
+#                               inlined as a data URL load; nothing uses one today.
+#   img-src 'self' data: blob:  site images, a tiny data: image the 3D code uses to test WebP
+#                               support, and textures three.js unpacks from the .glb models
+#                               into blob: URLs.
+#     https://unpkg.com         the About section globe's earth textures.
+#   connect-src 'self'          /blog/index.json, /anibot-kb.json, /api/chat (AniBot), and the 3D
+#                               models and Draco decoder files.
+#     blob:                     three.js reads the textures packed inside each .glb model through
+#                               fetch() on a blob: URL.
+#     https://api.emailjs.com   the contact form sends through EmailJS.
+#   worker-src 'self' blob:     the Draco decoder runs in a Web Worker built from a blob: URL.
+#   object-src 'none'           no Flash or other plugin content anywhere.
+#   frame-ancestors 'self'      only this site may put the site in a frame (same as the enforced CSP).
+#   base-uri 'self'             a <base> tag can not point relative links at another site.
+#   form-action 'self'          forms can only submit to this site (the contact form posts with
+#                               fetch, not a form submit, so EmailJS is not needed here).
 [[headers]]
   for = "/*"
   [headers.values]
@@ -26,6 +59,18 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     X-Frame-Options = "SAMEORIGIN"
     Content-Security-Policy = "frame-ancestors 'self'; base-uri 'self'; object-src 'none'"
+    Content-Security-Policy-Report-Only = """\
+      default-src 'self'; \
+      script-src 'self' 'sha256-PkutnMyKjij+HZ69YKjEUuRS6r0+Q/dA7fHCTk7v2nE=' 'wasm-unsafe-eval'; \
+      style-src 'self' 'unsafe-inline'; \
+      font-src https://fonts.cdnfonts.com data:; \
+      img-src 'self' data: blob: https://unpkg.com; \
+      connect-src 'self' blob: https://api.emailjs.com; \
+      worker-src 'self' blob:; \
+      object-src 'none'; \
+      frame-ancestors 'self'; \
+      base-uri 'self'; \
+      form-action 'self'"""
     Permissions-Policy = "camera=(), microphone=(self), geolocation=(), payment=(), usb=()"
     Strict-Transport-Security = "max-age=31536000"
     Cross-Origin-Opener-Policy = "same-origin"
