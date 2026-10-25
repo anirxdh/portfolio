@@ -7,6 +7,9 @@ Long-form project articles for https://anirudhvasudevan.com/blog/. Every article
 - `content/articles/<slug>.md` — one article per project. Frontmatter: `title`, `description` (120-160 chars),
   `date`, `slug`, `project`, `tags` (3-6), `summary` (TL;DR), optional `award`, `repo`, `live`, `accent`, `cover`,
   and `draft: true` while unverified (drafts are skipped by the generator).
+- `kind: guide` marks a pillar article that pulls lessons from several project write-ups (for example
+  `lessons-building-voice-ai-agents`). Guides get a Guide badge, their own row on `/blog/` and a section in
+  `llms.txt`, and come first on topic pages; `/projects/` and `/uses/` leave them out because they are not projects.
 - `content/diagrams/<slug>-architecture.mmd` and `<slug>-flow.mmd` — mermaid sources, rendered locally to
   `public/blog/diagrams/*.svg` (hand-drawn look) and committed. The article embeds them as
   `![caption](/blog/diagrams/<slug>-architecture.svg)`.

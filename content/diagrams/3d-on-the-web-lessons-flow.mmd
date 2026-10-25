@@ -1,0 +1,10 @@
+graph TD
+  A[useFrame tick] -->|camera yaw only| B[Movement vector]
+  B --> C[Target position]
+  C -->|clamp to room bounds| D[resolveCollision]
+  K[SCENE_CONFIG boxes] -->|body removed after tape 4| D
+  D -->|push out along smallest overlap| E[Camera position]
+  E --> F[Scan triggers]
+  K -->|triggers and gates| F
+  F -->|drop triggers whose gate fails| G[Nearest in radius]
+  G -->|show prompt| H[Player presses E]
