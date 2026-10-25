@@ -231,18 +231,7 @@ body {
     transform: rotate(0deg);
   }
 }
-/* AiChatbot: full-screen chat window on mobile */
-@media (max-width: 768px) {
-  .chat-window {
-    width: 100vw !important;
-    height: 100vh !important;
-    max-width: 100vw !important;
-    max-height: 100vh !important;
-    bottom: 0 !important;
-    right: 0 !important;
-    border-radius: 0 !important;
-  }
-}
+/* AniBot's chat window is styled in src/styles/story.css (.chat-window and friends). */
 
 /* Scroll-reveal: IntersectionObserver toggles .is-visible (see useScrollReveal) */
 .reveal-up {

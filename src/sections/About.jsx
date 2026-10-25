@@ -1,15 +1,73 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
+import { Component, lazy, Suspense, useEffect, useRef, useState } from 'react';
 
 import Button from '../components/Button.jsx';
 
 // react-globe.gl is heavy and below the fold — load it on demand.
-const Globe = lazy(() => import('react-globe.gl'));
+const loadGlobe = () => import('react-globe.gl');
+const Globe = lazy(loadGlobe);
 
-// Always HTTPS, and pinned to the installed three-globe version so unpkg answers directly instead
-// of redirecting to the latest release first. Same images as before.
-const GLOBE_TEXTURES = 'https://unpkg.com/three-globe@2.41.11/example/img';
-const GLOBE_IMAGE = `${GLOBE_TEXTURES}/earth-night.jpg`;
-const GLOBE_BUMP = `${GLOBE_TEXTURES}/earth-topology.png`;
+// Mounting the globe (WebGL set-up) is one long task. Run it when scrolling has paused and the
+// page is idle, so it never lands in the middle of the universe's scroll story above. A pause
+// between two turns of the wheel is not a rest: the page has to be still for a moment, the way it
+// is while someone reads.
+const REST_MS = 1200;
+const whenScrollRests = (fn) => {
+  let timer = 0;
+  let idle = 0;
+  let done = false;
+  const fire = () => {
+    if (done) return;
+    done = true;
+    window.removeEventListener('scroll', onScroll);
+    fn();
+  };
+  const run = () => {
+    if (done) return;
+    if ('requestIdleCallback' in window) idle = window.requestIdleCallback(fire, { timeout: 1200 });
+    else timer = setTimeout(fire, 50);
+  };
+  function onScroll() {
+    clearTimeout(timer);
+    if (idle) window.cancelIdleCallback?.(idle);
+    idle = 0;
+    timer = setTimeout(run, REST_MS);
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+  return () => {
+    done = true;
+    clearTimeout(timer);
+    if (idle) window.cancelIdleCallback?.(idle);
+    window.removeEventListener('scroll', onScroll);
+  };
+};
+
+// three-globe's example textures (three-globe 2.41.11, MIT), served from this site at the size a
+// 326px globe can show: 2048x1024 and 1024x512 instead of 4096x2048 and 2048x1024. Decoding and
+// uploading the full-size night map took one 130ms task on the main thread, right where the
+// universe's scroll story ends; these take a fraction of that and a fifth of the download.
+const GLOBE_IMAGE = '/textures/globe/earth-night.jpg';
+const GLOBE_BUMP = '/textures/globe/earth-topology.png';
+
+// Without WebGL the globe throws while it mounts. Keep that to the globe's own box.
+class GlobeBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { failed: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  componentDidCatch(error) {
+    console.warn('Globe unavailable:', error?.message || error);
+  }
+
+  render() {
+    return this.state.failed ? null : this.props.children; // eslint-disable-line react/prop-types
+  }
+}
 
 const About = () => {
   const [hasCopied, setHasCopied] = useState(false);
@@ -25,16 +83,27 @@ const About = () => {
       setShowGlobe(true);
       return undefined;
     }
+    let stopWaiting = () => {};
     const io = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
         io.disconnect();
-        setShowGlobe(true);
+        // Load the chunk when the scroll rests, then mount it at the next rest.
+        stopWaiting = whenScrollRests(() => {
+          loadGlobe()
+            .catch(() => {})
+            .then(() => {
+              stopWaiting = whenScrollRests(() => setShowGlobe(true));
+            });
+        });
       },
       { rootMargin: '100% 0px' },
     );
     io.observe(el);
-    return () => io.disconnect();
+    return () => {
+      io.disconnect();
+      stopWaiting();
+    };
   }, []);
 
   // Go through the #hash like the navbar links, so App.jsx can make sure the lazy-loaded
@@ -110,19 +179,21 @@ const About = () => {
               ref={globeBox}
               className="rounded-3xl w-full sm:h-[326px] h-fit min-h-[326px] flex justify-center items-center">
               {showGlobe && (
-                <Suspense fallback={null}>
-                  <Globe
-                    height={326}
-                    width={326}
-                    backgroundColor="rgba(0, 0, 0, 0)"
-                    backgroundImageOpacity={0.5}
-                    showAtmosphere
-                    showGraticules
-                    globeImageUrl={GLOBE_IMAGE}
-                    bumpImageUrl={GLOBE_BUMP}
-                    labelsData={[{ lat: 37.7749, lng: -122.4194, text: 'San Francisco, CA', color: 'white', size: 15 }]}
-                  />
-                </Suspense>
+                <GlobeBoundary>
+                  <Suspense fallback={null}>
+                    <Globe
+                      height={326}
+                      width={326}
+                      backgroundColor="rgba(0, 0, 0, 0)"
+                      backgroundImageOpacity={0.5}
+                      showAtmosphere
+                      showGraticules
+                      globeImageUrl={GLOBE_IMAGE}
+                      bumpImageUrl={GLOBE_BUMP}
+                      labelsData={[{ lat: 37.7749, lng: -122.4194, text: 'San Francisco, CA', color: 'white', size: 15 }]}
+                    />
+                  </Suspense>
+                </GlobeBoundary>
               )}
             </div>
             <div>
@@ -186,14 +257,11 @@ const About = () => {
 
             <div className="space-y-2">
               <p className="grid-subtext text-center">Contact me</p>
-              <button
-                type="button"
-                className="copy-container w-full bg-transparent border-0"
-                onClick={handleCopy}
-                aria-label={hasCopied ? 'Email address copied' : 'Copy email address to clipboard'}
-              >
+              {/* The button's name starts with the address it shows (a voice user says what they see). */}
+              <button type="button" className="copy-container w-full bg-transparent border-0" onClick={handleCopy}>
                 <img src={hasCopied ? '/assets/tick.svg' : '/assets/copy.svg'} alt="" aria-hidden="true" />
                 <span className="lg:text-xl md:text-xl font-medium text-gray_gradient text-white">anirudhvasudevan11@gmail.com</span>
+                <span className="sr-only">{hasCopied ? ', copied' : ', copy to clipboard'}</span>
               </button>
             </div>
           </div>
