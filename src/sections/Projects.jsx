@@ -81,17 +81,7 @@ const Projects = ({ getInitialProjectId }) => {
             />
           </div>
 
-          <div className="p-3 backdrop-filter backdrop-blur-3xl w-fit rounded-lg" style={currentProject.logoStyle}>
-            <img
-              className="w-10 h-10 shadow-sm"
-              src={currentProject.logo}
-              alt={`${currentProject.title} logo`}
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
-
-          <div className="flex flex-col gap-5 text-white-600 my-5">
+          <div className="flex flex-col gap-5 text-white-600 mb-5">
             <h3 className="text-white text-xl font-semibold animatedText">{currentProject.title}</h3>
 
             <p className="text-sm animatedText">{currentProject.desc}</p>
