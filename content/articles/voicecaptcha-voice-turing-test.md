@@ -6,6 +6,7 @@ slug: voicecaptcha-voice-turing-test
 project: "VoiceCaptcha"
 tags: [Cloudflare Workers, Durable Objects, Groq Whisper, ElevenLabs, Voice AI, React]
 live: https://voicecaptcha.vercel.app/
+screenshot: /blog/shots/voicecaptcha-voice-turing-test.webp
 accent: "#26c6da"
 summary: "VoiceCaptcha is a voice CAPTCHA built for ElevenHacks Hack #2. A Cloudflare Worker issues a one-time phrase from a Durable Object, Groq Whisper transcribes the recording, a fuzzy matcher scores it, and ElevenLabs reads the same phrase back after a pass."
 ---

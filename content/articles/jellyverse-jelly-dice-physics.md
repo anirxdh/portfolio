@@ -6,6 +6,7 @@ slug: jellyverse-jelly-dice-physics
 project: "Jellyverse"
 tags: [Three.js, GLSL, Physics Simulation, WebAudio, Vite, Game Dev]
 live: https://anirxdh.github.io/jellyverse-site/
+screenshot: /blog/shots/jellyverse-jelly-dice-physics.webp
 accent: "#b388ff"
 summary: "Jellyverse is four browser toys (jelly dice, a Pig duel against an AI, a jelly stress toy and a shrunk-you tabletop) on one hand-rolled 240 Hz physics solver and a vertex-shader deformer. No physics library, no audio files, and 80 headless tests."
 ---

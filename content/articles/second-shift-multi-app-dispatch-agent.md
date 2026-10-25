@@ -1,5 +1,5 @@
 ---
-title: "Building Second Shift, a Dispatch Agent That Proves Its Own Writes"
+title: "Building Second Shift, a Dispatch Agent That Proves Its Writes"
 description: "How Second Shift re-plans a field crew's day across Slack, Sheets, Calendar and Gmail with a CP-SAT solver, then reads every write back to verify it landed."
 date: 2026-10-17
 slug: second-shift-multi-app-dispatch-agent

@@ -7,6 +7,7 @@ project: "Spotify for Hackers"
 tags: [Next.js, Groq, ElevenLabs, Voice AI, HTML Audio, Terminal UI]
 repo: https://github.com/anirxdh/spotify-for-hackers
 live: https://spotifyv2-0-1.vercel.app
+screenshot: /blog/shots/spotify-for-hackers-ai-dj.webp
 accent: "#1db954"
 summary: "Spotify for Hackers is a terminal-skinned music player with four AI DJ hosts. Groq writes a one-line handoff for each track, ElevenLabs speaks it, and the browser ducks the music and starts the next preview quietly under the voice so there is never silence."
 ---

@@ -7,6 +7,7 @@ project: "The Missing Angle"
 tags: [ElevenLabs, Speech Engine, Groq, FastAPI, Three.js, Voice AI]
 repo: https://github.com/anirxdh/The-missing-angle
 live: https://the-missing-angle.vercel.app
+screenshot: /blog/shots/the-missing-angle-voice-mystery.webp
 accent: "#8d99ae"
 summary: "The Missing Angle is a voice-native murder mystery built for ElevenLabs Hack #10, where you interrogate three AI suspects out loud over WebRTC. This is how one FastAPI app runs the same scene logic over WebSockets and plain HTTP, verifies Speech Engine callbacks, and keeps LLM suspects from rambling."
 ---

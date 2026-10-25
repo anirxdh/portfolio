@@ -7,6 +7,7 @@ project: "Jungle Safari"
 tags: [ElevenLabs, Voice AI, Next.js, Upstash Redis, Caching, React Three Fiber]
 repo: https://github.com/anirxdh/JungleSafari
 live: https://thejunglesafari.netlify.app
+screenshot: /blog/shots/jungle-safari-prewarmed-voice-quiz.webp
 accent: "#7cb342"
 summary: "Jungle Safari is an animal-sound quiz for ages 1 to 3, built for the #ElevenHacks hackathon. Every ElevenLabs sound and every spoken mascot line is generated ahead of time and cached in static files, Upstash Redis and the browser, so a toddler never sees a spinner."
 ---
