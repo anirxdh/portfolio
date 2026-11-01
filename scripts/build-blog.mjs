@@ -1158,7 +1158,7 @@ function researchLd(r, url) {
       ...(x.publisher ? { publisher: { '@type': 'Organization', name: x.publisher } } : {}),
       ...(x.pages ? { pagination: String(x.pages) } : {}),
       ...(x.doi ? { identifier: { '@type': 'PropertyValue', propertyID: 'DOI', value: x.doi }, sameAs: doiUrl } : {}),
-      url: doiUrl || `${url}#${x.id}`,
+      url: x.url || doiUrl || `${url}#${x.id}`,
     };
   });
   return [patent, ...papers].filter(Boolean);
@@ -1167,7 +1167,9 @@ function researchLd(r, url) {
 // Plain text of one paper's byline and source, shared by the page and llms-full.txt.
 const paperByline = (x) => (x.authors?.length ? `By ${andList(x.authors)}.` : x.coauthors?.length ? `With ${andList(x.coauthors)}.` : '');
 const paperSource = (x) =>
-  x.book ? `In *${x.book}*${x.series ? ` (${x.series})` : ''}${x.pages ? `, pages ${pageRange(x.pages)}` : ''}.` : '';
+  x.book
+    ? `In *${x.book}*${x.series ? ` (${x.series})` : ''}${x.pages ? `, pages ${pageRange(x.pages)}` : ''}${x.place ? `, ${x.place}` : ''}.${x.place && x.publisher ? ` ${x.publisher}.` : ''}`
+    : '';
 const patentLines = (p) =>
   [
     p.filedAs ? `Filed as *${p.filedAs}*, ${p.numberLabel || 'application'} ${p.number}, ${p.when}.` : '',
@@ -1189,11 +1191,15 @@ function researchPage(r) {
       return entry({
         id: x.id,
         title: x.title,
-        href: doiUrl,
+        href: x.url || doiUrl,
         role: x.venue,
         when: x.when ? String(x.when) : '',
         bullets: [paperByline(x), paperSource(x), x.note].filter(Boolean),
-        links: x.doi ? [{ url: doiUrl, label: `DOI ${x.doi}` }] : [],
+        links: [
+          ...(x.url ? [{ url: x.url, label: x.url.includes('aclanthology.org') ? 'ACL Anthology' : 'Official page' }] : []),
+          ...(x.pdf ? [{ url: x.pdf, label: 'PDF' }] : []),
+          ...(x.doi ? [{ url: doiUrl, label: `DOI ${x.doi}` }] : []),
+        ],
       });
     })
     .join('');

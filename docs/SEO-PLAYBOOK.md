@@ -145,7 +145,7 @@ Rules for every profile:
    - University of Minnesota, Graduate Research Assistant (Institute for Health Informatics), January 2024 to July 2025
 6. **Add profile section**, then:
    - **Patents:** title `Contactless Integrated Voting System`, patent or application number `202341031598`, patent office India, status **Patent issued**. Patent URL: `https://anirudhvasudevan.com/blog/civs-contactless-voting-patent/`
-   - **Publications:** `ConsensusDrift: Semantic Salience Can Override Majority Evidence in LLM Aggregation`, publisher EMNLP (Main Conference), add the co-authors Gokul Srinath Seetha Ram and Rashmi Elavazhagan. Then `A Deep Convolutional Neural Network for Remote Life Activities Detection Using FMCW Radar Under Realistic Environments`, publisher Springer, 2023, URL `https://doi.org/10.1007/978-3-031-31153-6_32`
+   - **Publications:** `Consensus Drift: Semantic Salience Can Override Majority Evidence in LLM Aggregation`, publisher EMNLP (Main Conference), add the co-authors Gokul Srinath Seetha Ram and Rashmi Elavazhagan. Then `A Deep Convolutional Neural Network for Remote Life Activities Detection Using FMCW Radar Under Realistic Environments`, publisher Springer, 2023, URL `https://doi.org/10.1007/978-3-031-31153-6_32`
    - **Honors & awards**, one each:
      - Top 10, Y Combinator AI Hackathon (LARK)
      - Winner, ElevenHacks, Stripe x ElevenLabs (Living Photos)
@@ -242,7 +242,7 @@ Keep the handle as it is. If you ever change it, update the YouTube link in `scr
    - **Areas of interest:** `Voice AI, AI agents, Large language models, Retrieval-augmented generation, Computer vision`
    - **Homepage:** `https://anirudhvasudevan.com/`
 3. Click **Save**.
-4. Check that both papers are on the profile. If ConsensusDrift is missing, click **+** (Add), then **Add articles**, and search for its exact title; if it is not found yet, use **Add article manually** with only the details you have (title, authors, EMNLP, year).
+4. Check that both papers are on the profile. If Consensus Drift is missing, click **+** (Add), then **Add articles**, and search for its exact title; if it is not found yet, use **Add article manually** with only the details you have (title, authors, EMNLP, year).
 
 ### ORCID (`orcid.org/0009-0005-2249-312X`)
 
@@ -407,7 +407,7 @@ Third person:
 >
 > He likes building a whole product in a weekend. He has won five hackathons: Top 10 at the Y Combinator AI Hackathon with LARK, Winner at ElevenHacks (Stripe x ElevenLabs) with Living Photos, 2nd Place at ElevenLabs x Replit with FaceTime from Mars, 3rd Place at ElevenHacks (ElevenLabs x Zed) with Apartment 4B, and Best Voice Agent at ElevenLabs x Firecrawl with ScreenSense. He also finished 4th overall in ElevenHacks Season 1.
 >
-> He holds a granted patent for the Contactless Integrated Voting System (202341031598), which lets people vote with speech and hand gestures instead of touching a machine, and he co-wrote ConsensusDrift, a paper accepted to the EMNLP Main Conference. He has an MS in Computer Science from the University of Minnesota, Twin Cities, a B.Tech in Computer Science and Engineering from SRM Institute of Science and Technology, and a Diploma in Data Science from IIT Madras. His projects and write-ups are at anirudhvasudevan.com.
+> He holds a granted patent for the Contactless Integrated Voting System (202341031598), which lets people vote with speech and hand gestures instead of touching a machine, and he co-wrote Consensus Drift, a paper accepted to the EMNLP Main Conference. He has an MS in Computer Science from the University of Minnesota, Twin Cities, a B.Tech in Computer Science and Engineering from SRM Institute of Science and Technology, and a Diploma in Data Science from IIT Madras. His projects and write-ups are at anirudhvasudevan.com.
 
 First person:
 
@@ -417,7 +417,7 @@ First person:
 >
 > I like building a whole product in a weekend. I have won five hackathons: Top 10 at the Y Combinator AI Hackathon with LARK, Winner at ElevenHacks (Stripe x ElevenLabs) with Living Photos, 2nd Place at ElevenLabs x Replit with FaceTime from Mars, 3rd Place at ElevenHacks (ElevenLabs x Zed) with Apartment 4B, and Best Voice Agent at ElevenLabs x Firecrawl with ScreenSense. I also finished 4th overall in ElevenHacks Season 1.
 >
-> I hold a granted patent for the Contactless Integrated Voting System (202341031598), which lets people vote with speech and hand gestures instead of touching a machine, and I co-wrote ConsensusDrift, a paper accepted to the EMNLP Main Conference. I have an MS in Computer Science from the University of Minnesota, Twin Cities, a B.Tech in Computer Science and Engineering from SRM Institute of Science and Technology, and a Diploma in Data Science from IIT Madras. My projects and write-ups are at anirudhvasudevan.com.
+> I hold a granted patent for the Contactless Integrated Voting System (202341031598), which lets people vote with speech and hand gestures instead of touching a machine, and I co-wrote Consensus Drift, a paper accepted to the EMNLP Main Conference. I have an MS in Computer Science from the University of Minnesota, Twin Cities, a B.Tech in Computer Science and Engineering from SRM Institute of Science and Technology, and a Diploma in Data Science from IIT Madras. My projects and write-ups are at anirudhvasudevan.com.
 
 ### Fact sheet (copy from here, never from memory)
 
@@ -432,6 +432,6 @@ First person:
 | Email (public on the site) | anirudhvasudevan11@gmail.com |
 | Hackathons | Top 10, Y Combinator AI Hackathon (LARK). Winner, ElevenHacks, Stripe x ElevenLabs (Living Photos). 2nd Place, ElevenLabs x Replit Hackathon (FaceTime from Mars). 3rd Place, ElevenHacks, ElevenLabs x Zed (Apartment 4B). Best Voice Agent, ElevenLabs x Firecrawl Hackathon (ScreenSense). 4th overall, ElevenHacks Season 1 |
 | Patent | Contactless Integrated Voting System, granted. Indian application 202341031598, May 2023, assigned to SRM Institute of Science and Technology |
-| Papers | ConsensusDrift: Semantic Salience Can Override Majority Evidence in LLM Aggregation, EMNLP (Main Conference), with Gokul Srinath Seetha Ram and Rashmi Elavazhagan. A Deep Convolutional Neural Network for Remote Life Activities Detection Using FMCW Radar Under Realistic Environments, Springer, 2023, DOI 10.1007/978-3-031-31153-6_32 |
+| Papers | Consensus Drift: Semantic Salience Can Override Majority Evidence in LLM Aggregation, EMNLP (Main Conference), with Gokul Srinath Seetha Ram and Rashmi Elavazhagan. A Deep Convolutional Neural Network for Remote Life Activities Detection Using FMCW Radar Under Realistic Environments, Springer, 2023, DOI 10.1007/978-3-031-31153-6_32 |
 | Education | MS in Computer Science, University of Minnesota, Twin Cities (2023 to 2025). B.Tech in Computer Science and Engineering, SRM Institute of Science and Technology (2019 to 2023). Diploma in Data Science, IIT Madras (2021 to 2023) |
 | Profiles | LinkedIn `linkedin.com/in/anirudhvasudev`, GitHub `github.com/anirxdh`, X `x.com/anirxdhv`, YouTube `youtube.com/@anirudhvasudevan5581`, Devpost `devpost.com/anirxdh`, Google Scholar `scholar.google.com/citations?user=NvrJL_YAAAAJ`, ORCID `orcid.org/0009-0005-2249-312X`, LeetCode `leetcode.com/u/anirudhvasudev`, Instagram `instagram.com/anirxdh` |

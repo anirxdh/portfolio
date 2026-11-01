@@ -2,6 +2,7 @@
 title: "Anirudh Vasudevan: Bio, Hackathons, Patent and Research"
 description: "The story of Anirudh Vasudevan, a full-stack and AI engineer in San Francisco: Rivo, Nonlinear, five hackathon wins, a granted patent, research and education."
 date: 2026-10-17
+updated: 2026-11-01
 slug: about
 ---
 
@@ -52,9 +53,9 @@ More: my full [hackathon record](/hackathons/), the [patent and papers](/researc
 ## Patent and research
 
 - **Granted patent:** Contactless Integrated Voting System (filed as *A System and a Method for Contactless Voting*, Indian application 202341031598, May 2023), assigned to SRM Institute of Science and Technology. It lets people vote using speech and hand gestures instead of touching a machine. Here is [the engineering behind CIVS](/blog/civs-contactless-voting-patent/).
-- **EMNLP (Main Conference):** *ConsensusDrift: Semantic Salience Can Override Majority Evidence in LLM Aggregation*, with Gokul Srinath Seetha Ram and Rashmi Elavazhagan.
+- **EMNLP (Main Conference):** [*Consensus Drift: Semantic Salience Can Override Majority Evidence in LLM Aggregation*](https://aclanthology.org/2026.emnlp-main.1689/), with Gokul Srinath Seetha Ram and Rashmi Elavazhagan (pages 38411 to 38428, Budapest, October 2026).
 - **Paper:** [*A Deep Convolutional Neural Network for Remote Life Activities Detection Using FMCW Radar Under Realistic Environments*](https://doi.org/10.1007/978-3-031-31153-6_32) (Springer, 2023).
-- More on [Google Scholar](https://scholar.google.com/citations?user=NvrJL_YAAAAJ) and [ORCID](https://orcid.org/0009-0005-2249-312X).
+- More on the [ACL Anthology](https://aclanthology.org/people/anirudh-vasudevan/), [Google Scholar](https://scholar.google.com/citations?user=NvrJL_YAAAAJ) and [ORCID](https://orcid.org/0009-0005-2249-312X).
 
 ## Education
 
