@@ -5,11 +5,13 @@
 # patent: name, filedAs, status, number, when, assignee, summary, links[]
 # papers[]: id (anchor), title, venue (shown as is), when, authors[] (in the published order, use
 #   "Anirudh Vasudevan" for him) or coauthors[] (when the order is not known), book, series,
-#   publisher, year (only when published), pages, doi, url, note, draft (true = not shown)
+#   publisher, place, year (only when published), pages, doi, url (official page), pdf, note,
+#   draft (true = not shown)
 # experience[]: title, where, role, when, bullets[], links[]
 title: "Patent and Research Publications"
 description: "The granted patent and research papers of Anirudh Vasudevan: a contactless voting system, an EMNLP 2026 paper on LLM aggregation, and FMCW radar work."
 date: 2026-10-17
+updated: 2026-11-01
 slug: research
 headline: Patent and research.
 standfirst: One granted patent and two papers, one of them at the EMNLP 2026 Main Conference. This page lists each one with its coauthors and links.
@@ -34,12 +36,20 @@ patent:
       url: https://github.com/anirxdh/CIVS
 
 papers:
-  - id: consensusdrift
-    title: "ConsensusDrift: Semantic Salience Can Override Majority Evidence in LLM Aggregation"
+  # Citation copied from the paper's ACL Anthology record.
+  - id: consensus-drift
+    title: "Consensus Drift: Semantic Salience Can Override Majority Evidence in LLM Aggregation"
     venue: EMNLP 2026 (Main Conference)
-    series: Conference on Empirical Methods in Natural Language Processing (EMNLP)
-    when: "2026"
-    coauthors: [Gokul Srinath Seetha Ram, Rashmi Elavazhagan]
+    book: Proceedings of the 2026 Conference on Empirical Methods in Natural Language Processing
+    place: Budapest, Hungary
+    publisher: Association for Computational Linguistics
+    year: "2026"
+    when: October 2026
+    pages: 38411-38428
+    doi: 10.18653/2026.emnlp-main.1689
+    url: https://aclanthology.org/2026.emnlp-main.1689/
+    pdf: https://aclanthology.org/2026.emnlp-main.1689.pdf
+    authors: [Gokul Srinath Seetha Ram, Rashmi Elavazhagan, Anirudh Vasudevan]
   - id: fmcw-radar
     title: "A Deep Convolutional Neural Network for Remote Life Activities Detection Using FMCW Radar Under Realistic Environments"
     venue: Springer, 2023
@@ -79,12 +89,14 @@ experience:
       - Plotly dashboards over aggregated school-district data, plus a chatbot whose retrieval runs in the browser with a hand-written TF-IDF engine. [Read the write-up](/blog/insightedu-browser-retrieval/).
 
 profiles:
+  - label: ACL Anthology
+    url: https://aclanthology.org/people/anirudh-vasudevan/
   - label: Google Scholar
     url: https://scholar.google.com/citations?user=NvrJL_YAAAAJ
   - label: ORCID
     url: https://orcid.org/0009-0005-2249-312X
 ---
 
-Anirudh Vasudevan holds a granted patent for the Contactless Integrated Voting System and co-wrote *ConsensusDrift: Semantic Salience Can Override Majority Evidence in LLM Aggregation*, a paper at the EMNLP 2026 Main Conference. Before that he published work on detecting life activities with FMCW radar using a deep convolutional neural network (Springer, 2023).
+Anirudh Vasudevan holds a granted patent for the Contactless Integrated Voting System and co-wrote [*Consensus Drift: Semantic Salience Can Override Majority Evidence in LLM Aggregation*](https://aclanthology.org/2026.emnlp-main.1689/), a paper at the EMNLP 2026 Main Conference. Before that he published work on detecting life activities with FMCW radar using a deep convolutional neural network (Springer, 2023).
 
 The patent grew out of CIVS, a contactless voting kiosk I built as a personal and academic project. It checks a voter's face against registered ID photos, then records a ballot chosen by holding up fingers and confirmed with a thumbs up. The engineering is in [the CIVS write-up](/blog/civs-contactless-voting-patent/).

@@ -69,9 +69,9 @@ Ordered by expected impact. Rows 1 to 10 are the ones that matter most. Rows 11 
 | 11 | `https://dev.to/anirudhvasudevan` | DEV profile | Does not exist | Create it, then post from `syndication/devto/` | 20 min, then weekly | Medium |
 | 12 | `https://anirudhvasudevan.hashnode.dev` | Hashnode blog | Does not exist | Create it, then post from `syndication/hashnode/` | 20 min, then weekly | Medium |
 | 13 | `https://www.crunchbase.com/person/anirudh-vasudevan` | Crunchbase person page | Not checked (blocked) | Sign in, find or add your person page, link it to Rivo | 20 min | Medium to high |
-| 14 | `https://aclanthology.org/people/...` | ACL Anthology author page | Not yet (EMNLP proceedings not out) | Make sure the camera-ready lists you as "Anirudh Vasudevan"; link it once live | 5 min now | High once it exists |
+| 14 | `https://aclanthology.org/people/anirudh-vasudevan/` | ACL Anthology author page | Yes, linked from /research/ and the Person sameAs list | Nothing to do | Done | High |
 | 15 | `https://medium.com/@anirudhvasudevan` | Medium profile | Handle looks free. `medium.com/@anirxdh` is a different person | Create it, import articles | 20 min, then weekly | Medium |
-| 16 | arXiv author page | arXiv | No papers there today | Post the ConsensusDrift preprint only if your co-authors agree | 1 hour | Medium to high |
+| 16 | arXiv author page | arXiv | No papers there today | Post the Consensus Drift preprint only if your co-authors agree | 1 hour | Medium to high |
 | 17 | `https://huggingface.co/Anirxdh` | Hugging Face | Full name shown, no links, nothing published | Add links now; publish one Space this month | 10 min, then 2 hours | Low to medium |
 | 18 | `https://www.producthunt.com/@anirudhvasudevan` | Product Hunt | Name "Anirudh", headline "Ms cs grad student". Probably yours, not confirmed | Confirm it is yours, then fix name and headline | 10 min | Low to medium |
 | 19 | `https://www.instagram.com/anirxdh/` | Instagram | Private; result title reads "anirudh (@anirxdh)" | Set the Name field and link, or drop it from the site's profile list | 5 min | Low to medium |
@@ -222,8 +222,8 @@ Longer bios are in the playbook's [Bio kit](./SEO-PLAYBOOK.md#bio-kit). Once you
 
 ### Next 90 days
 
-- **EMNLP:** make sure the camera-ready lists you exactly as `Anirudh Vasudevan`. When the proceedings publish, add the paper to Scholar and ORCID (by DOI) and link the ACL Anthology page from `/research/`.
-- **arXiv:** if your co-authors agree, post the ConsensusDrift preprint under `Anirudh Vasudevan`. It also feeds Semantic Scholar and Google Scholar.
+- **EMNLP:** published at <https://aclanthology.org/2026.emnlp-main.1689/> under `Anirudh Vasudevan`, and linked from `/research/`. Still to do on your side: add it to Google Scholar and to ORCID (by DOI `10.18653/2026.emnlp-main.1689`), and fix the misspelled surname on the Scholar entry.
+- **arXiv:** if your co-authors agree, post the Consensus Drift preprint under `Anirudh Vasudevan`. It also feeds Semantic Scholar and Google Scholar.
 - **Rivo team page:** ask Rivo to list "Anirudh Vasudevan, Member of Technical Staff" on a team page or an engineering post that links to `https://anirudhvasudevan.com/`. If Rivo is on The Org, ask to be added there with the same link.
 - **Ask for links:** when a hackathon organizer, teammate or event page writes about a project, ask them to link your name to `https://anirudhvasudevan.com/`.
 - **Video:** one demo video per hackathon project, named as in step 7.

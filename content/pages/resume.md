@@ -7,6 +7,7 @@
 title: "Resume"
 description: "The resume of Anirudh Vasudevan, a full-stack and AI engineer in San Francisco: Rivo, Nonlinear, RUA, a granted patent, an EMNLP paper, and education."
 date: 2026-10-17
+updated: 2026-11-01
 slug: resume
 pdf: /assets/anirudh-vasudevan-resume.pdf
 name: Anirudh Vasudevan
@@ -95,7 +96,7 @@ projects:
 
 achievements:
   - "**Contactless Integrated Voting System**, granted patent. Patent ID 202341031598, May 2023. [Patent link](https://drive.google.com/file/d/1l-Lth10_zWK-jLUpnK5FIKWJEJR-O6oq/view?usp=sharing), [how CIVS works](/blog/civs-contactless-voting-patent/)."
-  - "*ConsensusDrift: Semantic Salience Can Override Majority Evidence in LLM Aggregation*, **EMNLP 2026 (Main Conference)**."
+  - "[*Consensus Drift: Semantic Salience Can Override Majority Evidence in LLM Aggregation*](https://aclanthology.org/2026.emnlp-main.1689/), **EMNLP 2026 (Main Conference)**."
   - "**5x Hackathon Winner**, with multiple ElevenLabs sponsor prizes plus Replit and Zed. [See the projects](/projects/)."
   - "[*A Deep CNN for Remote Life Activities Detection using FMCW Radar under Realistic Environments*](https://link.springer.com/chapter/10.1007/978-3-031-31153-6_32)."
 ---

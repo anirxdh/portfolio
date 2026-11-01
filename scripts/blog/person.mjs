@@ -14,6 +14,7 @@ export const SAME_AS = [
   'https://github.com/anirxdh',
   'https://scholar.google.com/citations?user=NvrJL_YAAAAJ',
   'https://orcid.org/0009-0005-2249-312X',
+  'https://aclanthology.org/people/anirudh-vasudevan/',
   'https://devpost.com/anirxdh',
   'https://x.com/anirxdhv',
   'https://www.youtube.com/@anirudhvasudevan5581',
