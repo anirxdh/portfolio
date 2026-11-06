@@ -32,7 +32,7 @@ export const person = (extra = {}) => ({
   image: `${SITE}/assets/anirudh-avatar.png`,
   jobTitle: 'Member of Technical Staff',
   description:
-    'Anirudh Vasudevan is a full-stack and AI engineer in San Francisco. He is a Member of Technical Staff at Rivo, where he builds production voice AI agents, and a 5x hackathon winner with a granted patent and an EMNLP paper.',
+    'Anirudh Vasudevan is a full-stack and AI engineer in San Francisco. He is a Member of Technical Staff at Rivo, where he builds production voice AI agents, and a 5x hackathon winner with a granted patent and papers at EMNLP 2026 and IJCNLP-AACL 2026.',
   worksFor: { '@type': 'Organization', name: 'Rivo', url: 'https://www.rivofi.com/' },
   homeLocation: { '@type': 'Place', name: 'San Francisco, California' },
   alumniOf: [

@@ -1112,7 +1112,9 @@ const pageRange = (p) => String(p).replace(/^(\d+)\s*-\s*(\d+)$/, '$1 to $2');
 
 // ---------- research ----------
 const paperAuthors = (p) => (p.authors?.length ? p.authors : [AUTHOR, ...(p.coauthors || [])]);
-const personNode = (name) => (name === AUTHOR ? { '@id': PERSON_ID } : { '@type': 'Person', name });
+// `people` (research.md) maps a coauthor's name to a public profile, used as their url.
+const personNode = (name, people = {}) =>
+  name === AUTHOR ? { '@id': PERSON_ID } : { '@type': 'Person', name, ...(people[name] ? { url: people[name] } : {}) };
 const visiblePapers = (r) => (r.papers || []).filter((x) => !x.draft);
 
 function researchLd(r, url) {
@@ -1147,7 +1149,7 @@ function researchLd(r, url) {
       '@id': `${url}#${x.id}`,
       headline: x.title,
       name: x.title,
-      author: paperAuthors(x).map(personNode),
+      author: paperAuthors(x).map((name) => personNode(name, r.people)),
       ...(x.year ? { datePublished: String(x.year) } : {}),
       ...(description ? { description: `${description}.` } : {}),
       ...(x.book
@@ -1198,6 +1200,7 @@ function researchPage(r) {
         links: [
           ...(x.url ? [{ url: x.url, label: x.url.includes('aclanthology.org') ? 'ACL Anthology' : 'Official page' }] : []),
           ...(x.pdf ? [{ url: x.pdf, label: 'PDF' }] : []),
+          ...(x.video ? [{ url: x.video, label: 'Talk video' }] : []),
           ...(x.doi ? [{ url: doiUrl, label: `DOI ${x.doi}` }] : []),
         ],
       });

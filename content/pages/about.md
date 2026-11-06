@@ -2,7 +2,7 @@
 title: "Anirudh Vasudevan: Bio, Hackathons, Patent and Research"
 description: "The story of Anirudh Vasudevan, a full-stack and AI engineer in San Francisco: Rivo, Nonlinear, five hackathon wins, a granted patent, research and education."
 date: 2026-10-17
-updated: 2026-11-01
+updated: 2026-11-05
 slug: about
 ---
 
@@ -54,6 +54,7 @@ More: my full [hackathon record](/hackathons/), the [patent and papers](/researc
 
 - **Granted patent:** Contactless Integrated Voting System (filed as *A System and a Method for Contactless Voting*, Indian application 202341031598, May 2023), assigned to SRM Institute of Science and Technology. It lets people vote using speech and hand gestures instead of touching a machine. Here is [the engineering behind CIVS](/blog/civs-contactless-voting-patent/).
 - **EMNLP (Main Conference):** [*Consensus Drift: Semantic Salience Can Override Majority Evidence in LLM Aggregation*](https://aclanthology.org/2026.emnlp-main.1689/), with Gokul Srinath Seetha Ram and Rashmi Elavazhagan (pages 38411 to 38428, Budapest, October 2026).
+- **Findings of IJCNLP-AACL 2026:** [*The Validity-Fidelity Gap: A Controlled Study of Representation Drift in Structured Extraction Under Redundant Contexts*](https://aclanthology.org/2026.findings-aacl.107/), with Gokul Srinath Seetha Ram and Rashmi Elavazhagan (pages 2112 to 2126, Hengqin, November 2026). I presented it at the conference ([talk video](https://underline.io/events/541/schedule/sessions/23844/lecture/170073-the-validity-fidelity-gap-a-controlled-study-of-representation-drift-in-structured-extraction-under-redundant-contexts)).
 - **Paper:** [*A Deep Convolutional Neural Network for Remote Life Activities Detection Using FMCW Radar Under Realistic Environments*](https://doi.org/10.1007/978-3-031-31153-6_32) (Springer, 2023).
 - More on the [ACL Anthology](https://aclanthology.org/people/anirudh-vasudevan/), [Google Scholar](https://scholar.google.com/citations?user=NvrJL_YAAAAJ) and [ORCID](https://orcid.org/0009-0005-2249-312X).
 
