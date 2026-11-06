@@ -227,7 +227,7 @@ export const navLinks = [
 
   export const stats = [
     { value: 5, suffix: '×', label: 'Hackathon Wins' },
-    { value: 2, suffix: '', label: 'Patent & Publication' },
+    { value: 4, suffix: '', label: 'Patent & Papers' },
     { value: 7, suffix: '', label: 'Projects Shipped' },
     { value: 500, suffix: '+', label: 'LeetCode Solved' },
   ];

@@ -5,16 +5,16 @@
 # patent: name, filedAs, status, number, when, assignee, summary, links[]
 # papers[]: id (anchor), title, venue (shown as is), when, authors[] (in the published order, use
 #   "Anirudh Vasudevan" for him) or coauthors[] (when the order is not known), book, series,
-#   publisher, place, year (only when published), pages, doi, url (official page), pdf, note,
+#   publisher, place, year (only when published), pages, doi, url (official page), pdf, video (talk), note,
 #   draft (true = not shown)
 # experience[]: title, where, role, when, bullets[], links[]
 title: "Patent and Research Publications"
-description: "The granted patent and research papers of Anirudh Vasudevan: a contactless voting system, an EMNLP 2026 paper on LLM aggregation, and FMCW radar work."
+description: "The granted patent and research papers of Anirudh Vasudevan: a contactless voting system, papers at EMNLP 2026 and IJCNLP-AACL 2026 Findings, and FMCW radar work."
 date: 2026-10-17
-updated: 2026-11-01
+updated: 2026-11-05
 slug: research
 headline: Patent and research.
-standfirst: One granted patent and two papers, one of them at the EMNLP 2026 Main Conference. This page lists each one with its coauthors and links.
+standfirst: One granted patent and three papers, at the EMNLP 2026 Main Conference, in Findings of IJCNLP-AACL 2026, and with Springer. This page lists each one with its coauthors and links.
 
 patent:
   id: patent
@@ -50,6 +50,20 @@ papers:
     url: https://aclanthology.org/2026.emnlp-main.1689/
     pdf: https://aclanthology.org/2026.emnlp-main.1689.pdf
     authors: [Gokul Srinath Seetha Ram, Rashmi Elavazhagan, Anirudh Vasudevan]
+  # Citation copied from the paper's ACL Anthology record. No DOI is registered yet; add it when it is.
+  - id: validity-fidelity-gap
+    title: "The Validity-Fidelity Gap: A Controlled Study of Representation Drift in Structured Extraction Under Redundant Contexts"
+    venue: Findings of IJCNLP-AACL 2026
+    book: "Findings of the Association for Computational Linguistics: IJCNLP-AACL 2026"
+    place: Hengqin, China
+    publisher: Association for Computational Linguistics
+    year: "2026"
+    when: November 2026
+    pages: 2112-2126
+    url: https://aclanthology.org/2026.findings-aacl.107/
+    pdf: https://aclanthology.org/2026.findings-aacl.107.pdf
+    video: https://underline.io/events/541/schedule/sessions/23844/lecture/170073-the-validity-fidelity-gap-a-controlled-study-of-representation-drift-in-structured-extraction-under-redundant-contexts
+    authors: [Gokul Srinath Seetha Ram, Anirudh Vasudevan, Rashmi Elavazhagan]
   - id: fmcw-radar
     title: "A Deep Convolutional Neural Network for Remote Life Activities Detection Using FMCW Radar Under Realistic Environments"
     venue: Springer, 2023
@@ -88,6 +102,11 @@ experience:
     bullets:
       - Plotly dashboards over aggregated school-district data, plus a chatbot whose retrieval runs in the browser with a hand-written TF-IDF engine. [Read the write-up](/blog/insightedu-browser-retrieval/).
 
+# Coauthors' public author pages, used in the papers' structured data.
+people:
+  Gokul Srinath Seetha Ram: https://aclanthology.org/people/gokul-srinath-seetha-ram/
+  Rashmi Elavazhagan: https://aclanthology.org/people/rashmi-elavazhagan/
+
 profiles:
   - label: ACL Anthology
     url: https://aclanthology.org/people/anirudh-vasudevan/
@@ -97,6 +116,6 @@ profiles:
     url: https://orcid.org/0009-0005-2249-312X
 ---
 
-Anirudh Vasudevan holds a granted patent for the Contactless Integrated Voting System and co-wrote [*Consensus Drift: Semantic Salience Can Override Majority Evidence in LLM Aggregation*](https://aclanthology.org/2026.emnlp-main.1689/), a paper at the EMNLP 2026 Main Conference. Before that he published work on detecting life activities with FMCW radar using a deep convolutional neural network (Springer, 2023).
+Anirudh Vasudevan holds a granted patent for the Contactless Integrated Voting System and co-wrote two papers in 2026: [*Consensus Drift: Semantic Salience Can Override Majority Evidence in LLM Aggregation*](https://aclanthology.org/2026.emnlp-main.1689/) at the EMNLP 2026 Main Conference, and [*The Validity-Fidelity Gap: A Controlled Study of Representation Drift in Structured Extraction Under Redundant Contexts*](https://aclanthology.org/2026.findings-aacl.107/) in Findings of IJCNLP-AACL 2026, which he presented at the conference. Before that he published work on detecting life activities with FMCW radar using a deep convolutional neural network (Springer, 2023).
 
 The patent grew out of CIVS, a contactless voting kiosk I built as a personal and academic project. It checks a voter's face against registered ID photos, then records a ballot chosen by holding up fingers and confirmed with a thumbs up. The engineering is in [the CIVS write-up](/blog/civs-contactless-voting-patent/).

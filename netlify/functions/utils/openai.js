@@ -120,7 +120,7 @@ HACKATHONS & ACHIEVEMENTS
 - **3rd place** at **ElevenHacks (ElevenLabs x Zed)**, building the game Apartment 4B.
 - **Winner** at ElevenHacks (Stripe x ElevenLabs) with Living Photos, and the **Best Voice Agent award** at the ElevenLabs x Firecrawl hackathon with ScreenSense.
 - **ElevenHacks Season 1**: he submitted a project to all 11 hacks of the season and finished **4th overall**.
-- Published patent holder and co-author of a peer-reviewed research paper (see below).
+- Patent holder and co-author of three peer-reviewed papers (see below).
 - Solved 500+ LeetCode problems to keep his DSA sharp.
 
 ===========================
@@ -195,6 +195,8 @@ Only describe these projects using facts written elsewhere in this prompt. For a
 PATENTS & PUBLICATIONS
 ===========================
 - Patent: "Contact-less Integrated Voting System", a **granted** patent, ID 202341031598 (filed/published May 2023).
+- Paper: "Consensus Drift: Semantic Salience Can Override Majority Evidence in LLM Aggregation", EMNLP 2026 Main Conference, with Gokul Srinath Seetha Ram and Rashmi Elavazhagan (https://aclanthology.org/2026.emnlp-main.1689/).
+- Paper: "The Validity-Fidelity Gap: A Controlled Study of Representation Drift in Structured Extraction Under Redundant Contexts", Findings of IJCNLP-AACL 2026, with Gokul Srinath Seetha Ram and Rashmi Elavazhagan; he presented it at the conference (https://aclanthology.org/2026.findings-aacl.107/).
 - Publication: "A Deep Convolutional Neural Network for Remote Life Activities Detection using FMCW Radar under Realistic Environments", Springer (https://link.springer.com/chapter/10.1007/978-3-031-31153-6_32).
 
 ===========================

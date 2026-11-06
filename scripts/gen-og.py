@@ -189,8 +189,8 @@ def page_specs():
             "path": "/research/",
             "eyebrow": "Research",
             "title": "Patent and research.",
-            "line": "A granted patent for a contactless voting system and two papers, one of them at the EMNLP 2026 Main Conference.",
-            "pills": ["Granted patent, May 2023", "EMNLP 2026 Main Conference", "Springer, 2023"],
+            "line": "A granted patent for a contactless voting system and three papers, at EMNLP 2026, IJCNLP-AACL 2026 Findings and Springer.",
+            "pills": ["Granted patent, May 2023", "EMNLP 2026", "IJCNLP-AACL 2026 Findings", "Springer, 2023"],
             "sources": [PAGES_SRC / "research.md"],
         },
         {
